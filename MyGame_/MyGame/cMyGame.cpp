@@ -1,14 +1,12 @@
 // Includes
 //=========
 
-#include <fstream>
 
 #include "cMyGame.h"
 
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/UserInput/UserInput.h>
-
-std::ofstream logFile;
+#include <Engine/Logging/Logging.h>
 
 // Inherited Implementation
 //=========================
@@ -40,20 +38,12 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 
 eae6320::cResult eae6320::cMyGame::Initialize()
 {
-	logFile.open("game_log.txt", std::ios::out | std::ios::trunc);
-	if (logFile.is_open())
-	{
-		logFile << GetMainWindowName() << " Initialization Started\n";
-	}
+	eae6320::Logging::OutputMessage((std::string("Initialize Window : ") + GetMainWindowName()).c_str());
 	return Results::Success;
 }
 
 eae6320::cResult eae6320::cMyGame::CleanUp()
 {
-	if (logFile.is_open())
-	{
-		logFile << GetMainWindowName() << " Clean Up Completed\n";
-		logFile.close();
-	}
+	eae6320::Logging::OutputMessage((std::string("Clean Up Window : ") + GetMainWindowName()).c_str());
 	return Results::Success;
 }

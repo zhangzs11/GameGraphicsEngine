@@ -43,7 +43,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	logFile.open("game_log.txt", std::ios::out | std::ios::trunc);
 	if (logFile.is_open())
 	{
-		logFile << GetMainWindowName() << "Initialization Started\n";
+		logFile << GetMainWindowName() << " Initialization Started\n";
 	}
 	return Results::Success;
 }
@@ -52,7 +52,7 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 {
 	if (logFile.is_open())
 	{
-		logFile << GetMainWindowName() << "Clean Up Completed\n";
+		logFile << GetMainWindowName() << " Clean Up Completed\n";
 		logFile.close();
 	}
 	return Results::Success;

@@ -5,6 +5,7 @@
 //=========
 
 #include "Configuration.h"
+#include "cRenderState.h"
 
 #ifdef EAE6320_PLATFORM_GL
 #include "OpenGL/Includes.h"
@@ -20,7 +21,7 @@ namespace eae6320
 {
     namespace Graphics
     {
-        class cRenderState;
+        class cShader;
     }
 }
 

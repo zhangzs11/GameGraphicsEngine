@@ -21,7 +21,7 @@ namespace eae6320
 {
 	namespace Graphics
 	{
-		struct cVertexFormat;
+		class cVertexFormat;
 	}
 }
 

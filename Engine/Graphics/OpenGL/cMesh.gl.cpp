@@ -75,7 +75,7 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 	// Assign the data to the buffer
 	{
 		const auto bufferSize = static_cast<UINT>(i_vertexCount * sizeof(eae6320::Graphics::VertexFormats::sVertex_mesh));
-		EAE6320_ASSERT(bufferSize <= std::numeric_limits<GLsizeiptr>::max());
+		EAE6320_ASSERT(static_cast<GLsizeiptr>(bufferSize) <= std::numeric_limits<GLsizeiptr>::max());
 		glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(bufferSize), i_vertexData, GL_STATIC_DRAW);
 		const auto errorCode = glGetError();
 		if (errorCode != GL_NO_ERROR)

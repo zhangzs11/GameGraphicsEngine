@@ -91,4 +91,5 @@ eae6320::cResult eae6320::Graphics::cEffect::CleanUp()
 	}
 
 	// TODO: Clean up RenderState
+	return eae6320::Results::Success;
 }

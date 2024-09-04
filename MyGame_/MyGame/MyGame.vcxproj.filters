@@ -20,9 +20,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Resource Files\ExampleGame.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
+    <ResourceCompile Include="Resource Files\MyGame.rc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource Files\Resource.h">
@@ -31,10 +29,10 @@
     <ClInclude Include="Resource Files\targetver.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
-    <ClInclude Include="cExampleGame.h" />
+    <ClInclude Include="cMyGame.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cExampleGame.cpp" />
     <ClCompile Include="EntryPoint.cpp" />
+    <ClCompile Include="cMyGame.cpp" />
   </ItemGroup>
 </Project>

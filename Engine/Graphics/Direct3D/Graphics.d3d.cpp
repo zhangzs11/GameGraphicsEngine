@@ -69,6 +69,10 @@ namespace
 
 	eae6320::Graphics::cMesh s_mesh;
 
+	// House
+	//eae6320::Graphics::cMesh s_house_top_mesh;
+	//eae6320::Graphics::cMesh s_house_bottom_mesh;
+
 	// Shading Data
 	//-------------
 
@@ -182,6 +186,8 @@ void eae6320::Graphics::RenderFrame()
 	// Draw the geometry
 	{
 		s_mesh.Draw();
+		//s_house_top_mesh.Draw();
+		//s_house_bottom_mesh.Draw();
 	}
 
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
@@ -294,6 +300,14 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the mesh");
 	}
+	/*if (!(result = s_house_top_mesh.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the mesh");
+	}
+	if (!(result = s_house_bottom_mesh.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the mesh");
+	}*/
 	if (!(result = s_effect.CleanUp()))
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the effect");
@@ -352,6 +366,36 @@ namespace
 			return result;
 		}
 
+		//// House
+		//// Top
+		//eae6320::Graphics::VertexFormats::sVertex_mesh vertexData2[] = {
+		//	// Triangle
+		//	{ -1.0f, 0.0f, 0.0f },
+		//	{ 0.0f, 1.0f, 0.0f },
+		//	{ 1.0f, 0.0f, 0.0f },
+		//};
+		//if (!(result = s_house_top_mesh.Initialize(vertexData2, static_cast<uint16_t>(std::size(vertexData2)))))
+		//{
+		//	EAE6320_ASSERTF(false, "Can't initialize Graphics without the geometry data");
+		//	return result;
+		//}
+		//// Bottom
+		//eae6320::Graphics::VertexFormats::sVertex_mesh vertexData3[] = {
+		//	// Down Triangle
+		//	{ -0.5f, -0.5f, 0.0f },
+		//	{ 0.5f, 0.0f, 0.0f },
+		//	{ 0.5f, -0.5f, 0.0f },
+
+		//	// Up Triangle
+		//	{ -0.5f, -0.5f, 0.0f },
+		//	{ -0.5f, 0.0f, 0.0f },
+		//	{ 0.5f, 0.0f, 0.0f },
+		//};
+		//if (!(result = s_house_bottom_mesh.Initialize(vertexData3, static_cast<uint16_t>(std::size(vertexData3)))))
+		//{
+		//	EAE6320_ASSERTF(false, "Can't initialize Graphics without the geometry data");
+		//	return result;
+		//}
 		return result;
 	}
 

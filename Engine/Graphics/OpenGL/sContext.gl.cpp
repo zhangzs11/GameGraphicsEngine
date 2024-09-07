@@ -94,6 +94,25 @@ eae6320::cResult eae6320::Graphics::sContext::CleanUp()
 	return result;
 }
 
+// Implementation
+//===============
+
+eae6320::cResult eae6320::Graphics::sContext::Present()
+{
+	auto result = Results::Success;
+
+	const auto deviceContext = sContext::g_context.deviceContext;
+	EAE6320_ASSERT(deviceContext != NULL);
+	const auto glResult = SwapBuffers(deviceContext);
+	EAE6320_ASSERT(glResult != FALSE);
+	if (glResult == FALSE)
+	{
+		result = Results::Failure;
+	}
+
+	return result;
+}
+
 // Helper Declarations
 //====================
 

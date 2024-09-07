@@ -89,6 +89,8 @@ namespace eae6320
 			// Implementation
 			//===============
 
+			cResult Present();
+
 		private:
 
 			sContext() = default;

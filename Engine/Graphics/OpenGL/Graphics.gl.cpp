@@ -8,10 +8,12 @@
 #include "../ConstantBufferFormats.h"
 #include "../cRenderState.h"
 #include "../cShader.h"
+#include "../cVertexFormat.h"
 #include "../sContext.h"
 #include "../VertexFormats.h"
 #include "../cMesh.h"
 #include "../cEffect.h"
+#include "../cView.h"
 
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Concurrency/cEvent.h>
@@ -67,6 +69,10 @@ namespace
 	//-------------
 
 	eae6320::Graphics::cEffect s_effect;
+
+	// View
+	//-------------
+	eae6320::Graphics::cView s_view;
 }
 
 // Helper Declarations
@@ -76,6 +82,7 @@ namespace
 {
 	eae6320::cResult InitializeGeometry();
 	eae6320::cResult InitializeShadingData();
+	eae6320::cResult InitializeViews(const eae6320::Graphics::sInitializationParameters& i_initializationParameters);
 }
 
 // Interface
@@ -134,45 +141,17 @@ void eae6320::Graphics::RenderFrame()
 		}
 	}
 
-	// Every frame an entirely new image will be created.
-	// Before drawing anything, then, the previous image will be erased
-	// by "clearing" the image buffer (filling it with a solid color)
-	{
-		// Black is usually used
-		{
-			glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
-		}
-		{
-			constexpr GLbitfield clearColor = GL_COLOR_BUFFER_BIT;
-			glClear( clearColor );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
-		}
-	}
-	// In addition to the color buffer there is also a hidden image called the "depth buffer"
-	// which is used to make it less important which order draw calls are made.
-	// It must also be "cleared" every frame just like the visible color buffer.
-	{
-		{
-			glDepthMask( GL_TRUE );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
-			constexpr GLclampd clearToFarDepth = 1.0;
-			glClearDepth( clearToFarDepth );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
-		}
-		{
-			constexpr GLbitfield clearDepth = GL_DEPTH_BUFFER_BIT;
-			glClear( clearDepth );
-			EAE6320_ASSERT( glGetError() == GL_NO_ERROR );
-		}
-	}
+	// Clear
+	constexpr float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	s_view.Clear(clearColor);
 
 	EAE6320_ASSERT( s_dataBeingRenderedByRenderThread );
+	auto* const dataRequiredToRenderFrame = s_dataBeingRenderedByRenderThread;
 
 	// Update the frame constant buffer
 	{
 		// Copy the data from the system memory that the application owns to GPU memory
-		auto& constantData_frame = s_dataBeingRenderedByRenderThread->constantData_frame;
+		auto& constantData_frame = dataRequiredToRenderFrame->constantData_frame;
 		s_constantBuffer_frame.Update( &constantData_frame );
 	}
 
@@ -189,10 +168,7 @@ void eae6320::Graphics::RenderFrame()
 	// In order to display it the contents of the back buffer must be "presented"
 	// (or "swapped" with the "front buffer", which is the image that is actually being displayed)
 	{
-		const auto deviceContext = sContext::g_context.deviceContext;
-		EAE6320_ASSERT( deviceContext != NULL );
-		const auto glResult = SwapBuffers( deviceContext );
-		EAE6320_ASSERT( glResult != FALSE );
+		auto result = sContext::g_context.Present();
 	}
 
 	// After all of the data that was submitted for this frame has been used
@@ -247,6 +223,15 @@ eae6320::cResult eae6320::Graphics::Initialize( const sInitializationParameters&
 			return result;
 		}
 	}
+	// Initialize and Bind the views
+	{
+		if (!(result = InitializeViews(i_initializationParameters)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the views");
+			return result;
+		}
+		s_view.Bind();
+	}
 	// Initialize the shading data
 	{
 		if ( !( result = InitializeShadingData() ) )
@@ -271,18 +256,21 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 {
 	auto result = Results::Success;
 
+	// Clean up the View
+	if (!(result = s_view.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the View");
+	}
 	// Clean up the Effect
 	if (!(result = s_effect.CleanUp()))
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the effect");
 	}
-
 	// Clean up the Mesh
 	if (!(result = s_mesh.CleanUp()))
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the mesh");
 	}
-
 	// Clean up constant buffer
 	{
 		const auto result_constantBuffer_frame = s_constantBuffer_frame.CleanUp();
@@ -347,6 +335,19 @@ namespace
 		if (!(result = s_effect.Initialize("data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/animatedColor.shader")))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the shading data");
+			return result;
+		}
+
+		return result;
+	}
+
+	eae6320::cResult InitializeViews(const eae6320::Graphics::sInitializationParameters& i_initializationParameters)
+	{
+		auto result = eae6320::Results::Success;
+
+		if (!(result = s_view.Initialize(i_initializationParameters)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
 		}
 

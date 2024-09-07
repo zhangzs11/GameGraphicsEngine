@@ -63,6 +63,27 @@ eae6320::cResult eae6320::Graphics::sContext::CleanUp()
 	return result;
 }
 
+// Implementation
+//===============
+
+eae6320::cResult eae6320::Graphics::sContext::Present()
+{
+	auto result = Results::Success;
+
+	auto* const swapChain = sContext::g_context.swapChain;
+	EAE6320_ASSERT(swapChain);
+	constexpr unsigned int swapImmediately = 0;
+	constexpr unsigned int presentNextFrame = 0;
+	const auto d3dResult = swapChain->Present(swapImmediately, presentNextFrame);
+	EAE6320_ASSERT(SUCCEEDED(d3dResult));
+	if (FAILED(d3dResult))
+	{
+		result = Results::Failure;
+	}
+
+	return result;
+}
+
 // Helper Definitions
 //===================
 

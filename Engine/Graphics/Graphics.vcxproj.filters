@@ -87,6 +87,12 @@
     <ClCompile Include="OpenGL\cMesh.gl.cpp">
       <Filter>OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="Direct3D\cView.d3d.cpp">
+      <Filter>Direct3D</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGL\cView.gl.cpp">
+      <Filter>OpenGL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cConstantBuffer.h">
@@ -129,6 +135,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

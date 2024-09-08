@@ -10,56 +10,11 @@
 #include <Engine/Logging/Logging.h>
 #include <Engine/ScopeGuard/cScopeGuard.h>
 
-eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShaderPath, const char* i_fragmentShaderPath)
+eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShaderPath, const char* i_fragmentShaderPath, const uint8_t i_renderStateBits)
 {
 	auto result = eae6320::Results::Success;
 
-	// Load vertex shader
-	if (!(result = eae6320::Graphics::cShader::Load(i_vertexShaderPath, m_vertexShader, eae6320::Graphics::eShaderType::Vertex)))
-	{
-		EAE6320_ASSERTF(false, "Can't initialize effect without vertex shader");
-		return result;
-	}
-
-	// Load fragment shader
-	if (!(result = eae6320::Graphics::cShader::Load(i_fragmentShaderPath, m_fragmentShader, eae6320::Graphics::eShaderType::Fragment)))
-	{
-		EAE6320_ASSERTF(false, "Can't initialize effect without fragment shader");
-		return result;
-	}
-
-	// Initialize Render State
-	constexpr auto renderStateBits = []
-	{
-		uint8_t renderStateBits = 0;
-		eae6320::Graphics::RenderStates::DisableAlphaTransparency(renderStateBits);
-		eae6320::Graphics::RenderStates::DisableDepthTesting(renderStateBits);
-		eae6320::Graphics::RenderStates::DisableDepthWriting(renderStateBits);
-		eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
-		return renderStateBits;
-	}();
-	if (!(result = m_renderState.Initialize(renderStateBits)))
-	{
-		EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
-		return result;
-	}
-
 	// Create the program
-	eae6320::cScopeGuard scopeGuard_program([&result, this]
-	{
-		if (!result && m_programId != 0)
-		{
-			glDeleteProgram(m_programId);
-			const auto errorCode = glGetError();
-			if (errorCode != GL_NO_ERROR)
-			{
-				EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
-				eae6320::Logging::OutputError("OpenGL failed to delete the program: %s", reinterpret_cast<const char*>(gluErrorString(errorCode)));
-			}
-			m_programId = 0;
-		}
-	});
-
 	EAE6320_ASSERT(m_programId == 0);
 	m_programId = glCreateProgram();
 	{
@@ -80,37 +35,52 @@ eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShad
 		}
 	}
 
-	// Attach shaders to the program
+	eae6320::cScopeGuard scopeGuard_program([&result, this]
 	{
-		// Vertex
+		if (!result && m_programId != 0)
 		{
-			EAE6320_ASSERT((m_vertexShader != nullptr) && (m_vertexShader->m_shaderId != 0));
-			glAttachShader(m_programId, m_vertexShader->m_shaderId);
+			glDeleteProgram(m_programId);
 			const auto errorCode = glGetError();
 			if (errorCode != GL_NO_ERROR)
 			{
-				result = eae6320::Results::Failure;
 				EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
-				eae6320::Logging::OutputError("OpenGL failed to attach the vertex shader to the program: %s",
-					reinterpret_cast<const char*>(gluErrorString(errorCode)));
-				return result;
+				eae6320::Logging::OutputError("OpenGL failed to delete the program: %s", reinterpret_cast<const char*>(gluErrorString(errorCode)));
 			}
+			m_programId = 0;
 		}
-		// Fragment
+	});
+
+	// Load and Attach vertex shader
+	GLuint vertexShaderId = 0;
+	{
+		cShader* vertexShader;
+		if (!(result = eae6320::Graphics::cShader::Load(i_vertexShaderPath, vertexShader, eae6320::Graphics::eShaderType::Vertex)))
 		{
-			EAE6320_ASSERT((m_fragmentShader != nullptr) && (m_fragmentShader->m_shaderId != 0));
-			glAttachShader(m_programId, m_fragmentShader->m_shaderId);
-			const auto errorCode = glGetError();
-			if (errorCode != GL_NO_ERROR)
-			{
-				result = eae6320::Results::Failure;
-				EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
-				eae6320::Logging::OutputError("OpenGL failed to attach the fragment shader to the program: %s",
-					reinterpret_cast<const char*>(gluErrorString(errorCode)));
-				return result;
-			}
+			EAE6320_ASSERTF(false, "Can't initialize effect without vertex shader");
+			glDeleteProgram(m_programId);
+			return result;
 		}
+		vertexShaderId = vertexShader->m_shaderId;
+		glAttachShader(m_programId, vertexShaderId);
+		vertexShader->DecrementReferenceCount();  // Shader object is no longer needed
 	}
+
+	// Load and Attach fragment shader
+	GLuint fragmentShaderId = 0;
+	{
+		cShader* fragmentShader;
+		if (!(result = eae6320::Graphics::cShader::Load(i_fragmentShaderPath, fragmentShader, eae6320::Graphics::eShaderType::Fragment)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize effect without fragment shader");
+			glDeleteShader(vertexShaderId);
+			glDeleteProgram(m_programId);
+			return result;
+		}
+		fragmentShaderId = fragmentShader->m_shaderId;
+		glAttachShader(m_programId, fragmentShaderId);
+		fragmentShader->DecrementReferenceCount();  // Shader object is no longer needed
+	}
+
 	// Link the program
 	{
 		glLinkProgram(m_programId);
@@ -206,6 +176,19 @@ eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShad
 		}
 	}
 
+	// Delete the shaders as they are no longer needed after the program is linked
+	glDeleteShader(vertexShaderId);
+	glDeleteShader(fragmentShaderId);
+
+	// Initialize Render State
+	if (!(result = m_renderState.Initialize(i_renderStateBits)))
+	{
+		EAE6320_ASSERTF(false, "Can't initialize shading data without render state");
+		glDeleteProgram(m_programId);
+		m_programId = 0;
+		return result;
+	}
+
 	return result;
 }
 
@@ -242,16 +225,8 @@ eae6320::cResult eae6320::Graphics::cEffect::CleanUp()
 		}
 		m_programId = 0;
 	}
-	if (m_vertexShader)
-	{
-		m_vertexShader->DecrementReferenceCount();
-		m_vertexShader = nullptr;
-	}
-	if (m_fragmentShader)
-	{
-		m_fragmentShader->DecrementReferenceCount();
-		m_fragmentShader = nullptr;
-	}
+	
+	// TODO: Clean up Render State
 
 	return result;
 }

@@ -317,7 +317,7 @@ namespace
 			// Up Triangle
 			{ 0.0f, 1.0f, 0.0f },
 		};
-		uint16_t indexData[] = { 3, 2, 0 };
+		uint16_t indexData[] = { 0, 2, 3 };
 		if (!(result = s_mesh.Initialize(vertexData, static_cast<uint16_t>(std::size(vertexData)), indexData, static_cast<uint16_t>(std::size(indexData)))))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the geometry data");
@@ -331,7 +331,13 @@ namespace
 	{
 		auto result = eae6320::Results::Success;
 
-		if (!(result = s_effect.Initialize("data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/animatedColor.shader")))
+		uint8_t renderStateBits = 0;
+		eae6320::Graphics::RenderStates::DisableAlphaTransparency(renderStateBits);
+		eae6320::Graphics::RenderStates::DisableDepthTesting(renderStateBits);
+		eae6320::Graphics::RenderStates::DisableDepthWriting(renderStateBits);
+		eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
+
+		if (!(result = s_effect.Initialize("data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/animatedColor.shader", renderStateBits)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the shading data");
 			return result;

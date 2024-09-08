@@ -7,12 +7,14 @@
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Logging/Logging.h>
 
-eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, const uint16_t i_vertexCount)
+eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, const uint16_t i_vertexCount,
+												      const uint16_t* i_indexData, const uint16_t i_indexCount)
 {
 	auto result = eae6320::Results::Success;
 
 	// Store the vertex count
 	m_vertexCount = i_vertexCount;
+	m_indexCount = i_indexCount;
 
 	// Create a vertex array object (VAO) and make it active
 	{
@@ -72,9 +74,9 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 		}
 	}
 
-	// Assign the data to the buffer
+	// Assign the vertex data to the buffer
 	{
-		const auto bufferSize = static_cast<UINT>(i_vertexCount * sizeof(eae6320::Graphics::VertexFormats::sVertex_mesh));
+		const auto bufferSize = static_cast<GLsizeiptr>(i_vertexCount * sizeof(eae6320::Graphics::VertexFormats::sVertex_mesh));
 		EAE6320_ASSERT(static_cast<GLsizeiptr>(bufferSize) <= std::numeric_limits<GLsizeiptr>::max());
 		glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(bufferSize), i_vertexData, GL_STATIC_DRAW);
 		const auto errorCode = glGetError();
@@ -88,6 +90,49 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 		}
 	}
 
+	// Create a Index Buffer
+	{
+		constexpr GLsizei bufferCount = 1;
+		glGenBuffers(bufferCount, &m_indexBufferId);
+		const auto errorCode = glGetError();
+		if (errorCode == GL_NO_ERROR)
+		{
+			// Bind IBO
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+			const auto errorCode = glGetError();
+			if (errorCode != GL_NO_ERROR)
+			{
+				result = eae6320::Results::Failure;
+				EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+				eae6320::Logging::OutputError("OpenGL failed to bind a new index buffer: %s",
+					reinterpret_cast<const char*>(gluErrorString(errorCode)));
+				return result;
+			}
+		}
+		else
+		{
+			result = eae6320::Results::Failure;
+			EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+			eae6320::Logging::OutputError("OpenGL failed to get an unused index buffer ID: %s",
+				reinterpret_cast<const char*>(gluErrorString(errorCode)));
+			return result;
+		}
+	}
+	// Assign the Index data to the buffer
+	{
+		const auto bufferSize = static_cast<GLsizeiptr>(i_indexCount * sizeof(uint16_t));
+		EAE6320_ASSERT(static_cast<GLsizeiptr>(bufferSize) <= std::numeric_limits<GLsizeiptr>::max());
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(bufferSize), i_indexData, GL_STATIC_DRAW);
+		const auto errorCode = glGetError();
+		if (errorCode != GL_NO_ERROR)
+		{
+			result = eae6320::Results::Failure;
+			EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+			eae6320::Logging::OutputError("OpenGL failed to allocate the index buffer: %s",
+				reinterpret_cast<const char*>(gluErrorString(errorCode)));
+			return result;
+		}
+	}
 	// Initialize vertex format
 	{
 		constexpr auto stride = static_cast<GLsizei>(sizeof(eae6320::Graphics::VertexFormats::sVertex_mesh));
@@ -141,8 +186,9 @@ void eae6320::Graphics::cMesh::Draw() const
 	// Draw
 	{
 		constexpr GLenum mode = GL_TRIANGLES;
-		EAE6320_ASSERT(m_vertexCount > 0);
-		glDrawArrays(mode, m_indexOfFirstVertexToRender, m_vertexCount);
+		EAE6320_ASSERT(m_indexCount > 0);
+		//glDrawArrays(mode, m_indexOfFirstVertexToRender, m_vertexCount);
+		glDrawElements(mode, static_cast<GLsizei>(m_indexCount), GL_UNSIGNED_SHORT, nullptr);
 		EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 	}
 }
@@ -206,6 +252,25 @@ eae6320::cResult eae6320::Graphics::cMesh::CleanUp()
 				reinterpret_cast<const char*>(gluErrorString(errorCode)));
 		}
 		m_vertexBufferId = 0;  // Reset to 0 after deletion
+	}
+
+	// Clean up the IBO
+	if (m_indexBufferId != 0)
+	{
+		constexpr GLsizei bufferCount = 1;
+		glDeleteBuffers(bufferCount, &m_indexBufferId);
+		const auto errorCode = glGetError();
+		if (errorCode != GL_NO_ERROR)
+		{
+			if (result)
+			{
+				result = eae6320::Results::Failure;
+			}
+			EAE6320_ASSERTF(false, reinterpret_cast<const char*>(gluErrorString(errorCode)));
+			eae6320::Logging::OutputError("OpenGL failed to delete the index buffer: %s",
+				reinterpret_cast<const char*>(gluErrorString(errorCode)));
+		}
+		m_indexBufferId = 0;  // Reset to 0 after deletion
 	}
 
 	return result;

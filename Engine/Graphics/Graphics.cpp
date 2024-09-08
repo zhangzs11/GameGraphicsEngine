@@ -315,11 +315,10 @@ namespace
 			{ 1.0f, 1.0f, 0.0f },
 
 			// Up Triangle
-			{ 0.0f, 0.0f, 0.0f },
-			{ 1.0f, 1.0f, 0.0f },
 			{ 0.0f, 1.0f, 0.0f },
 		};
-		if (!(result = s_mesh.Initialize(vertexData, static_cast<uint16_t>(std::size(vertexData)))))
+		uint16_t indexData[] = { 3, 2, 0 };
+		if (!(result = s_mesh.Initialize(vertexData, static_cast<uint16_t>(std::size(vertexData)), indexData, static_cast<uint16_t>(std::size(indexData)))))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the geometry data");
 			return result;

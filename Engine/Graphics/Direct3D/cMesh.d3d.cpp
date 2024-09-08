@@ -11,11 +11,13 @@
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Logging/Logging.h>
 
-eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, const uint16_t i_vertexCount)
+eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, const uint16_t i_vertexCount,
+													  const uint16_t* i_indexData, const uint16_t i_indexCount)
 {
 	auto result = eae6320::Results::Success;
 
 	m_vertexCount = static_cast<unsigned int>(i_vertexCount);
+	m_indexCount = static_cast<unsigned int>(i_indexCount);
 	m_indexOfFirstVertexToRender = 0;
 
 	auto* const direct3dDevice = eae6320::Graphics::sContext::g_context.direct3dDevice;
@@ -55,6 +57,31 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 			return result;
 		}
 	}
+	// Index Buffer
+	{
+		const auto bufferSize = static_cast<UINT>(i_indexCount * sizeof(uint16_t));
+		EAE6320_ASSERT(bufferSize <= std::numeric_limits<decltype(D3D11_BUFFER_DESC::ByteWidth)>::max());
+
+		D3D11_BUFFER_DESC bufferDescription{};
+		bufferDescription.ByteWidth = bufferSize;
+		bufferDescription.Usage = D3D11_USAGE_IMMUTABLE;
+		bufferDescription.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		bufferDescription.CPUAccessFlags = 0;
+		bufferDescription.MiscFlags = 0;
+		bufferDescription.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA initialData{};
+		initialData.pSysMem = i_indexData;
+
+		const auto result_create = direct3dDevice->CreateBuffer(&bufferDescription, &initialData, &m_indexBuffer);
+		if (FAILED(result_create))
+		{
+			result = eae6320::Results::Failure;
+			EAE6320_ASSERTF(false, "3D object index buffer creation failed (HRESULT %#010x)", result_create);
+			eae6320::Logging::OutputError("Direct3D failed to create an index buffer (HRESULT %#010x)", result_create);
+			return result;
+		}
+	}
 
 	return result;
 }
@@ -84,16 +111,25 @@ void eae6320::Graphics::cMesh::Draw() const
 		// (meaning that every primitive is a triangle and will be defined by three vertices)
 		direct3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
-	// Render triangles from the currently-bound vertex buffer
+	// Bind the index buffer
+	{
+		EAE6320_ASSERT(m_indexBuffer != nullptr);
+		direct3dImmediateContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	}
+	// Render triangles from the currently-bound indexed buffer
 	{
 		EAE6320_ASSERT(m_vertexCount > 0);
-		direct3dImmediateContext->Draw(m_vertexCount, m_indexOfFirstVertexToRender);
+		direct3dImmediateContext->DrawIndexed(m_indexCount, m_indexOfFirstVertexToRender, 0);
 	}
-
 }
 
 eae6320::cResult eae6320::Graphics::cMesh::CleanUp()
 {
+	if (m_indexBuffer)
+	{
+		m_indexBuffer->Release();
+		m_indexBuffer = nullptr;
+	}
 	if (m_vertexBuffer)
 	{
 		m_vertexBuffer->Release();

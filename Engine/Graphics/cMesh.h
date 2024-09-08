@@ -39,25 +39,29 @@ namespace eae6320
 		class cMesh
 		{
 		public:
-			cResult Initialize(const void* i_vertexData, const uint16_t i_vertexCount);
+			cResult Initialize(const void* i_vertexData, const uint16_t i_vertexCount,
+							   const uint16_t* i_indexData, const uint16_t i_indexCount);
 
 			void Draw() const;
 
 			cResult CleanUp();
 
 		private:
-			unsigned int m_vertexCount = 0;
-			unsigned int m_indexOfFirstVertexToRender = 0;
+			uint16_t m_vertexCount = 0;
+			uint16_t m_indexCount = 0;
+			uint16_t m_indexOfFirstVertexToRender = 0;
 
 #if defined( EAE6320_PLATFORM_D3D )
 
 			eae6320::Graphics::cVertexFormat* m_vertexFormat = nullptr;
 			ID3D11Buffer* m_vertexBuffer = nullptr;
+			ID3D11Buffer* m_indexBuffer = nullptr;
 
 #elif defined( EAE6320_PLATFORM_GL )
 
 			GLuint m_vertexArrayId = 0;
 			GLuint m_vertexBufferId = 0;
+			GLuint m_indexBufferId = 0;
 
 #endif
 		};

@@ -7,10 +7,25 @@
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Logging/Logging.h>
 
+#include <vector>
+
+// Helper Declarations
+//====================
+
+namespace
+{
+	void ConvertIndicesToCCW(uint16_t* io_indexData, size_t i_indexCount);
+}
+
 eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, const uint16_t i_vertexCount,
 												      const uint16_t* i_indexData, const uint16_t i_indexCount)
 {
 	auto result = eae6320::Results::Success;
+
+	// Adjust the index to CCW
+	std::vector<uint16_t> adjustedIndices(i_indexData, i_indexData + i_indexCount);
+	ConvertIndicesToCCW(adjustedIndices.data(), adjustedIndices.size());
+	i_indexData = adjustedIndices.data();
 
 	// Store the vertex count
 	m_vertexCount = i_vertexCount;
@@ -274,4 +289,20 @@ eae6320::cResult eae6320::Graphics::cMesh::CleanUp()
 	}
 
 	return result;
+}
+
+// Helper Definitions
+//===================
+
+namespace
+{
+	void ConvertIndicesToCCW(uint16_t* io_indexData, size_t i_indexCount)
+	{
+		EAE6320_ASSERT(i_indexCount % 3 == 0);  // index count must be 3 times
+
+		for (size_t i = 0; i < i_indexCount; i += 3)
+		{
+			std::swap(io_indexData[i + 1], io_indexData[i + 2]);  // swap every 2 after indexes of triangle
+		}
+	}
 }

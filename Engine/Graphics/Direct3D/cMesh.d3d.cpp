@@ -16,7 +16,7 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 {
 	auto result = eae6320::Results::Success;
 
-	m_vertexCount = static_cast<unsigned int>(i_vertexCount);
+	// m_vertexCount = static_cast<unsigned int>(i_vertexCount);
 	m_indexCount = static_cast<unsigned int>(i_indexCount);
 	m_indexOfFirstVertexToRender = 0;
 
@@ -118,7 +118,7 @@ void eae6320::Graphics::cMesh::Draw() const
 	}
 	// Render triangles from the currently-bound indexed buffer
 	{
-		EAE6320_ASSERT(m_vertexCount > 0);
+		EAE6320_ASSERT(m_indexCount > 0);
 		direct3dImmediateContext->DrawIndexed(m_indexCount, m_indexOfFirstVertexToRender, 0);
 	}
 }

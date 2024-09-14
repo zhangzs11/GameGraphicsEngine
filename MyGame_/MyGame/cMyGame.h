@@ -10,6 +10,7 @@
 
 #include <Engine/Application/iApplication.h>
 #include <Engine/Results/Results.h>
+#include <Engine/Graphics/Graphics.h>
 
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include "Resource Files/Resource.h"
@@ -71,12 +72,19 @@ namespace eae6320
 		//----
 
 		void UpdateBasedOnInput() final;
+		void SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate) final;
 
 		// Initialize / Clean Up
 		//----------------------
 
 		cResult Initialize() final;
 		cResult CleanUp() final;
+
+		// Game Objects
+		//----------------------
+		Graphics::cMesh* m_mesh = nullptr;
+		Graphics::cEffect* m_effect = nullptr;
+		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
 
 	};
 }

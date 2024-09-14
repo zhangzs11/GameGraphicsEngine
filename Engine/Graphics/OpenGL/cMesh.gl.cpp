@@ -28,7 +28,7 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 	i_indexData = adjustedIndices.data();
 
 	// Store the vertex count
-	m_vertexCount = i_vertexCount;
+	// m_vertexCount = i_vertexCount;
 	m_indexCount = i_indexCount;
 
 	// Create a vertex array object (VAO) and make it active
@@ -202,7 +202,6 @@ void eae6320::Graphics::cMesh::Draw() const
 	{
 		constexpr GLenum mode = GL_TRIANGLES;
 		EAE6320_ASSERT(m_indexCount > 0);
-		//glDrawArrays(mode, m_indexOfFirstVertexToRender, m_vertexCount);
 		glDrawElements(mode, static_cast<GLsizei>(m_indexCount), GL_UNSIGNED_SHORT, nullptr);
 		EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 	}

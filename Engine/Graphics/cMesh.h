@@ -12,7 +12,7 @@
 
 #include <cstdint>
 #include <Engine/Results/Results.h>
-
+#include <Engine/Assets/ReferenceCountedAssets.h>
 
 // Forward Declarations
 //=====================
@@ -39,15 +39,23 @@ namespace eae6320
 		class cMesh
 		{
 		public:
-			cResult Initialize(const void* i_vertexData, const uint16_t i_vertexCount,
-							   const uint16_t* i_indexData, const uint16_t i_indexCount);
+			// This defines the actual reference counting functions
+			// This must be public
+			EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS()
 
 			void Draw() const;
 
-			cResult CleanUp();
+			// factory function
+			static cResult CreateMesh(cMesh*& o_mesh, const void* i_vertexData,    const uint16_t i_vertexCount,
+				                                           const uint16_t* i_indexData, const uint16_t i_indexCount);
 
 		private:
-			uint16_t m_vertexCount = 0;
+			// This prevents the class or struct from using illegal functions
+			EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS(cMesh)
+
+			// This declares the reference count member variable
+			EAE6320_ASSETS_DECLAREREFERENCECOUNT()
+
 			uint16_t m_indexCount = 0;
 			uint16_t m_indexOfFirstVertexToRender = 0;
 
@@ -64,6 +72,16 @@ namespace eae6320
 			GLuint m_indexBufferId = 0;
 
 #endif
+
+			cMesh() = default;
+			~cMesh();
+
+			cResult Initialize(const void* i_vertexData,    const uint16_t i_vertexCount,
+				               const uint16_t* i_indexData, const uint16_t i_indexCount);
+
+			cResult CleanUp();
+
+
 		};
 	}
 }

@@ -37,6 +37,10 @@ namespace eae6320
 		// for the frame currently being submitted
 		void SubmitElapsedTime( const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_simulationTime );
 
+		void SubmitMeshEffectPair(cMesh* i_mesh, cEffect* i_effect);
+
+		void SubmitBackgroundColor(const float i_backgroundColor[4]);
+
 		// When the application is ready to submit data for a new frame
 		// it should call this before submitting anything
 		// (or, said another way, it is not safe to submit data for a new frame
@@ -53,10 +57,6 @@ namespace eae6320
 		// It will render a submitted frame as soon as it is ready
 		// (i.e. as soon as SignalThatAllDataForAFrameHasBeenSubmitted() has been called)
 		void RenderFrame();
-
-		void SubmitMeshEffectPair(cMesh* i_mesh, cEffect* i_effect);
-
-		void SubmitBackgroundColor(const float i_backgroundColor[4]);
 
 		// Initialize / Clean Up
 		//----------------------

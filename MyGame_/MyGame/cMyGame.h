@@ -83,8 +83,17 @@ namespace eae6320
 		// Game Objects
 		//----------------------
 		Graphics::cMesh* m_mesh = nullptr;
+		Graphics::cMesh* m_mesh2 = nullptr;
+		Graphics::cMesh* m_mesh3 = nullptr;
+		Graphics::cMesh* m_mesh4 = nullptr;
 		Graphics::cEffect* m_effect = nullptr;
+		Graphics::cEffect* m_effect2 = nullptr;
 		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
+
+		// Game States
+		//----------------------
+		bool ifLeftPressed = false;
+		bool ifRightPressed = false;
 
 	};
 }

@@ -11,5 +11,6 @@ return
 
 		{ path = "Shaders/Vertex/vertexInputLayout_mesh.shader", arguments = { "vertex" } },
 		{ path = "Shaders/Fragment/animatedColor.shader", arguments = { "fragment" } },
+		{ path = "Shaders/Fragment/loopGradient.shader", arguments = { "fragment" } },
 	},
 }

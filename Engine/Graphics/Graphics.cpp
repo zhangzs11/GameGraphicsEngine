@@ -11,8 +11,6 @@
 #include "cVertexFormat.h"
 #include "sContext.h"
 #include "VertexFormats.h"
-// #include "cMesh.h"
-// #include "cEffect.h"
 #include "cView.h"
 
 #include <Engine/Asserts/Asserts.h>
@@ -66,18 +64,6 @@ namespace
 	// (the application loop thread waits for the signal)
 	eae6320::Concurrency::cEvent s_whenDataForANewFrameCanBeSubmittedFromApplicationThread;
 
-	// Geometry Data
-	//--------------
-
-	// eae6320::Graphics::cMesh s_mesh;
-	// eae6320::Graphics::cMesh s_mesh2;
-
-	// Shading Data
-	//-------------
-
-	// eae6320::Graphics::cEffect s_effect;
-	// eae6320::Graphics::cEffect s_effect2;
-
 	// View
 	//-------------
 	eae6320::Graphics::cView s_view;
@@ -88,8 +74,6 @@ namespace
 
 namespace
 {
-	// eae6320::cResult InitializeGeometry();
-	// eae6320::cResult InitializeShadingData();
 	eae6320::cResult InitializeViews(const eae6320::Graphics::sInitializationParameters& i_initializationParameters);
 }
 
@@ -106,19 +90,6 @@ void eae6320::Graphics::SubmitElapsedTime(const float i_elapsedSecondCount_syste
 	constantData_frame.g_elapsedSecondCount_systemTime = i_elapsedSecondCount_systemTime;
 	constantData_frame.g_elapsedSecondCount_simulationTime = i_elapsedSecondCount_simulationTime;
 }
-
-eae6320::cResult eae6320::Graphics::WaitUntilDataForANewFrameCanBeSubmitted(const unsigned int i_timeToWait_inMilliseconds)
-{
-	return Concurrency::WaitForEvent(s_whenDataForANewFrameCanBeSubmittedFromApplicationThread, i_timeToWait_inMilliseconds);
-}
-
-eae6320::cResult eae6320::Graphics::SignalThatAllDataForAFrameHasBeenSubmitted()
-{
-	return s_whenAllDataHasBeenSubmittedFromApplicationThread.Signal();
-}
-
-// Render
-//-------
 
 void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, eae6320::Graphics::cEffect* i_effect)
 {
@@ -154,6 +125,19 @@ void eae6320::Graphics::SubmitBackgroundColor(const float i_backgroundColor[4])
 		currentFrameData.backgroundColor[i] = i_backgroundColor[i];
 	}
 }
+
+eae6320::cResult eae6320::Graphics::WaitUntilDataForANewFrameCanBeSubmitted(const unsigned int i_timeToWait_inMilliseconds)
+{
+	return Concurrency::WaitForEvent(s_whenDataForANewFrameCanBeSubmittedFromApplicationThread, i_timeToWait_inMilliseconds);
+}
+
+eae6320::cResult eae6320::Graphics::SignalThatAllDataForAFrameHasBeenSubmitted()
+{
+	return s_whenAllDataHasBeenSubmittedFromApplicationThread.Signal();
+}
+
+// Render
+//-------
 
 void eae6320::Graphics::RenderFrame()
 {
@@ -283,22 +267,6 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 		}
 		s_view.Bind();
 	}
-	//// Initialize the shading data
-	//{
-	//	if (!(result = InitializeShadingData()))
-	//	{
-	//		EAE6320_ASSERTF(false, "Can't initialize Graphics without the shading data");
-	//		return result;
-	//	}
-	//}
-	//// Initialize the geometry
-	//{
-	//	if (!(result = InitializeGeometry()))
-	//	{
-	//		EAE6320_ASSERTF(false, "Can't initialize Graphics without the geometry data");
-	//		return result;
-	//	}
-	//}
 
 	return result;
 }
@@ -312,26 +280,6 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
-	//// Clean up the Effect
-	//if (!(result = s_mesh.CleanUp()))
-	//{
-	//	EAE6320_ASSERTF(false, "Failed to clean up the mesh");
-	//}
-	//// Clean up the Mesh
-	//if (!(result = s_effect.CleanUp()))
-	//{
-	//	EAE6320_ASSERTF(false, "Failed to clean up the effect");
-	//}
-	//// Clean up the Effect2
-	//if (!(result = s_mesh2.CleanUp()))
-	//{
-	//	EAE6320_ASSERTF(false, "Failed to clean up the mesh");
-	//}
-	//// Clean up the Mesh2
-	//if (!(result = s_effect2.CleanUp()))
-	//{
-	//	EAE6320_ASSERTF(false, "Failed to clean up the effect");
-	//}
 	
 	// Clean up submitted mesh/effect pairs from both frames
 	for (auto& frameData : s_dataRequiredToRenderAFrame)
@@ -386,62 +334,6 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 
 namespace
 {
-	/*eae6320::cResult InitializeGeometry()
-	{
-		auto result = eae6320::Results::Success;
-
-		eae6320::Graphics::VertexFormats::sVertex_mesh vertexData[] = {
-			{ 0.0f, 0.0f, 0.0f },
-			{ 1.0f, 0.0f, 0.0f },
-			{ 1.0f, 1.0f, 0.0f },
-			{ 0.0f, 1.0f, 0.0f },
-		};
-		uint16_t indexData[] = { 0, 3, 2, 0, 2, 1 };
-		if (!(result = s_mesh.Initialize(vertexData, static_cast<uint16_t>(std::size(vertexData)), indexData, static_cast<uint16_t>(std::size(indexData)))))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without the geometry data");
-			return result;
-		}
-
-		eae6320::Graphics::VertexFormats::sVertex_mesh vertexData2[] = {
-			{ -1.0f, -1.0f, 0.0f },
-			{ -0.5f, 0.0f, 0.0f },
-			{ 0.0f, -1.0f, 0.0f },
-		};
-		uint16_t indexData2[] = { 0, 1, 2 };
-		if (!(result = s_mesh2.Initialize(vertexData2, static_cast<uint16_t>(std::size(vertexData2)), indexData2, static_cast<uint16_t>(std::size(indexData2)))))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without the geometry data");
-			return result;
-		}
-		return result;
-	}
-
-	eae6320::cResult InitializeShadingData()
-	{
-		auto result = eae6320::Results::Success;
-
-		uint8_t renderStateBits = 0;
-		eae6320::Graphics::RenderStates::DisableAlphaTransparency(renderStateBits);
-		eae6320::Graphics::RenderStates::DisableDepthTesting(renderStateBits);
-		eae6320::Graphics::RenderStates::DisableDepthWriting(renderStateBits);
-		eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
-
-		if (!(result = s_effect.Initialize("data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/animatedColor.shader", renderStateBits)))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without the shading data");
-			return result;
-		}
-
-		if (!(result = s_effect2.Initialize("data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/standard.shader", renderStateBits)))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without the shading data");
-			return result;
-		}
-
-		return result;
-	}*/
-
 	eae6320::cResult InitializeViews(const eae6320::Graphics::sInitializationParameters& i_initializationParameters)
 	{
 		auto result = eae6320::Results::Success;

@@ -14,6 +14,7 @@
 
 #include <cstdint>
 #include <Engine/Results/Results.h>
+#include <Engine/Math/cMatrix_transformation.h>
 
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include <Engine/Windows/Includes.h>
@@ -40,6 +41,8 @@ namespace eae6320
 		void SubmitMeshEffectPair(cMesh* i_mesh, cEffect* i_effect);
 
 		void SubmitBackgroundColor(const float i_backgroundColor[4]);
+
+		void SubmitMatrixLocalToWorld(const eae6320::Math::cMatrix_transformation& i_transform_localToWorld);
 
 		// When the application is ready to submit data for a new frame
 		// it should call this before submitting anything

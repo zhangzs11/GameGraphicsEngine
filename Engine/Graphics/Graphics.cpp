@@ -30,6 +30,7 @@ namespace
 {
 	// Constant buffer object
 	eae6320::Graphics::cConstantBuffer s_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame);
+	eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall(eae6320::Graphics::ConstantBufferTypes::DrawCall);
 
 	// Submission Data
 	//----------------
@@ -45,6 +46,8 @@ namespace
 		static constexpr size_t MAX_SUBMITTED_PAIRS = 100;
 		size_t submittedPairCount = 0;  // Number of currently submitted pairs
 		std::pair<eae6320::Graphics::cMesh*, eae6320::Graphics::cEffect*> meshEffectPairs[MAX_SUBMITTED_PAIRS];
+
+		eae6320::Graphics::ConstantBufferFormats::sDrawCall constantData_drawCall[MAX_SUBMITTED_PAIRS];
 	};
 	// In our class there will be two copies of the data required to render a frame:
 	//	* One of them will be in the process of being populated by the data currently being submitted by the application loop thread
@@ -110,6 +113,22 @@ void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, e
 	{
 		// Handle the case where the maximum number of pairs is exceeded
 		eae6320::Logging::OutputError("The maximum number of submitted mesh-effect pairs has been exceeded!");
+	}
+}
+
+void eae6320::Graphics::SubmitMatrixLocalToWorld(const eae6320::Math::cMatrix_transformation& i_transform_localToWorld)
+{
+	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
+	
+	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
+	if (currentFrameData.submittedPairCount < sDataRequiredToRenderAFrame::MAX_SUBMITTED_PAIRS)
+	{
+		currentFrameData.constantData_drawCall[currentFrameData.submittedPairCount].g_transform_localToWorld = i_transform_localToWorld;
+	}
+	else
+	{
+		// Handle the case where the maximum number is exceeded
+		eae6320::Logging::OutputError("The maximum number of submitted Matrix LocalToWorld has been exceeded!");
 	}
 }
 
@@ -185,6 +204,14 @@ void eae6320::Graphics::RenderFrame()
 	for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
 	{
 		auto& pair = dataRequiredToRenderFrame->meshEffectPairs[i];
+
+		// Update and Rebind the draw call constant buffer
+		{
+			auto& constantData_drawCall = dataRequiredToRenderFrame->constantData_drawCall[i];
+			s_constantBuffer_drawCall.Update(&constantData_drawCall);
+			s_constantBuffer_drawCall.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
+		}
+
 		pair.second->Bind();  // Bind effect
 		pair.first->Draw();   // Draw mesh
 	}
@@ -241,6 +268,12 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 		else
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without frame constant buffer");
+			return result;
+		}
+
+		if (!(result = s_constantBuffer_drawCall.Initialize()))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without draw call constant buffer");
 			return result;
 		}
 	}
@@ -310,6 +343,16 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 			if (result)
 			{
 				result = result_constantBuffer_frame;
+			}
+		}
+
+		const auto result_constantBuffer_drawCall = s_constantBuffer_drawCall.CleanUp();
+		if (!result_constantBuffer_drawCall)
+		{
+			EAE6320_ASSERT(false);
+			if (result)
+			{
+				result = result_constantBuffer_drawCall;
 			}
 		}
 	}

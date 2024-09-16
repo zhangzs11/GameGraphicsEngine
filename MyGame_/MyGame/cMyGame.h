@@ -12,6 +12,8 @@
 #include <Engine/Results/Results.h>
 #include <Engine/Graphics/Graphics.h>
 
+#include "cGameObject.h"
+
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include "Resource Files/Resource.h"
 #endif
@@ -72,7 +74,10 @@ namespace eae6320
 		//----
 
 		void UpdateBasedOnInput() final;
+		void UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate) final;
+		void UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate) final;
 		void SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate) final;
+
 
 		// Initialize / Clean Up
 		//----------------------
@@ -83,15 +88,14 @@ namespace eae6320
 		// Game Objects
 		//----------------------
 		Graphics::cMesh* m_mesh = nullptr;
-		Graphics::cMesh* m_mesh2 = nullptr;
-		Graphics::cMesh* m_mesh3 = nullptr;
-		Graphics::cMesh* m_mesh4 = nullptr;
 		Graphics::cEffect* m_effect = nullptr;
-		Graphics::cEffect* m_effect2 = nullptr;
+		cGameObject m_gameObject;
 		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
 
 		// Game States
 		//----------------------
+		bool ifUpPressed = false;
+		bool ifDownPressed = false;
 		bool ifLeftPressed = false;
 		bool ifRightPressed = false;
 

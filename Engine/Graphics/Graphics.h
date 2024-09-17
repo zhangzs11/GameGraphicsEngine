@@ -44,6 +44,8 @@ namespace eae6320
 
 		void SubmitMatrixLocalToWorld(const eae6320::Math::cMatrix_transformation& i_transform_localToWorld);
 
+		void SubmitCameraData(const eae6320::Math::cMatrix_transformation& i_transform_worldToCamera, const eae6320::Math::cMatrix_transformation& i_transform_cameraToProjected);
+
 		// When the application is ready to submit data for a new frame
 		// it should call this before submitting anything
 		// (or, said another way, it is not safe to submit data for a new frame

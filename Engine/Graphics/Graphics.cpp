@@ -94,6 +94,16 @@ void eae6320::Graphics::SubmitElapsedTime(const float i_elapsedSecondCount_syste
 	constantData_frame.g_elapsedSecondCount_simulationTime = i_elapsedSecondCount_simulationTime;
 }
 
+void eae6320::Graphics::SubmitCameraData(const Math::cMatrix_transformation& i_transform_worldToCamera, const Math::cMatrix_transformation& i_transform_cameraToProjected)
+{
+	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
+	auto& constantData_frame = s_dataBeingSubmittedByApplicationThread->constantData_frame;
+
+	// Set the camera transformation matrices
+	constantData_frame.g_transform_worldToCamera = i_transform_worldToCamera;
+	constantData_frame.g_transform_cameraToProjected = i_transform_cameraToProjected;
+}
+
 void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, eae6320::Graphics::cEffect* i_effect)
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);

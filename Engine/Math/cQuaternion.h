@@ -60,6 +60,10 @@ namespace eae6320
 			// it is more efficient to extract the forward direction from that
 			constexpr sVector CalculateForwardDirection() const;
 
+			constexpr sVector CalculateRightDirection() const;
+
+			constexpr sVector CalculateUpDirection() const;
+
 			// Initialization / Clean Up
 			//--------------------------
 

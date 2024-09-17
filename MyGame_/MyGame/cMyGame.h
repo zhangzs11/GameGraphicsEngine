@@ -13,6 +13,7 @@
 #include <Engine/Graphics/Graphics.h>
 
 #include "cGameObject.h"
+#include "cCamera.h"
 
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include "Resource Files/Resource.h"
@@ -88,8 +89,10 @@ namespace eae6320
 		// Game Objects
 		//----------------------
 		Graphics::cMesh* m_mesh = nullptr;
+		Graphics::cMesh* m_mesh2 = nullptr;
 		Graphics::cEffect* m_effect = nullptr;
 		cGameObject m_gameObject;
+		cCamera m_camera;
 		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
 
 		// Game States

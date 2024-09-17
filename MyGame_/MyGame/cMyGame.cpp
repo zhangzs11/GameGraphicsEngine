@@ -8,6 +8,8 @@
 #include <Engine/UserInput/UserInput.h>
 #include <Engine/Logging/Logging.h>
 #include <Engine/Graphics/VertexFormats.h>
+#include <Engine/Math/Functions.h>
+
 // Inherited Implementation
 //=========================
 
@@ -55,15 +57,78 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		m_gameObject.GetRigidBodyState().velocity = Math::sVector(0.0f, 0.0f, 0.0f);
 	}
 
+	auto& cameraRigidBody = m_camera.GetRigidBodyState();
+	const float movementSpeed = 1.0f;  // Units per second
+	constexpr float rotationSpeed = eae6320::Math::ConvertDegreesToRadians(20.0f);  // Radians per second
+
+	// Movement: WASD for forward, backward, left, right
+	if (UserInput::IsKeyPressed('W'))
+	{
+		cameraRigidBody.velocity = m_camera.GetForwardDirection() * movementSpeed;
+	}
+	else if (UserInput::IsKeyPressed('S'))
+	{
+		cameraRigidBody.velocity = m_camera.GetForwardDirection() * -movementSpeed;
+	}
+	else if (UserInput::IsKeyPressed('A'))
+	{
+		cameraRigidBody.velocity = m_camera.GetRightDirection() * -movementSpeed;
+	}
+	else if (UserInput::IsKeyPressed('D'))
+	{
+		cameraRigidBody.velocity = m_camera.GetRightDirection() * movementSpeed;
+	}
+	else
+	{
+		cameraRigidBody.velocity = Math::sVector(0.0f, 0.0f, 0.0f);
+	}
+
+	// Rotation: Arrow keys for pitch and yaw
+	if (UserInput::IsKeyPressed('I'))
+	{
+		cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
+		cameraRigidBody.angularSpeed = rotationSpeed;
+	}
+	else if (UserInput::IsKeyPressed('K'))
+	{
+		cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
+		cameraRigidBody.angularSpeed = -rotationSpeed;
+	}
+	else if (UserInput::IsKeyPressed('J'))
+	{
+		cameraRigidBody.angularVelocity_axis_local = Math::sVector(0.0f, 1.0f, 0.0f);  // Yaw rotation axis
+		cameraRigidBody.angularSpeed = rotationSpeed;
+	}
+	else if (UserInput::IsKeyPressed('L'))
+	{
+		cameraRigidBody.angularVelocity_axis_local = Math::sVector(0.0f, 1.0f, 0.0f);  // Yaw rotation axis
+		cameraRigidBody.angularSpeed = -rotationSpeed;
+	}
+	else
+	{
+		cameraRigidBody.angularSpeed = 0.0f;
+	}
+
+	if (UserInput::IsKeyPressed('Q'))
+	{
+		m_gameObject.SetMesh(m_mesh2);
+	}
+	if (UserInput::IsKeyPressed('E'))
+	{
+		m_gameObject.SetMesh(m_mesh);
+	}
+
 }
 void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
 	// m_gameObject.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
 }
 
 void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
 	m_gameObject.Update(i_elapsedSecondCount_sinceLastUpdate);
+	// m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
 }
 
 void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
@@ -77,6 +142,10 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 		eae6320::Graphics::SubmitMatrixLocalToWorld(m_gameObject.GetRigidBodyState().PredictFutureTransform(i_elapsedSecondCount_sinceLastSimulationUpdate));
 		eae6320::Graphics::SubmitMeshEffectPair(m_gameObject.GetMesh(), m_gameObject.GetEffect());
 	}
+
+	auto worldToCameraTransform = m_camera.GetWorldToCameraTransform();
+	auto cameraToProjectedTransform = m_camera.GetCameraToProjectedTransform();
+	eae6320::Graphics::SubmitCameraData(worldToCameraTransform, cameraToProjectedTransform);
 	
 }
 
@@ -92,13 +161,23 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	eae6320::Graphics::VertexFormats::sVertex_mesh vertexData[] = {
 		{ 0.0f, 0.0f, 0.0f },
+		{ 1.0f, 1.0f, 0.0f },
 		{ 1.0f, 0.0f, 0.0f },
-		{ 0.5f, 0.5f, 0.0f }
+		{ 0.0f, 1.0f, 0.0f }
 	};
-	uint16_t indexData[] = { 0, 2, 1 };
+	uint16_t indexData[] = { 0, 1, 2, 0, 3, 1 };
 
 	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh, vertexData, static_cast<uint16_t>(std::size(vertexData)),
 		indexData, static_cast<uint16_t>(std::size(indexData)));
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize mesh");
+		return result;
+	}
+
+	uint16_t indexData2[] = { 0, 1, 2 };
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh2, vertexData, static_cast<uint16_t>(std::size(vertexData)),
+		indexData2, static_cast<uint16_t>(std::size(indexData2)));
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
@@ -127,6 +206,13 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	m_gameObject.SetMesh(m_mesh);
 	m_gameObject.SetEffect(m_effect);
+
+	// Initialize Camera
+	// -----------------
+
+	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1.0f, 0.1f, 11.0f);
+	m_camera.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 10.0f));
+	m_camera.SetOrientation(eae6320::Math::cQuaternion());
 
 	return Results::Success;
 }

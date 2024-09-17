@@ -74,6 +74,42 @@ constexpr eae6320::Math::sVector eae6320::Math::cQuaternion::CalculateForwardDir
 	return sVector( -_2xz - _2yw, -_2yz + _2xw, -1.0f + _2xx + _2yy );
 }
 
+constexpr eae6320::Math::sVector eae6320::Math::cQuaternion::CalculateRightDirection() const
+{
+	const auto _2y = m_y + m_y;
+	const auto _2z = m_z + m_z;
+	const auto _2wy = _2y * m_w;
+	const auto _2wz = _2z * m_w;
+	const auto _2xy = _2y * m_x;
+	const auto _2xz = _2z * m_x;
+	const auto _2yy = _2y * m_y;
+	const auto _2zz = _2z * m_z;
+
+	return sVector(
+		1.0f - _2yy - _2zz,   // x = 1 - 2yy - 2zz
+		_2xy + _2wz,          // y = 2xy + 2wz
+		_2xz - _2wy           // z = 2xz - 2wy
+	);
+}
+
+constexpr eae6320::Math::sVector eae6320::Math::cQuaternion::CalculateUpDirection() const
+{
+	const auto _2x = m_x + m_x;
+	const auto _2y = m_y + m_y;
+	const auto _2z = m_z + m_z;
+	const auto _2wx = _2x * m_w;
+	const auto _2wz = _2z * m_w;
+	const auto _2xx = _2x * m_x;
+	const auto _2xy = _2x * m_y;
+	const auto _2yz = _2y * m_z;
+	const auto _2zz = _2z * m_z;
+
+	return sVector(
+		_2xy - _2wz,          // x = 2xy - 2wz
+		1.0f - _2xx - _2zz,   // y = 1 - 2xx - 2zz
+		_2yz + _2wx           // z = 2yz + 2wx
+	);
+}
 // Implementation
 //===============
 

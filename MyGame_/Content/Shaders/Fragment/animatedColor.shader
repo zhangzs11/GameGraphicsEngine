@@ -1,11 +1,10 @@
 /*
-	This is the standard fragment shader
+	This is the animated color fragment shader
 
 	A fragment shader is responsible for telling the GPU what color a specific fragment should be
 */
 
 #include <Shaders/shaders.inc>
-#include <Shaders/Common/CommonBuffers.shader>
 
 #if defined( EAE6320_PLATFORM_D3D )
 
@@ -28,20 +27,8 @@ void main(
 	out float4 o_color : SV_TARGET
 
 )
-{
-	float r = abs(sin( g_elapsedSecondCount_simulationTime));
-	float g = abs(sin( g_elapsedSecondCount_simulationTime + 1));
-	float b = abs(sin( g_elapsedSecondCount_simulationTime + 2));
-	// Output solid white
-	o_color = float4(
-		// RGB (color)
-		r, g, b,
-		// Alpha (opacity)
-		1.0 );
-}
 
 #elif defined( EAE6320_PLATFORM_GL )
-
 
 // Output
 //=======
@@ -54,16 +41,17 @@ out vec4 o_color;
 //============
 
 void main()
+
+#endif
+
 {
 	float r = abs(sin( g_elapsedSecondCount_simulationTime));
 	float g = abs(sin( g_elapsedSecondCount_simulationTime + 1));
 	float b = abs(sin( g_elapsedSecondCount_simulationTime + 2));
 	// Output solid white
-	o_color = vec4(
+	o_color = float4_t(
 		// RGB (color)
 		r, g, b,
 		// Alpha (opacity)
 		1.0 );
 }
-
-#endif

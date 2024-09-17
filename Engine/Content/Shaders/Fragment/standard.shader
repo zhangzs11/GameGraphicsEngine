@@ -5,7 +5,6 @@
 */
 
 #include <Shaders/shaders.inc>
-#include <Shaders/Common/CommonBuffers.shader>
 
 #if defined( EAE6320_PLATFORM_D3D )
 
@@ -28,36 +27,22 @@ void main(
 	out float4 o_color : SV_TARGET
 
 )
-{
-	// Output solid white
-	o_color = float4(
-		// RGB (color)
-		1.0, 1.0, 1.0,
-		// Alpha (opacity)
-		1.0 );
-}
 
 #elif defined( EAE6320_PLATFORM_GL )
 
-
-// Output
-//=======
-
-// Whatever color value is output from the fragment shader
-// will determine the color of the corresponding pixel on the screen
+// Output for GLSL
 out vec4 o_color;
 
-// Entry Point
-//============
-
+// Entry Point for GLSL
 void main()
+
+#endif
+
 {
 	// Output solid white
-	o_color = vec4(
+	o_color = float4_t(
 		// RGB (color)
 		1.0, 1.0, 1.0,
 		// Alpha (opacity)
 		1.0 );
 }
-
-#endif

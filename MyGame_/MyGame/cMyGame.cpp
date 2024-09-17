@@ -58,7 +58,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	}
 
 	auto& cameraRigidBody = m_camera.GetRigidBodyState();
-	const float movementSpeed = 1.0f;  // Units per second
+	const float movementSpeed = 5.0f;  // Units per second
 	constexpr float rotationSpeed = eae6320::Math::ConvertDegreesToRadians(20.0f);  // Radians per second
 
 	// Movement: WASD for forward, backward, left, right
@@ -84,22 +84,22 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	}
 
 	// Rotation: Arrow keys for pitch and yaw
-	if (UserInput::IsKeyPressed('I'))
-	{
-		cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
-		cameraRigidBody.angularSpeed = rotationSpeed;
-	}
-	else if (UserInput::IsKeyPressed('K'))
-	{
-		cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
-		cameraRigidBody.angularSpeed = -rotationSpeed;
-	}
-	else if (UserInput::IsKeyPressed('J'))
+	//if (UserInput::IsKeyPressed('I'))
+	//{
+	//	cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
+	//	cameraRigidBody.angularSpeed = rotationSpeed;
+	//}
+	//else if (UserInput::IsKeyPressed('K'))
+	//{
+	//	cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
+	//	cameraRigidBody.angularSpeed = -rotationSpeed;
+	//}
+	if (UserInput::IsKeyPressed('J'))
 	{
 		cameraRigidBody.angularVelocity_axis_local = Math::sVector(0.0f, 1.0f, 0.0f);  // Yaw rotation axis
 		cameraRigidBody.angularSpeed = rotationSpeed;
 	}
-	else if (UserInput::IsKeyPressed('L'))
+	else if (UserInput::IsKeyPressed('K'))
 	{
 		cameraRigidBody.angularVelocity_axis_local = Math::sVector(0.0f, 1.0f, 0.0f);  // Yaw rotation axis
 		cameraRigidBody.angularSpeed = -rotationSpeed;
@@ -225,6 +225,12 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 	{
 		m_mesh->DecrementReferenceCount();
 		m_mesh = nullptr;
+	}
+
+	if (m_mesh2)
+	{
+		m_mesh2->DecrementReferenceCount();
+		m_mesh2 = nullptr;
 	}
 
 	if (m_effect)

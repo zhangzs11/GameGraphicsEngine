@@ -1,11 +1,10 @@
 /*
-	This is the standard fragment shader
+	This is the loop gradient fragment shader
 
 	A fragment shader is responsible for telling the GPU what color a specific fragment should be
 */
 
 #include <Shaders/shaders.inc>
-#include <Shaders/Common/CommonBuffers.shader>
 
 #if defined( EAE6320_PLATFORM_D3D )
 
@@ -28,22 +27,8 @@ void main(
 	out float4 o_color : SV_TARGET
 
 )
-{
-	float time = g_elapsedSecondCount_simulationTime * 0.5;
-
-	float2 screenCenter = float2(400.0f, 300.0f);
-    float distanceFromCenter = length(i_fragmentPosition.xy - screenCenter) / 300.0f;
-    float gradient = 0.5f + 0.5f * sin(time + distanceFromCenter * 10.0f);
-
-	float r = gradient;
-    float g = abs(sin(time + distanceFromCenter * 5.0f));
-    float b = abs(cos(time + distanceFromCenter * 7.0f));
-
-    o_color = float4(r, g, b, 1.0);
-}
 
 #elif defined( EAE6320_PLATFORM_GL )
-
 
 // Output
 //=======
@@ -56,17 +41,27 @@ out vec4 o_color;
 //============
 
 void main()
-{
-    float time = g_elapsedSecondCount_simulationTime * 0.5;
-    
-    float distanceFromCenter = length(gl_FragCoord.xy - vec2(400.0, 300.0)) / 300.0;
-    float gradient = 0.5 + 0.5 * sin(time + distanceFromCenter * 10.0);
-    
-    float r = gradient;
-    float g = abs(sin(time + distanceFromCenter * 5.0));
-    float b = abs(cos(time + distanceFromCenter * 7.0));
-
-    o_color = vec4(r, g, b, 1.0);
-}
 
 #endif
+
+// Main Body 
+//============
+
+{
+	float time = g_elapsedSecondCount_simulationTime * 0.5;
+
+    #if defined( EAE6320_PLATFORM_D3D )
+        float4_t screen_uv = i_fragmentPosition;
+    #elif defined( EAE6320_PLATFORM_GL )
+        float4_t screen_uv = gl_FragCoord;
+    #endif
+
+    float distanceFromCenter = length(screen_uv.xy - float2_t(400.0f, 300.0f)) / 300.0f;
+    float gradient = 0.5f + 0.5f * sin(time + distanceFromCenter * 10.0f);
+
+	float r = gradient;
+    float g = abs(sin(time + distanceFromCenter * 15.0f));
+    float b = abs(cos(time + distanceFromCenter * 7.0f));
+
+    o_color = float4_t(r, g, b, 1.0);
+}

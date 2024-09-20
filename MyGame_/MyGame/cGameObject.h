@@ -27,11 +27,13 @@ namespace eae6320
 		// Setters
 		void SetMesh(Graphics::cMesh* i_mesh) { m_mesh = i_mesh; }
 		void SetEffect(Graphics::cEffect* i_effect) { m_effect = i_effect; }
+		void SetMaxVelocity(float i_maxV) { m_maxVelocity = i_maxV; }
 
 	private:
 		Graphics::cMesh* m_mesh;
 		Graphics::cEffect* m_effect;
 		Physics::sRigidBodyState m_rigidBodyState;
+		float m_maxVelocity;
 	};
 }
 

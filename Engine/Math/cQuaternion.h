@@ -52,6 +52,10 @@ namespace eae6320
 			void Normalize();
 			cQuaternion GetNormalized() const;
 
+			// LookAt
+			//--------------
+			static cQuaternion LookAt(const sVector& i_direction, const sVector& i_up);
+		
 			// Access
 			//-------
 

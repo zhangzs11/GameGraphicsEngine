@@ -79,6 +79,8 @@ namespace eae6320
 		void UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate) final;
 		void SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate) final;
 
+		void SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
+		void SubmitCameraToGraphics(cCamera& i_camera, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 		// Initialize / Clean Up
 		//----------------------
@@ -93,6 +95,7 @@ namespace eae6320
 		Graphics::cEffect* m_effect = nullptr;
 		cGameObject m_gameObject;
 		cCamera m_camera;
+		cCamera m_second_camera;
 		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
 
 		// Game States

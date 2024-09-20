@@ -38,28 +38,28 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Left))
 	{
-		m_gameObject.GetRigidBodyState().velocity = Math::sVector(-1.0f, 0.0f, 0.0f);
+		m_gameObject.GetRigidBodyState().acceleration = Math::sVector(-1.0f, 0.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Right))
 	{
-		m_gameObject.GetRigidBodyState().velocity = Math::sVector(1.0f, 0.0f, 0.0f);
+		m_gameObject.GetRigidBodyState().acceleration = Math::sVector(1.0f, 0.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
 	{
-		m_gameObject.GetRigidBodyState().velocity = Math::sVector(0.0f, 1.0f, 0.0f);
+		m_gameObject.GetRigidBodyState().acceleration = Math::sVector(0.0f, 1.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Down))
 	{
-		m_gameObject.GetRigidBodyState().velocity = Math::sVector(0.0f, -1.0f, 0.0f);
+		m_gameObject.GetRigidBodyState().acceleration = Math::sVector(0.0f, -1.0f, 0.0f);
 	}
 	else
 	{
-		m_gameObject.GetRigidBodyState().velocity = Math::sVector(0.0f, 0.0f, 0.0f);
+		m_gameObject.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, 0.0f);
 	}
 
 	auto& cameraRigidBody = m_camera.GetRigidBodyState();
 	const float movementSpeed = 5.0f;  // Units per second
-	constexpr float rotationSpeed = eae6320::Math::ConvertDegreesToRadians(20.0f);  // Radians per second
+	constexpr float rotationSpeed = eae6320::Math::ConvertDegreesToRadians(60.0f);  // Radians per second
 
 	// Movement: WASD for forward, backward, left, right
 	if (UserInput::IsKeyPressed('W'))
@@ -128,7 +128,22 @@ void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceL
 void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
 	m_gameObject.Update(i_elapsedSecondCount_sinceLastUpdate);
-	// m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
+}
+
+void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
+{
+	if (i_gameObject.GetMesh() && i_gameObject.GetEffect())
+	{
+		eae6320::Graphics::SubmitMatrixLocalToWorld(i_gameObject.GetRigidBodyState().PredictFutureTransform(i_elapsedSecondCount_sinceLastSimulationUpdate));
+		eae6320::Graphics::SubmitMeshEffectPair(i_gameObject.GetMesh(), i_gameObject.GetEffect());
+	}
+}
+
+void eae6320::cMyGame::SubmitCameraToGraphics(cCamera& i_camera, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
+{
+	auto worldToCameraTransform = i_camera.GetWorldToCameraTransform();
+	auto cameraToProjectedTransform = i_camera.GetCameraToProjectedTransform();
+	eae6320::Graphics::SubmitCameraData(worldToCameraTransform, cameraToProjectedTransform);
 }
 
 void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
@@ -137,16 +152,9 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 	color[0] = (sinf(i_elapsedSecondCount_systemTime) + 1.0f) / 2.0f;
 	eae6320::Graphics::SubmitBackgroundColor(color);
 
-	if (m_gameObject.GetMesh() && m_gameObject.GetEffect())
-	{
-		eae6320::Graphics::SubmitMatrixLocalToWorld(m_gameObject.GetRigidBodyState().PredictFutureTransform(i_elapsedSecondCount_sinceLastSimulationUpdate));
-		eae6320::Graphics::SubmitMeshEffectPair(m_gameObject.GetMesh(), m_gameObject.GetEffect());
-	}
+	SubmitGameObjectToGraphics(m_gameObject, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
-	auto worldToCameraTransform = m_camera.GetWorldToCameraTransform();
-	auto cameraToProjectedTransform = m_camera.GetCameraToProjectedTransform();
-	eae6320::Graphics::SubmitCameraData(worldToCameraTransform, cameraToProjectedTransform);
-	
+	SubmitCameraToGraphics(m_camera, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 }
 
 // Initialize / Clean Up
@@ -206,6 +214,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	m_gameObject.SetMesh(m_mesh);
 	m_gameObject.SetEffect(m_effect);
+	m_gameObject.SetMaxVelocity(2.0f);
 
 	// Initialize Camera
 	// -----------------
@@ -213,6 +222,13 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1.0f, 0.1f, 11.0f);
 	m_camera.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 10.0f));
 	m_camera.SetOrientation(eae6320::Math::cQuaternion());
+	
+	m_second_camera.SetPosition(eae6320::Math::sVector(5.0f, 0.0f, 5.0f));
+	eae6320::Math::sVector lookAtOrigin = Math::sVector(0.0f, 0.0f, 0.0f);
+	eae6320::Math::sVector cameraPosition = m_second_camera.GetPosition();
+	eae6320::Math::sVector directionToOrigin = (cameraPosition - lookAtOrigin).GetNormalized();
+	m_second_camera.SetOrientation(Math::cQuaternion::LookAt(directionToOrigin, Math::sVector(0.0f, 1.0f, 0.0f)));
+	m_second_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1.0f, 0.1f, 100.0f);
 
 	return Results::Success;
 }

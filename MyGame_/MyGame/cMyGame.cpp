@@ -122,12 +122,13 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
 	// m_gameObject.Update(i_elapsedSecondCount_sinceLastUpdate);
-	m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
+	// m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
 }
 
 void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
 	m_gameObject.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
 }
 
 void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
@@ -141,7 +142,7 @@ void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, con
 
 void eae6320::cMyGame::SubmitCameraToGraphics(cCamera& i_camera, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
-	auto worldToCameraTransform = i_camera.GetWorldToCameraTransform();
+	auto worldToCameraTransform = i_camera.GetWorldToCameraTransform(i_elapsedSecondCount_sinceLastSimulationUpdate);
 	auto cameraToProjectedTransform = i_camera.GetCameraToProjectedTransform();
 	eae6320::Graphics::SubmitCameraData(worldToCameraTransform, cameraToProjectedTransform);
 }

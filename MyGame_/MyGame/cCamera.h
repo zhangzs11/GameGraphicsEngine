@@ -21,7 +21,7 @@ namespace eae6320
 		Physics::sRigidBodyState& GetRigidBodyState() { return m_rigidBodyState; }
 
 		// Get the transform matrix
-		Math::cMatrix_transformation GetWorldToCameraTransform() const;
+		Math::cMatrix_transformation GetWorldToCameraTransform(const float i_elapsedSecondCount_sinceLastUpdate) const;
 		Math::cMatrix_transformation GetCameraToProjectedTransform() const;
 
 		// Setters for camera properties

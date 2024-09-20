@@ -7,10 +7,11 @@ void eae6320::cCamera::Update(const float i_elapsedSecondCount_sinceLastUpdate)
 }
 
 // Get the world-to-camera transformation matrix
-eae6320::Math::cMatrix_transformation eae6320::cCamera::GetWorldToCameraTransform() const
+eae6320::Math::cMatrix_transformation eae6320::cCamera::GetWorldToCameraTransform(const float i_elapsedSecondCount_sinceLastUpdate) const
 {
     // Use the rigid body's orientation and position to create a world-to-camera transform
-    return eae6320::Math::cMatrix_transformation::CreateWorldToCameraTransform(m_rigidBodyState.orientation, m_rigidBodyState.position);
+    // return eae6320::Math::cMatrix_transformation::CreateWorldToCameraTransform(m_rigidBodyState.orientation, m_rigidBodyState.position);
+    return eae6320::Math::cMatrix_transformation::CreateWorldToCameraTransform(m_rigidBodyState.PredictFutureOrientation(i_elapsedSecondCount_sinceLastUpdate), m_rigidBodyState.PredictFuturePosition(i_elapsedSecondCount_sinceLastUpdate));
 }
 
 // Get the camera-to-projected transformation matrix

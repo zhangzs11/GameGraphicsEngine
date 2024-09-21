@@ -13,4 +13,9 @@ return
 		{ path = "Shaders/Fragment/animatedColor.shader", arguments = { "fragment" } },
 		{ path = "Shaders/Fragment/loopGradient.shader", arguments = { "fragment" } },
 	},
+
+	meshes = 
+	{
+		{ path = "Meshes/Square.mesh" },
+	},
 }

@@ -272,6 +272,24 @@ NewAssetTypeInfo( "shaders",
 	}
 )
 
+-- Mesh Asset Type
+------------------
+
+NewAssetTypeInfo( "meshes",
+	{
+		GetBuilderRelativePath = function()
+			return "MeshBuilder.exe"
+		end,
+		ConvertSourceRelativePathToBuiltRelativePath = function( i_sourceRelativePath )
+			-- Convert the source mesh file path to the target built file path
+			local relativeDirectory, file = i_sourceRelativePath:match( "(.-)([^/\\]+)$" )
+			local fileName, extensionWithPeriod = file:match( "([^%.]+)(.*)" )
+			-- Change the extension to something more appropriate for the built mesh file
+			return relativeDirectory .. fileName .. ".binmesh"
+		end,
+	}
+)
+
 -- Local Function Definitions
 --===========================
 

@@ -46,8 +46,7 @@ namespace eae6320
 			void Draw() const;
 
 			// factory function
-			static cResult CreateMesh(cMesh*& o_mesh, const void* i_vertexData,    const uint16_t i_vertexCount,
-				                                           const uint16_t* i_indexData, const uint16_t i_indexCount);
+			static cResult CreateMesh(cMesh*& o_mesh, const char* const i_path);
 
 		private:
 			// This prevents the class or struct from using illegal functions

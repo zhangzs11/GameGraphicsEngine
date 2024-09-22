@@ -168,25 +168,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize mesh
 	// ---------------
 
-	eae6320::Graphics::VertexFormats::sVertex_mesh vertexData[] = {
-		{ 0.0f, 0.0f, 0.0f },
-		{ 1.0f, 1.0f, 0.0f },
-		{ 1.0f, 0.0f, 0.0f },
-		{ 0.0f, 1.0f, 0.0f }
-	};
-	uint16_t indexData[] = { 0, 1, 2, 0, 3, 1 };
-
-	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh, vertexData, static_cast<uint16_t>(std::size(vertexData)),
-		indexData, static_cast<uint16_t>(std::size(indexData)));
-	if (!result)
-	{
-		EAE6320_ASSERTF(false, "Failed to initialize mesh");
-		return result;
-	}
-
-	uint16_t indexData2[] = { 0, 1, 2 };
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh2, vertexData, static_cast<uint16_t>(std::size(vertexData)),
-		indexData2, static_cast<uint16_t>(std::size(indexData2)));
+	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh, "data/Meshes/cube.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
@@ -198,8 +180,10 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	uint8_t renderStateBits = 0;
 	eae6320::Graphics::RenderStates::DisableAlphaTransparency(renderStateBits);
-	eae6320::Graphics::RenderStates::DisableDepthTesting(renderStateBits);
-	eae6320::Graphics::RenderStates::DisableDepthWriting(renderStateBits);
+	// eae6320::Graphics::RenderStates::DisableDepthTesting(renderStateBits);
+	// eae6320::Graphics::RenderStates::DisableDepthWriting(renderStateBits);
+	eae6320::Graphics::RenderStates::EnableDepthTesting(renderStateBits);
+	eae6320::Graphics::RenderStates::EnableDepthWriting(renderStateBits);
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
 
 	result = eae6320::Graphics::cEffect::CreateEffect(m_effect, "data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/loopGradient.shader",
@@ -220,16 +204,9 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize Camera
 	// -----------------
 
-	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1.0f, 0.1f, 11.0f);
+	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1.0f, 0.1f, 100000.0f);
 	m_camera.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 10.0f));
 	m_camera.SetOrientation(eae6320::Math::cQuaternion());
-	
-	m_second_camera.SetPosition(eae6320::Math::sVector(5.0f, 0.0f, 5.0f));
-	eae6320::Math::sVector lookAtOrigin = Math::sVector(0.0f, 0.0f, 0.0f);
-	eae6320::Math::sVector cameraPosition = m_second_camera.GetPosition();
-	eae6320::Math::sVector directionToOrigin = (cameraPosition - lookAtOrigin).GetNormalized();
-	m_second_camera.SetOrientation(Math::cQuaternion::LookAt(directionToOrigin, Math::sVector(0.0f, 1.0f, 0.0f)));
-	m_second_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1.0f, 0.1f, 100.0f);
 
 	return Results::Success;
 }

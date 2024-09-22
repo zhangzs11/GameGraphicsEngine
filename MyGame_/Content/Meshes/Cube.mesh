@@ -1,0 +1,37 @@
+return {
+    metadata = {
+        name = "Cube",
+    },
+    vertices = {
+        -- Front face
+        { position = { x = -1.0, y = -1.0, z =  1.0 } }, -- Vertex 0
+        { position = { x =  1.0, y = -1.0, z =  1.0 } }, -- Vertex 1
+        { position = { x =  1.0, y =  1.0, z =  1.0 } }, -- Vertex 2
+        { position = { x = -1.0, y =  1.0, z =  1.0 } }, -- Vertex 3
+
+        -- Back face
+        { position = { x = -1.0, y = -1.0, z = -1.0 } }, -- Vertex 4
+        { position = { x =  1.0, y = -1.0, z = -1.0 } }, -- Vertex 5
+        { position = { x =  1.0, y =  1.0, z = -1.0 } }, -- Vertex 6
+        { position = { x = -1.0, y =  1.0, z = -1.0 } }, -- Vertex 7
+    },
+    indices = {
+        -- Front face (z = 1.0f)
+        0, 1, 2, 0, 2, 3,
+
+        -- Back face (z = -1.0f)
+        4, 7, 6, 4, 6, 5,
+
+        -- Left face (x = -1.0f)
+        4, 0, 3, 4, 3, 7,
+
+        -- Right face (x = 1.0f)
+        1, 5, 6, 1, 6, 2,
+
+        -- Top face (y = 1.0f)
+        3, 2, 6, 3, 6, 7,
+
+        -- Bottom face (y = -1.0f)
+        4, 5, 1, 4, 1, 0,
+    }
+}

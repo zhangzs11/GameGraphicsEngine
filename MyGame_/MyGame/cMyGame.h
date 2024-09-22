@@ -95,7 +95,6 @@ namespace eae6320
 		Graphics::cEffect* m_effect = nullptr;
 		cGameObject m_gameObject;
 		cCamera m_camera;
-		cCamera m_second_camera;
 		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
 
 		// Game States

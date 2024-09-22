@@ -17,5 +17,7 @@ return
 	meshes = 
 	{
 		{ path = "Meshes/Square.mesh" },
+		{ path = "Meshes/Star.mesh" },
+		{ path = "Meshes/Cube.mesh" },
 	},
 }

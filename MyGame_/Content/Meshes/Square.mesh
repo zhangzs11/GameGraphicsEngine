@@ -10,6 +10,6 @@ return {
     },
     indices = {
         -- Each group of three indices defines a triangle
-        1, 2, 3, 1, 4, 2
+        0, 1, 2, 0, 3, 1
     }
 }

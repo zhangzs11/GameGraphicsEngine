@@ -168,7 +168,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize mesh
 	// ---------------
 
-	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh, "data/Meshes/cube.binmesh");
+	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh, "data/Meshes/Helix_onlyChangeIndex.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");

@@ -2,38 +2,38 @@ return
 {
 	vertices = 
 	{
-		{ position = { x = -0.5, y = 0, z = -0.5 },
+		{ position = { x = -5, y = 0, z = -5 },
  normal = { nx = 0, ny = 1, nz = -0 },
  tangent = { tx = 1, ty = -0, tz = -0 },
  bitangent = { btx = -0, bty = -0, btz = -1 },
  texcoord = { u = 0, v = 1 },
- color = { r = 0, g = 1, b = 0.8881, a = 1 }
+ color = { r = 0, g = 0, b = 0.8881, a = 1 }
  },
-		{ position = { x = 0.5, y = 0, z = -0.5 },
+		{ position = { x = 5, y = 0, z = -5 },
  normal = { nx = 0, ny = 1, nz = -0 },
  tangent = { tx = 1, ty = 0, tz = -0 },
  bitangent = { btx = -0, bty = -0, btz = -1 },
  texcoord = { u = 1, v = 1 },
- color = { r = 0, g = 1, b = 0.0564, a = 1 }
+ color = { r = 0, g = 0, b = 0.564, a = 1 }
  },
-		{ position = { x = -0.5, y = 0, z = 0.5 },
+		{ position = { x = -5, y = 0, z = 5 },
  normal = { nx = 0, ny = 1, nz = -0 },
  tangent = { tx = 1, ty = 0, tz = -0 },
  bitangent = { btx = -0, bty = -0, btz = -1 },
  texcoord = { u = 0, v = 0 },
- color = { r = 0, g = 1, b = 0.0221, a = 1 }
+ color = { r = 0, g = 0.2, b = 0.221, a = 1 }
  },
-		{ position = { x = 0.5, y = 0, z = 0.5 },
+		{ position = { x = 5, y = 0, z = 5 },
  normal = { nx = 0, ny = 1, nz = -0 },
  tangent = { tx = 1, ty = 0, tz = -0 },
  bitangent = { btx = -0, bty = -0, btz = -1 },
  texcoord = { u = 1, v = 0 },
- color = { r = 0, g = 1, b = 0.8514, a = 1 }
+ color = { r = 0, g = 0, b = 0.8514, a = 1 }
  },
 	},
 	indices = 
 	{
-		0, 2, 1,
-		2, 3, 1,
+		0, 1, 2,
+		2, 1, 3,
 	},
 }

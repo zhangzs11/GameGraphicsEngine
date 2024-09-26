@@ -88,12 +88,21 @@ namespace eae6320
 		cResult Initialize() final;
 		cResult CleanUp() final;
 
+		// Mesh / Effect
+		//----------------------
+		Graphics::cMesh* m_mesh_plane = nullptr;
+		Graphics::cMesh* m_mesh_gear = nullptr;
+		Graphics::cMesh* m_mesh_helix = nullptr;
+		Graphics::cMesh* m_mesh_pipe = nullptr;
+		Graphics::cEffect* m_effect_color = nullptr;
+		Graphics::cEffect* m_effect_animited_color = nullptr;
+
 		// Game Objects
 		//----------------------
-		Graphics::cMesh* m_mesh = nullptr;
-		Graphics::cMesh* m_mesh2 = nullptr;
-		Graphics::cEffect* m_effect = nullptr;
-		cGameObject m_gameObject;
+		cGameObject m_gameObject_plane;
+		cGameObject m_gameObject_gear;
+		cGameObject m_gameObject_helix;
+		cGameObject m_gameObject_pipe;
 		cCamera m_camera;
 		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
 

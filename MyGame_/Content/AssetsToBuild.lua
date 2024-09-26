@@ -16,12 +16,9 @@ return
 
 	meshes = 
 	{
-		{ path = "Meshes/Square.mesh" },
-		{ path = "Meshes/Star.mesh" },
-		{ path = "Meshes/Cube.mesh" },
 		{ path = "Meshes/plane.mesh" },
-		{ path = "Meshes/plane_noTransform.mesh" },
-		{ path = "Meshes/Helix_onlyChangeIndex.mesh" },
 		{ path = "Meshes/Helix_onlyChangeIndex_withColor.mesh" },
+                { path = "Meshes/pipe_onlyChangeIndex_withColor.mesh" },
+                { path = "Meshes/Gear_changeIndex_withColor.mesh" },
 	},
 }

@@ -28,6 +28,7 @@ namespace eae6320
 		void SetMesh(Graphics::cMesh* i_mesh) { m_mesh = i_mesh; }
 		void SetEffect(Graphics::cEffect* i_effect) { m_effect = i_effect; }
 		void SetMaxVelocity(float i_maxV) { m_maxVelocity = i_maxV; }
+		void SetPosition(Math::sVector i_position) { m_rigidBodyState.position = i_position; }
 
 	private:
 		Graphics::cMesh* m_mesh;

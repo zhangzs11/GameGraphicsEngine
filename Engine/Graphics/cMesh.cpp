@@ -177,6 +177,15 @@ eae6320::cResult eae6320::Graphics::cMesh::CreateMesh(eae6320::Graphics::cMesh*&
 	}
 
 	const auto indexCount = static_cast<uint16_t>(luaL_len(luaState, -1));
+	// Check number of index(not over 65535(uint16_t))
+	if (indexCount > std::numeric_limits<uint16_t>::max())
+	{
+		result = Results::Failure;
+		std::cerr << "The Lua file contains too many indices (" << indexCount << "). The maximum allowed is " << std::numeric_limits<uint16_t>::max() << "." << std::endl;
+		lua_close(luaState);
+		return result;
+	}
+
 	std::vector<uint16_t> indexData;
 	indexData.reserve(indexCount);
 

@@ -38,23 +38,31 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Left))
 	{
-		m_gameObject.GetRigidBodyState().acceleration = Math::sVector(-1.0f, 0.0f, 0.0f);
+		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(-1.0f, 0.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Right))
 	{
-		m_gameObject.GetRigidBodyState().acceleration = Math::sVector(1.0f, 0.0f, 0.0f);
+		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(1.0f, 0.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
 	{
-		m_gameObject.GetRigidBodyState().acceleration = Math::sVector(0.0f, 1.0f, 0.0f);
+		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(0.0f, 1.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Down))
 	{
-		m_gameObject.GetRigidBodyState().acceleration = Math::sVector(0.0f, -1.0f, 0.0f);
+		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(0.0f, -1.0f, 0.0f);
+	}
+	else if (UserInput::IsKeyPressed('N'))
+	{
+		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, 1.0f);
+	}
+	else if (UserInput::IsKeyPressed('M'))
+	{
+		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, -1.0f);
 	}
 	else
 	{
-		m_gameObject.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, 0.0f);
+		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, 0.0f);
 	}
 
 	auto& cameraRigidBody = m_camera.GetRigidBodyState();
@@ -109,14 +117,14 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		cameraRigidBody.angularSpeed = 0.0f;
 	}
 
-	if (UserInput::IsKeyPressed('Q'))
-	{
-		m_gameObject.SetMesh(m_mesh2);
-	}
-	if (UserInput::IsKeyPressed('E'))
-	{
-		m_gameObject.SetMesh(m_mesh);
-	}
+	//if (UserInput::IsKeyPressed('Q'))
+	//{
+	//	m_gameObject.SetMesh(m_mesh2);
+	//}
+	//if (UserInput::IsKeyPressed('E'))
+	//{
+	//	m_gameObject.SetMesh(m_mesh);
+	//}
 
 }
 void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
@@ -127,7 +135,10 @@ void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceL
 
 void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
-	m_gameObject.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_gameObject_plane.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_gameObject_gear.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_gameObject_helix.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_gameObject_pipe.Update(i_elapsedSecondCount_sinceLastUpdate);
 	m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
 }
 
@@ -153,7 +164,10 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 	color[0] = (sinf(i_elapsedSecondCount_systemTime) + 1.0f) / 2.0f;
 	eae6320::Graphics::SubmitBackgroundColor(color);
 
-	SubmitGameObjectToGraphics(m_gameObject, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_plane, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_gear, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_helix, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_pipe, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 	SubmitCameraToGraphics(m_camera, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 }
@@ -168,13 +182,33 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize mesh
 	// ---------------
 
-	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh, "data/Meshes/Helix_onlyChangeIndex_withColor.binmesh");
+	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_plane, "data/Meshes/plane.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
 	}
 
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_gear, "data/Meshes/Gear_changeIndex_withColor.binmesh");
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize mesh");
+		return result;
+	}
+
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_helix, "data/Meshes/Helix_onlyChangeIndex_withColor.binmesh");
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize mesh");
+		return result;
+	}
+
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_pipe, "data/Meshes/pipe_onlyChangeIndex_withColor.binmesh");
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize mesh");
+		return result;
+	}
 	// Initialize effect
 	// -----------------
 
@@ -186,7 +220,15 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::RenderStates::EnableDepthWriting(renderStateBits);
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect, "data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/animatedColor.shader",
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_color, "data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/standard.shader",
+		renderStateBits);
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize effect");
+		return result;
+	}
+
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_animited_color, "data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/animatedColor.shader",
 		renderStateBits);
 	if (!result)
 	{
@@ -197,9 +239,26 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize GameObject
 	// ---------------------
 
-	m_gameObject.SetMesh(m_mesh);
-	m_gameObject.SetEffect(m_effect);
-	m_gameObject.SetMaxVelocity(2.0f);
+	m_gameObject_plane.SetMesh(m_mesh_plane);
+	m_gameObject_plane.SetEffect(m_effect_color);
+	m_gameObject_plane.SetMaxVelocity(2.0f);
+	m_gameObject_plane.SetPosition(eae6320::Math::sVector(0.0f, -2.0f, 0.0f));
+
+	m_gameObject_gear.SetMesh(m_mesh_gear);
+	m_gameObject_gear.SetEffect(m_effect_color);
+	m_gameObject_gear.SetMaxVelocity(2.0f);
+	m_gameObject_gear.SetPosition(eae6320::Math::sVector(0.0f, -1.0f, 2.0f));
+
+	m_gameObject_helix.SetMesh(m_mesh_helix);
+	m_gameObject_helix.SetEffect(m_effect_color);
+	m_gameObject_helix.SetMaxVelocity(2.0f);
+	m_gameObject_helix.SetPosition(eae6320::Math::sVector(2.0f, 1.0f, 0.0f));
+
+	m_gameObject_pipe.SetMesh(m_mesh_pipe);
+	m_gameObject_pipe.SetEffect(m_effect_color);
+	m_gameObject_pipe.SetMaxVelocity(2.0f);
+	m_gameObject_pipe.SetPosition(eae6320::Math::sVector(-2.0f, -1.0f, 0.0f));
+
 
 	// Initialize Camera
 	// -----------------
@@ -215,22 +274,40 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 {
 	eae6320::Logging::OutputMessage((std::string("Clean Up Window : ") + GetMainWindowName()).c_str());
 
-	if (m_mesh)
+	if (m_mesh_plane)
 	{
-		m_mesh->DecrementReferenceCount();
-		m_mesh = nullptr;
+		m_mesh_plane->DecrementReferenceCount();
+		m_mesh_plane = nullptr;
 	}
 
-	if (m_mesh2)
+	if (m_mesh_gear)
 	{
-		m_mesh2->DecrementReferenceCount();
-		m_mesh2 = nullptr;
+		m_mesh_gear->DecrementReferenceCount();
+		m_mesh_gear = nullptr;
 	}
 
-	if (m_effect)
+	if (m_mesh_helix)
 	{
-		m_effect->DecrementReferenceCount();
-		m_effect = nullptr;
+		m_mesh_helix->DecrementReferenceCount();
+		m_mesh_helix = nullptr;
+	}
+
+	if (m_mesh_pipe)
+	{
+		m_mesh_pipe->DecrementReferenceCount();
+		m_mesh_pipe = nullptr;
+	}
+
+	if (m_effect_color)
+	{
+		m_effect_color->DecrementReferenceCount();
+		m_effect_color = nullptr;
+	}
+
+	if (m_effect_animited_color)
+	{
+		m_effect_animited_color->DecrementReferenceCount();
+		m_effect_animited_color = nullptr;
 	}
 
 	return Results::Success;

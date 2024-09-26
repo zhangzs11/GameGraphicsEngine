@@ -22,5 +22,6 @@ return
 		{ path = "Meshes/plane.mesh" },
 		{ path = "Meshes/plane_noTransform.mesh" },
 		{ path = "Meshes/Helix_onlyChangeIndex.mesh" },
+		{ path = "Meshes/Helix_onlyChangeIndex_withColor.mesh" },
 	},
 }

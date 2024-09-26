@@ -25,13 +25,14 @@ void main(
 
 	// These values come from one of the VertexFormats::sVertex_mesh that the vertex buffer was filled with in C code
 	in const float3 i_vertexPosition_local : POSITION,
-
+	in const float4 i_vertexColor : COLOR,
 	// Output
 	//=======
 
 	// An SV_POSITION value must always be output from every vertex shader
 	// so that the GPU can figure out which fragments need to be shaded
-	out float4 o_vertexPosition_projected : SV_POSITION
+	out float4 o_vertexPosition_projected : SV_POSITION,
+	out float4 o_vertexColor : COLOR
 
 )
 
@@ -45,10 +46,11 @@ void main(
 
 // These values come from one of the VertexFormats::sVertex_mesh that the vertex buffer was filled with in C code
 layout( location = 0 ) in vec3 i_vertexPosition_local;
+layout( location = 1 ) in vec4 i_vertexColor;
 
 // Output
 //=======
-
+layout( location = 1 ) out vec4 o_vertexColor;
 // The vertex shader must always output a position value,
 // but unlike HLSL where the value is explicit
 // GLSL has an automatically-required variable named "gl_Position"
@@ -82,5 +84,8 @@ void main()
 		#elif defined( EAE6320_PLATFORM_GL )
 			gl_Position = MUL_MATRIX_VECTOR(g_transform_cameraToProjected, vertexPosition_camera);
 		#endif
+
+		// Assign the color
+		o_vertexColor = i_vertexColor;
 	}
 }

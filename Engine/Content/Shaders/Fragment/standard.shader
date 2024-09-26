@@ -18,6 +18,7 @@ void main(
 	//======
 
 	in const float4 i_fragmentPosition : SV_POSITION,
+	in const float4 i_fragmentColor : COLOR,
 
 	// Output
 	//=======
@@ -30,6 +31,9 @@ void main(
 
 #elif defined( EAE6320_PLATFORM_GL )
 
+// Input
+layout( location = 1 ) in vec4 i_fragmentColor;
+
 // Output for GLSL
 out vec4 o_color;
 
@@ -39,10 +43,6 @@ void main()
 #endif
 
 {
-	// Output solid white
-	o_color = float4_t(
-		// RGB (color)
-		1.0, 1.0, 1.0,
-		// Alpha (opacity)
-		1.0 );
+	// Output input color
+	o_color = i_fragmentColor;
 }

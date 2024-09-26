@@ -168,7 +168,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize mesh
 	// ---------------
 
-	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh, "data/Meshes/Helix_onlyChangeIndex.binmesh");
+	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh, "data/Meshes/Helix_onlyChangeIndex_withColor.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
@@ -186,7 +186,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::RenderStates::EnableDepthWriting(renderStateBits);
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect, "data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/loopGradient.shader",
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect, "data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/animatedColor.shader",
 		renderStateBits);
 	if (!result)
 	{

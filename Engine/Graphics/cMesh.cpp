@@ -6,6 +6,7 @@
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Results/Results.h>
 #include <Engine/ScopeGuard/cScopeGuard.h>
+#include <Engine/Graphics/VertexFormats.h>
 #include <External/Lua/Includes.h>
 #include <iostream>
 #include <vector>
@@ -81,11 +82,13 @@ eae6320::cResult eae6320::Graphics::cMesh::CreateMesh(eae6320::Graphics::cMesh*&
 	}
 
 	const auto vertexCount = static_cast<uint16_t>(luaL_len(luaState, -1));
-	std::vector<float> vertexData;
-	vertexData.reserve(vertexCount * 3);
+	std::vector<eae6320::Graphics::VertexFormats::sVertex_mesh> vertexData;
+	vertexData.reserve(vertexCount * 7); // 3 for position, 4 for color
 
 	for (int i = 1; i <= vertexCount; ++i)
 	{
+		eae6320::Graphics::VertexFormats::sVertex_mesh v;
+
 		lua_pushinteger(luaState, i);
 		lua_gettable(luaState, -2);
 		if (lua_istable(luaState, -1))
@@ -95,15 +98,18 @@ eae6320::cResult eae6320::Graphics::cMesh::CreateMesh(eae6320::Graphics::cMesh*&
 			if (lua_istable(luaState, -1))
 			{
 				lua_getfield(luaState, -1, "x");
-				vertexData.push_back(static_cast<float>(lua_tonumber(luaState, -1)));
+				// vertexData.push_back(static_cast<float>(lua_tonumber(luaState, -1)));
+				v.x = static_cast<float>(lua_tonumber(luaState, -1));
 				lua_pop(luaState, 1);
 
 				lua_getfield(luaState, -1, "y");
-				vertexData.push_back(static_cast<float>(lua_tonumber(luaState, -1)));
+				// vertexData.push_back(static_cast<float>(lua_tonumber(luaState, -1)));
+				v.y = static_cast<float>(lua_tonumber(luaState, -1));
 				lua_pop(luaState, 1);
 
 				lua_getfield(luaState, -1, "z");
-				vertexData.push_back(static_cast<float>(lua_tonumber(luaState, -1)));
+				// vertexData.push_back(static_cast<float>(lua_tonumber(luaState, -1)));
+				v.z = static_cast<float>(lua_tonumber(luaState, -1));
 				lua_pop(luaState, 1);
 			}
 			else
@@ -115,8 +121,48 @@ eae6320::cResult eae6320::Graphics::cMesh::CreateMesh(eae6320::Graphics::cMesh*&
 			}
 			// Pop the "position" table
 			lua_pop(luaState, 1);
+
+			// get the "color" table (optional)
+			lua_getfield(luaState, -1, "color");
+			if (lua_istable(luaState, -1))
+			{
+				lua_getfield(luaState, -1, "r");
+				// vertexData.push_back(static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f));
+				v.r = static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f);
+				lua_pop(luaState, 1);
+
+				lua_getfield(luaState, -1, "g");
+				// vertexData.push_back(static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f));
+				v.g = static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f);
+				lua_pop(luaState, 1);
+
+				lua_getfield(luaState, -1, "b");
+				// vertexData.push_back(static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f));
+				v.b = static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f);
+				lua_pop(luaState, 1);
+
+				lua_getfield(luaState, -1, "a");
+				// vertexData.push_back(static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f));
+				v.a = static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f);
+				lua_pop(luaState, 1);
+			}
+			else
+			{
+				// Use default white color if color is not provided
+				// vertexData.push_back(255.0f); // r
+				v.r = static_cast<uint8_t>(255.0f);
+				v.g = static_cast<uint8_t>(255.0f);
+				v.b = static_cast<uint8_t>(255.0f);
+				v.a = static_cast<uint8_t>(255.0f);
+				// vertexData.push_back(255.0f); // g
+				// vertexData.push_back(255.0f); // b
+				// vertexData.push_back(255.0f); // a
+			}
+			// pop color table or empty pop
+			lua_pop(luaState, 1);
 		}
-		lua_pop(luaState, 1);
+		vertexData.push_back(v);
+		lua_pop(luaState, 1); // pop vertex table
 	}
 	lua_pop(luaState, 1); // pop vertices table
 

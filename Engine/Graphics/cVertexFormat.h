@@ -75,12 +75,12 @@ namespace eae6320
 
 			static cResult Load( const eVertexType i_type, cVertexFormat*& o_vertexFormat, const char* const i_vertexShaderPath );
 
-			EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS( cVertexFormat );
+			EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS( cVertexFormat )
 
 			// Reference Counting
 			//-------------------
 
-			EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS();
+			EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS()
 
 			// Data
 			//=====
@@ -93,7 +93,7 @@ namespace eae6320
 			ID3D11InputLayout* m_vertexInputLayout = nullptr;
 #endif
 			
-			EAE6320_ASSETS_DECLAREREFERENCECOUNT();
+			EAE6320_ASSETS_DECLAREREFERENCECOUNT()
 
 			// Implementation
 			//===============

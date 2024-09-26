@@ -18,6 +18,7 @@ void main(
 	//======
 
 	in const float4 i_fragmentPosition : SV_POSITION,
+	in const float4 i_fragmentColor : COLOR,
 
 	// Output
 	//=======
@@ -29,6 +30,9 @@ void main(
 )
 
 #elif defined( EAE6320_PLATFORM_GL )
+
+// Input
+layout( location = 1 ) in vec4 i_fragmentColor;
 
 // Output
 //=======
@@ -53,5 +57,5 @@ void main()
 		// RGB (color)
 		r, g, b,
 		// Alpha (opacity)
-		1.0 );
+		1.0 ) * i_fragmentColor;
 }

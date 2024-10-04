@@ -16,9 +16,9 @@ return
 
 	meshes = 
 	{
-		{ path = "Meshes/plane.mesh" },
-		{ path = "Meshes/Helix_onlyChangeIndex_withColor.mesh" },
-                { path = "Meshes/pipe_onlyChangeIndex_withColor.mesh" },
-                { path = "Meshes/Gear_changeIndex_withColor.mesh" },
+		{ path = "Meshes/helix_gl.mesh" },
+	        { path = "Meshes/pipe_gl.mesh" },
+		{ path = "Meshes/plane_gl.mesh" },
+                { path = "Meshes/torus_gl.mesh" },
 	},
 }

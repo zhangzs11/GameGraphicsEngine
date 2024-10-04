@@ -834,8 +834,8 @@ namespace
 				for (size_t i = 0; i < i_indexArray.size(); i += 3)
 				{
 					fout << "\t\t" << i_indexArray[i] << ", "
-						<< i_indexArray[i + 2] << ", "
-						<< i_indexArray[i + 1] << "," "\n";
+						<< i_indexArray[i + 1] << ", "
+						<< i_indexArray[i + 2] << "," "\n";
 				}
 				fout << "\t" "}," "\n";
 			}

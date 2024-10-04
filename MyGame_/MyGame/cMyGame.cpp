@@ -182,28 +182,28 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize mesh
 	// ---------------
 
-	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_plane, "data/Meshes/plane.binmesh");
+	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_plane, "data/Meshes/plane_gl.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
 	}
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_gear, "data/Meshes/Gear_changeIndex_withColor.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_gear, "data/Meshes/torus_gl.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
 	}
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_helix, "data/Meshes/Helix_onlyChangeIndex_withColor.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_helix, "data/Meshes/helix_gl.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
 	}
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_pipe, "data/Meshes/pipe_onlyChangeIndex_withColor.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_pipe, "data/Meshes/pipe_gl.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");

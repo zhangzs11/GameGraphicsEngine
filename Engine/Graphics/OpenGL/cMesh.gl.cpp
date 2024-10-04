@@ -23,9 +23,9 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 	auto result = eae6320::Results::Success;
 
 	// Adjust the index to CCW
-	std::vector<uint16_t> adjustedIndices(i_indexData, i_indexData + i_indexCount);
-	ConvertIndicesToCCW(adjustedIndices.data(), adjustedIndices.size());
-	i_indexData = adjustedIndices.data();
+	// std::vector<uint16_t> adjustedIndices(i_indexData, i_indexData + i_indexCount);
+	// ConvertIndicesToCCW(adjustedIndices.data(), adjustedIndices.size());
+	// i_indexData = adjustedIndices.data();
 
 	// Store the vertex count
 	// m_vertexCount = i_vertexCount;

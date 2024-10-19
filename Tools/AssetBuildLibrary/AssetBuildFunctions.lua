@@ -258,7 +258,7 @@ NewAssetTypeInfo( "shaders",
 			-- The line below just puts the original pieces back together,
 			-- but you could change this to customize the way that you build assets
 			-- (you could, for example, use a different extension for binary shaders)
-			return relativeDirectory .. fileName .. extensionWithPeriod
+			return relativeDirectory .. fileName .. ".binshader"
 		end,
 		GetBuilderRelativePath = function()
 			return "ShaderBuilder.exe"

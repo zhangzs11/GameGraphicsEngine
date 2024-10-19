@@ -20,5 +20,6 @@ return
 	        { path = "Meshes/pipe_gl.mesh" },
 		{ path = "Meshes/plane_gl.mesh" },
                 { path = "Meshes/torus_gl.mesh" },
+                { path = "Meshes/Alien.mesh" },
 	},
 }

@@ -6,6 +6,8 @@
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Results/Results.h>
 #include <Engine/ScopeGuard/cScopeGuard.h>
+#include <Engine/Logging/Logging.h>
+#include <Engine/Platform/Platform.h>
 #include <Engine/Graphics/VertexFormats.h>
 #include <External/Lua/Includes.h>
 #include <iostream>
@@ -21,200 +23,67 @@ eae6320::cResult eae6320::Graphics::cMesh::CreateMesh(eae6320::Graphics::cMesh*&
 {
 	auto result = eae6320::Results::Success;
 
-	lua_State* luaState = nullptr;
-
-	// Creat a Lua statue
+	// Load the binary mesh file
+	Platform::sDataFromFile dataFromFile;
+	if (!(result = Platform::LoadBinaryFile(i_path, dataFromFile)))
 	{
-		luaState = luaL_newstate();
-		if (!luaState)
-		{
-			result = Results::OutOfMemory;
-			EAE6320_ASSERTF(false, "Couldn't create a new Lua state");
-			return result;
-		}
-	}
-
-	// Load lua file
-	{
-		const auto luaResult = luaL_loadfile(luaState, i_path);
-		if (luaResult != LUA_OK)
-		{
-			result = Results::Failure;
-			std::cerr << "Failed to load the Lua file: " << lua_tostring(luaState, -1) << std::endl;
-			lua_close(luaState);
-			return result;
-		}
-	}
-
-	// Call lua file
-	{
-		constexpr int argumentCount = 0;
-		constexpr int returnValueCount = 1;	// Return _everything_ that the file returns
-		constexpr int noMessageHandler = 0;
-
-		const auto luaResult = lua_pcall(luaState, argumentCount, returnValueCount, noMessageHandler);
-		if (luaResult != LUA_OK)
-		{
-			result = Results::Failure;
-			std::cerr << "Failed to execute the Lua file: " << lua_tostring(luaState, -1) << std::endl;
-			lua_close(luaState);
-			return result;
-		}
-	}
-
-	// Make sure return a table
-	if (!lua_istable(luaState, -1))
-	{
-		result = Results::InvalidFile;
-		std::cerr << "The Lua file must return a table" << std::endl;
-		lua_close(luaState);
+		Logging::OutputError("Failed to load binary mesh file: %s", i_path);
 		return result;
 	}
 
-	// Get vertices data
-	lua_getfield(luaState, -1, "vertices");
-	if (!lua_istable(luaState, -1))
-	{
-		result = Results::InvalidFile;
-		std::cerr << "The Lua file must contain a 'vertices' table" << std::endl;
-		lua_close(luaState);
-		return result;
-	}
+	uintptr_t currentOffset = reinterpret_cast<uintptr_t>(dataFromFile.data);
+	const auto finalOffset = currentOffset + dataFromFile.size;
 
-	const auto vertexCount = static_cast<uint16_t>(luaL_len(luaState, -1));
-	std::vector<eae6320::Graphics::VertexFormats::sVertex_mesh> vertexData;
-	vertexData.reserve(vertexCount * 7); // 3 for position, 4 for color
+    // Read the vertex count
+    uint16_t vertexCount;
+    memcpy(&vertexCount, reinterpret_cast<void*>(currentOffset), sizeof(vertexCount));
+    currentOffset += sizeof(uint16_t); // Move to the next block
 
-	for (int i = 1; i <= vertexCount; ++i)
-	{
-		eae6320::Graphics::VertexFormats::sVertex_mesh v;
+    // Calculate the size of the vertex data
+    const size_t vertexDataSize = vertexCount * sizeof(eae6320::Graphics::VertexFormats::sVertex_mesh);
+    if ((currentOffset + vertexDataSize) > finalOffset) // Check if the file is large enough for vertex data
+    {
+        Logging::OutputError("The binary mesh file is too small for the vertex data: %s", i_path);
+        return eae6320::Results::InvalidFile;
+    }
 
-		lua_pushinteger(luaState, i);
-		lua_gettable(luaState, -2);
-		if (lua_istable(luaState, -1))
-		{
-			// Now get the "position" table
-			lua_getfield(luaState, -1, "position");
-			if (lua_istable(luaState, -1))
-			{
-				lua_getfield(luaState, -1, "x");
-				// vertexData.push_back(static_cast<float>(lua_tonumber(luaState, -1)));
-				v.x = static_cast<float>(lua_tonumber(luaState, -1));
-				lua_pop(luaState, 1);
+    // Get the vertex data
+    const auto* const vertexArray = reinterpret_cast<const eae6320::Graphics::VertexFormats::sVertex_mesh*>(currentOffset);
+    currentOffset += vertexDataSize; // Move to the next block (index count)
 
-				lua_getfield(luaState, -1, "y");
-				// vertexData.push_back(static_cast<float>(lua_tonumber(luaState, -1)));
-				v.y = static_cast<float>(lua_tonumber(luaState, -1));
-				lua_pop(luaState, 1);
+    // Read the index count
+    uint16_t indexCount;
+    memcpy(&indexCount, reinterpret_cast<void*>(currentOffset), sizeof(indexCount));
+    currentOffset += sizeof(uint16_t); // Move to the next block (index data)
 
-				lua_getfield(luaState, -1, "z");
-				// vertexData.push_back(static_cast<float>(lua_tonumber(luaState, -1)));
-				v.z = static_cast<float>(lua_tonumber(luaState, -1));
-				lua_pop(luaState, 1);
-			}
-			else
-			{
-				result = Results::InvalidFile;
-				std::cerr << "The Lua file must contain a 'position' table within each vertex" << std::endl;
-				lua_close(luaState);
-				return result;
-			}
-			// Pop the "position" table
-			lua_pop(luaState, 1);
+    // Calculate the size of the index data
+    const size_t indexDataSize = indexCount * sizeof(uint16_t);
+    if ((currentOffset + indexDataSize) > finalOffset) // Check if the file is large enough for index data
+    {
+        Logging::OutputError("The binary mesh file is too small for the index data: %s", i_path);
+        return eae6320::Results::InvalidFile;
+    }
 
-			// get the "color" table (optional)
-			lua_getfield(luaState, -1, "color");
-			if (lua_istable(luaState, -1))
-			{
-				lua_getfield(luaState, -1, "r");
-				// vertexData.push_back(static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f));
-				v.r = static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f);
-				lua_pop(luaState, 1);
+    // Get the index data
+    const auto* const indexArray = reinterpret_cast<const uint16_t*>(currentOffset);
 
-				lua_getfield(luaState, -1, "g");
-				// vertexData.push_back(static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f));
-				v.g = static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f);
-				lua_pop(luaState, 1);
+    // Allocate memory for the mesh
+    cMesh* newMesh = new (std::nothrow) cMesh();
+    if (!newMesh)
+    {
+        result = eae6320::Results::OutOfMemory;
+        Logging::OutputError("Couldn't allocate memory for the mesh: %s", i_path);
+        return result;
+    }
 
-				lua_getfield(luaState, -1, "b");
-				// vertexData.push_back(static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f));
-				v.b = static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f);
-				lua_pop(luaState, 1);
-
-				lua_getfield(luaState, -1, "a");
-				// vertexData.push_back(static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f));
-				v.a = static_cast<uint8_t>(lua_tonumber(luaState, -1) * 255.0f + 0.5f);
-				lua_pop(luaState, 1);
-			}
-			else
-			{
-				// Use default white color if color is not provided
-				// vertexData.push_back(255.0f); // r
-				v.r = static_cast<uint8_t>(255.0f);
-				v.g = static_cast<uint8_t>(255.0f);
-				v.b = static_cast<uint8_t>(255.0f);
-				v.a = static_cast<uint8_t>(255.0f);
-				// vertexData.push_back(255.0f); // g
-				// vertexData.push_back(255.0f); // b
-				// vertexData.push_back(255.0f); // a
-			}
-			// pop color table or empty pop
-			lua_pop(luaState, 1);
-		}
-		vertexData.push_back(v);
-		lua_pop(luaState, 1); // pop vertex table
-	}
-	lua_pop(luaState, 1); // pop vertices table
-
-	// Get indices data 
-	lua_getfield(luaState, -1, "indices");
-	if (!lua_istable(luaState, -1))
-	{
-		result = Results::InvalidFile;
-		std::cerr << "The Lua file must contain an 'indices' table" << std::endl;
-		lua_close(luaState);
-		return result;
-	}
-
-	const auto indexCount = static_cast<uint16_t>(luaL_len(luaState, -1));
-	// Check number of index(not over 65535(uint16_t))
-	if (indexCount > std::numeric_limits<uint16_t>::max())
-	{
-		result = Results::Failure;
-		std::cerr << "The Lua file contains too many indices (" << indexCount << "). The maximum allowed is " << std::numeric_limits<uint16_t>::max() << "." << std::endl;
-		lua_close(luaState);
-		return result;
-	}
-
-	std::vector<uint16_t> indexData;
-	indexData.reserve(indexCount);
-
-	for (int i = 1; i <= indexCount; ++i)
-	{
-		lua_pushinteger(luaState, i);
-		lua_gettable(luaState, -2);
-		indexData.push_back(static_cast<uint16_t>(lua_tointeger(luaState, -1)));
-		lua_pop(luaState, 1);
-	}
-	lua_pop(luaState, 1); // pop indices table
-
-	lua_close(luaState); // close Lua status
-
-	// Create a Mesh and Initialize
-	cMesh* newMesh = new (std::nothrow) cMesh();
-	if (!newMesh)
-	{
-		result = Results::OutOfMemory;
-		EAE6320_ASSERTF(false, "Couldn't allocate memory for mesh");
-		return result;
-	}
-
-	if (!(result = newMesh->Initialize(vertexData.data(), vertexCount, indexData.data(), indexCount)))
-	{
-		delete newMesh;
-		newMesh = nullptr;
-		return result;
-	}
+    // Initialize the mesh with the vertex and index data
+    if (!(result = newMesh->Initialize(vertexArray, vertexCount, indexArray, indexCount)))
+    {
+        Logging::OutputError("Mesh initialization failed for the file: %s", i_path);
+        delete newMesh;
+        newMesh = nullptr;
+        return result;
+    }
 
 	o_mesh = newMesh;
 

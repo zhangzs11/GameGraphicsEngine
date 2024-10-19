@@ -10,6 +10,8 @@
 #include <Engine/Graphics/VertexFormats.h>
 #include <Engine/Math/Functions.h>
 
+#include <Engine/Time/Time.h>
+#include <string>
 // Inherited Implementation
 //=========================
 
@@ -203,12 +205,25 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_pipe, "data/Meshes/pipe_gl.binmesh");
+	// result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_pipe, "data/Meshes/pipe_gl.binmesh");
+
+	/*if (result = eae6320::Time::Initialize(); !result)
+	{
+		return result;
+	}
+	const uint64_t startTicks = eae6320::Time::GetCurrentSystemTimeTickCount();*/
+
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_pipe, "data/Meshes/Alien.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
 	}
+	// const uint64_t endTicks = eae6320::Time::GetCurrentSystemTimeTickCount();
+	// const uint64_t elapsedTicks = endTicks - startTicks;
+	// const double elapsedSeconds = eae6320::Time::ConvertTicksToSeconds(elapsedTicks);
+	// eae6320::Logging::OutputMessage(("Bin file load and extract time: " + std::to_string(elapsedSeconds) + " seconds\n").c_str());
+
 	// Initialize effect
 	// -----------------
 
@@ -220,7 +235,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::RenderStates::EnableDepthWriting(renderStateBits);
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_color, "data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/standard.shader",
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_color, "data/Shaders/Vertex/standard.binshader", "data/Shaders/Fragment/standard.binshader",
 		renderStateBits);
 	if (!result)
 	{
@@ -228,7 +243,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_animited_color, "data/Shaders/Vertex/standard.shader", "data/Shaders/Fragment/animatedColor.shader",
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_animited_color, "data/Shaders/Vertex/standard.binshader", "data/Shaders/Fragment/animatedColor.binshader",
 		renderStateBits);
 	if (!result)
 	{

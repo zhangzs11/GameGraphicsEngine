@@ -40,7 +40,7 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 	// Vertex Format
 	{
 		if (!(result = eae6320::Graphics::cVertexFormat::Load(eae6320::Graphics::eVertexType::Mesh, m_vertexFormat,
-			"data/Shaders/Vertex/vertexInputLayout_mesh.shader")))
+			"data/Shaders/Vertex/vertexInputLayout_mesh.binshader")))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize geometry without vertex format");
 			return result;

@@ -35,9 +35,9 @@ eae6320::cResult eae6320::Graphics::cMesh::CreateMesh(eae6320::Graphics::cMesh*&
 	const auto finalOffset = currentOffset + dataFromFile.size;
 
     // Read the vertex count
-    uint16_t vertexCount;
+    uint32_t vertexCount;
     memcpy(&vertexCount, reinterpret_cast<void*>(currentOffset), sizeof(vertexCount));
-    currentOffset += sizeof(uint16_t); // Move to the next block
+    currentOffset += sizeof(vertexCount); // Move to the next block
 
     // Calculate the size of the vertex data
     const size_t vertexDataSize = vertexCount * sizeof(eae6320::Graphics::VertexFormats::sVertex_mesh);
@@ -52,20 +52,35 @@ eae6320::cResult eae6320::Graphics::cMesh::CreateMesh(eae6320::Graphics::cMesh*&
     currentOffset += vertexDataSize; // Move to the next block (index count)
 
     // Read the index count
-    uint16_t indexCount;
+    uint32_t indexCount;
     memcpy(&indexCount, reinterpret_cast<void*>(currentOffset), sizeof(indexCount));
-    currentOffset += sizeof(uint16_t); // Move to the next block (index data)
+    currentOffset += sizeof(indexCount); // Move to the next block (index data)
 
-    // Calculate the size of the index data
-    const size_t indexDataSize = indexCount * sizeof(uint16_t);
-    if ((currentOffset + indexDataSize) > finalOffset) // Check if the file is large enough for index data
+    // Determine whether to use 16-bit or 32-bit indices based on vertex count
+    bool use32BitIndex = (vertexCount > std::numeric_limits<uint16_t>::max());
+
+    // Read the index data
+    void* indexArray = nullptr;
+    if (use32BitIndex)
     {
-        Logging::OutputError("The binary mesh file is too small for the index data: %s", i_path);
-        return eae6320::Results::InvalidFile;
+        const size_t indexDataSize = indexCount * sizeof(uint32_t);
+        if ((currentOffset + indexDataSize) > finalOffset)
+        {
+            Logging::OutputError("The binary mesh file is too small for the 32-bit index data: %s", i_path);
+            return eae6320::Results::InvalidFile;
+        }
+        indexArray = reinterpret_cast<uint32_t*>(currentOffset);
     }
-
-    // Get the index data
-    const auto* const indexArray = reinterpret_cast<const uint16_t*>(currentOffset);
+    else
+    {
+        const size_t indexDataSize = indexCount * sizeof(uint16_t);
+        if ((currentOffset + indexDataSize) > finalOffset)
+        {
+            Logging::OutputError("The binary mesh file is too small for the 16-bit index data: %s", i_path);
+            return eae6320::Results::InvalidFile;
+        }
+        indexArray = reinterpret_cast<uint16_t*>(currentOffset);
+    }
 
     // Allocate memory for the mesh
     cMesh* newMesh = new (std::nothrow) cMesh();
@@ -77,7 +92,7 @@ eae6320::cResult eae6320::Graphics::cMesh::CreateMesh(eae6320::Graphics::cMesh*&
     }
 
     // Initialize the mesh with the vertex and index data
-    if (!(result = newMesh->Initialize(vertexArray, vertexCount, indexArray, indexCount)))
+    if (!(result = newMesh->Initialize(vertexArray, vertexCount, indexArray, indexCount, use32BitIndex)))
     {
         Logging::OutputError("Mesh initialization failed for the file: %s", i_path);
         delete newMesh;

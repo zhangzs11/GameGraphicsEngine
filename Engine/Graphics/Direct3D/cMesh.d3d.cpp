@@ -17,22 +17,20 @@
 
 namespace
 {
-	void ConvertIndicesToCCW(uint16_t* io_indexData, size_t i_indexCount);
+	void ConvertIndicesToCCW(void* io_indexData, size_t i_indexCount, bool i_use32BitIndex);
 }
 
-eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, const uint16_t i_vertexCount,
-													  const uint16_t* i_indexData, const uint16_t i_indexCount)
+eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, const uint32_t i_vertexCount,
+													  void* i_indexData, const uint32_t i_indexCount,
+												      bool i_use32BitIndex)
 {
 	auto result = eae6320::Results::Success;
 
-	// Adjust the index to CCW
-	std::vector<uint16_t> adjustedIndices(i_indexData, i_indexData + i_indexCount);
-	ConvertIndicesToCCW(adjustedIndices.data(), adjustedIndices.size());
-	i_indexData = adjustedIndices.data();
-	
-	// m_vertexCount = static_cast<unsigned int>(i_vertexCount);
-	m_indexCount = static_cast<unsigned int>(i_indexCount);
+	ConvertIndicesToCCW(i_indexData, i_indexCount, i_use32BitIndex);
+
+	m_indexCount = i_indexCount;
 	m_indexOfFirstVertexToRender = 0;
+	m_use32BitIndex = i_use32BitIndex;
 
 	auto* const direct3dDevice = eae6320::Graphics::sContext::g_context.direct3dDevice;
 	EAE6320_ASSERT(direct3dDevice);
@@ -73,7 +71,10 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 	}
 	// Index Buffer
 	{
-		const auto bufferSize = static_cast<UINT>(i_indexCount * sizeof(uint16_t));
+		const auto bufferSize = i_use32BitIndex
+			? static_cast<UINT>(i_indexCount * sizeof(uint32_t))
+			: static_cast<UINT>(i_indexCount * sizeof(uint16_t));
+
 		EAE6320_ASSERT(bufferSize <= std::numeric_limits<decltype(D3D11_BUFFER_DESC::ByteWidth)>::max());
 
 		D3D11_BUFFER_DESC bufferDescription{};
@@ -86,6 +87,7 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 
 		D3D11_SUBRESOURCE_DATA initialData{};
 		initialData.pSysMem = i_indexData;
+		// initialData.pSysMem = adjustedIndexData;
 
 		const auto result_create = direct3dDevice->CreateBuffer(&bufferDescription, &initialData, &m_indexBuffer);
 		if (FAILED(result_create))
@@ -128,7 +130,11 @@ void eae6320::Graphics::cMesh::Draw() const
 	// Bind the index buffer
 	{
 		EAE6320_ASSERT(m_indexBuffer != nullptr);
-		direct3dImmediateContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+		// Check if we are using 32-bit indices
+		DXGI_FORMAT indexFormat = m_use32BitIndex ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT;
+
+		direct3dImmediateContext->IASetIndexBuffer(m_indexBuffer, indexFormat, 0);
 	}
 	// Render triangles from the currently-bound indexed buffer
 	{
@@ -163,13 +169,27 @@ eae6320::cResult eae6320::Graphics::cMesh::CleanUp()
 
 namespace
 {
-	void ConvertIndicesToCCW(uint16_t* io_indexData, size_t i_indexCount)
+	void ConvertIndicesToCCW(void* io_indexData, size_t i_indexCount, bool i_use32BitIndex)
 	{
-		EAE6320_ASSERT(i_indexCount % 3 == 0);  // index count must be 3 times
+		EAE6320_ASSERT(i_indexCount % 3 == 0);  // index count must be a multiple of 3
 
-		for (size_t i = 0; i < i_indexCount; i += 3)
+		if (i_use32BitIndex)
 		{
-			std::swap(io_indexData[i + 1], io_indexData[i + 2]);  // swap every 2 after indexes of triangle
+			// 32-bit index case (uint32_t)
+			uint32_t* indices = reinterpret_cast<uint32_t*>(io_indexData);
+			for (size_t i = 0; i < i_indexCount; i += 3)
+			{
+				std::swap(indices[i + 1], indices[i + 2]);  // Swap the 2nd and 3rd indices of each triangle
+			}
+		}
+		else
+		{
+			// 16-bit index case (uint16_t)
+			uint16_t* indices = reinterpret_cast<uint16_t*>(io_indexData);
+			for (size_t i = 0; i < i_indexCount; i += 3)
+			{
+				std::swap(indices[i + 1], indices[i + 2]);  // Swap the 2nd and 3rd indices of each triangle
+			}
 		}
 	}
 }

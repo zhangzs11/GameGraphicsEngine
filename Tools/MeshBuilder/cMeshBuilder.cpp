@@ -10,8 +10,6 @@
 #include <vector>
 #include <fstream>
 
-#include <Engine/Time/Time.h>
-
 // Inherited Implementation
 //=========================
 
@@ -20,19 +18,6 @@
 
 eae6320::cResult eae6320::Assets::cMeshBuilder::Build(const std::vector<std::string>& i_arguments)
 {
-	/*auto result = eae6320::Platform::CopyFile(m_path_source, m_path_target);
-	if (!result)
-	{
-		OutputErrorMessageWithFileInfo(m_path_source, "Failed to copy mesh file");
-		return result;
-	}*/
-
-    /*if (auto result = eae6320::Time::Initialize(); !result)
-    {
-        return result;
-    }
-    const uint64_t startTicks = eae6320::Time::GetCurrentSystemTimeTickCount();*/
-
 	auto result = eae6320::Results::Success;
 	lua_State* luaState = nullptr;
 
@@ -93,12 +78,12 @@ eae6320::cResult eae6320::Assets::cMeshBuilder::Build(const std::vector<std::str
         return eae6320::Results::InvalidFile;
     }
 
-    const auto vertexCount = static_cast<uint16_t>(luaL_len(luaState, -1));
+    const auto vertexCount = static_cast<uint32_t>(luaL_len(luaState, -1));
     std::vector<sVertex_temp> vertexData;
     vertexData.reserve(vertexCount);
 
     // Read vertices
-    for (int i = 1; i <= vertexCount; ++i)
+    for (uint32_t i = 1; i <= vertexCount; ++i)
     {
         sVertex_temp v;
         lua_pushinteger(luaState, i);
@@ -178,61 +163,89 @@ eae6320::cResult eae6320::Assets::cMeshBuilder::Build(const std::vector<std::str
         return eae6320::Results::InvalidFile;
     }
 
-    const auto indexCount = static_cast<uint16_t>(luaL_len(luaState, -1));
-    // Check number of index(not over 65535(uint16_t))
-    if (indexCount > std::numeric_limits<uint16_t>::max())
+    const auto indexCount = static_cast<uint32_t>(luaL_len(luaState, -1));
+    
+    bool use32BitIndex = (vertexCount > std::numeric_limits<uint16_t>::max());
+
+    // Choose between 16-bit and 32-bit index based on vertex count
+    if (use32BitIndex)
     {
-        OutputErrorMessageWithFileInfo(m_path_source, "The Lua file contains too many indices");
+        std::vector<uint32_t> indexData32Bits;
+        indexData32Bits.reserve(indexCount);
+
+        // Read indices as uint32_t
+        for (uint32_t i = 1; i <= indexCount; ++i)
+        {
+            lua_pushinteger(luaState, i);
+            lua_gettable(luaState, -2);
+            indexData32Bits.push_back(static_cast<uint32_t>(lua_tointeger(luaState, -1)));
+            lua_pop(luaState, 1); // Pop index[i]
+        }
+        lua_pop(luaState, 1); // Pop indices table
+
+        // Write binary data to target file
+        std::ofstream binaryFile(m_path_target, std::ios::binary);
+        if (!binaryFile)
+        {
+            OutputErrorMessageWithFileInfo(m_path_target, "Failed to open binary file for writing");
+            return eae6320::Results::Failure;
+        }
+
+        // Write vertex count
+        binaryFile.write(reinterpret_cast<const char*>(&vertexCount), sizeof(vertexCount));
+
+        // Write vertex data
+        binaryFile.write(reinterpret_cast<const char*>(vertexData.data()), vertexCount * sizeof(sVertex_temp));
+
+        // Write index count
+        binaryFile.write(reinterpret_cast<const char*>(&indexCount), sizeof(indexCount));
+
+        // Write 32-bit index data
+        binaryFile.write(reinterpret_cast<const char*>(indexData32Bits.data()), indexCount * sizeof(uint32_t));
+
+        binaryFile.close();
+    }
+    else
+    {
+        std::vector<uint16_t> indexData16Bits;
+        indexData16Bits.reserve(indexCount);
+
+        // Read indices
+        for (uint32_t i = 1; i <= indexCount; ++i)
+        {
+            lua_pushinteger(luaState, i);
+            lua_gettable(luaState, -2);
+            indexData16Bits.push_back(static_cast<uint16_t>(lua_tointeger(luaState, -1)));
+            lua_pop(luaState, 1); // Pop index[i]
+        }
+        // Pop indices table
+        lua_pop(luaState, 1);
+
+        // Close Lua state
         lua_close(luaState);
-        return eae6320::Results::Failure;
+
+        // Write binary data to target file
+        std::ofstream binaryFile(m_path_target, std::ios::binary);
+        if (!binaryFile)
+        {
+            OutputErrorMessageWithFileInfo(m_path_target, "Failed to open binary file for writing");
+            return eae6320::Results::Failure;
+        }
+
+        // Write vertex count
+        binaryFile.write(reinterpret_cast<const char*>(&vertexCount), sizeof(vertexCount));
+
+        // Write vertex data
+        binaryFile.write(reinterpret_cast<const char*>(vertexData.data()), vertexCount * sizeof(sVertex_temp));
+
+        // Write index count
+        binaryFile.write(reinterpret_cast<const char*>(&indexCount), sizeof(indexCount));
+
+        // Write index data
+        binaryFile.write(reinterpret_cast<const char*>(indexData16Bits.data()), indexCount * sizeof(uint16_t));
+
+        binaryFile.close();
     }
-    std::vector<uint16_t> indexData;
-    indexData.reserve(indexCount);
-
-    // Read indices
-    for (int i = 1; i <= indexCount; ++i)
-    {
-        lua_pushinteger(luaState, i);
-        lua_gettable(luaState, -2);
-        indexData.push_back(static_cast<uint16_t>(lua_tointeger(luaState, -1)));
-        lua_pop(luaState, 1); // Pop index[i]
-    }
-    // Pop indices table
-    lua_pop(luaState, 1);
-
-    // Close Lua state
-    lua_close(luaState);
-
-    //const uint64_t endTicks = eae6320::Time::GetCurrentSystemTimeTickCount();
-    //const uint64_t elapsedTicks = endTicks - startTicks;
-    //const double elapsedSeconds = eae6320::Time::ConvertTicksToSeconds(elapsedTicks);
-    //std::string outputMessage = "Vertex count:" + std::to_string(vertexCount) + "\n" 
-    //                            + "Index count:" + std::to_string(indexCount) + "\n"
-    //                            + "Lua file load time: " + std::to_string(elapsedSeconds) + " seconds\n";
-    //OutputDebugStringA(outputMessage.c_str());
-
-
-    // Write binary data to target file
-    std::ofstream binaryFile(m_path_target, std::ios::binary);
-    if (!binaryFile)
-    {
-        OutputErrorMessageWithFileInfo(m_path_target, "Failed to open binary file for writing");
-        return eae6320::Results::Failure;
-    }
-
-    // Write vertex count
-    binaryFile.write(reinterpret_cast<const char*>(&vertexCount), sizeof(vertexCount));
-
-    // Write vertex data
-    binaryFile.write(reinterpret_cast<const char*>(vertexData.data()), vertexCount * sizeof(sVertex_temp));
-
-    // Write index count
-    binaryFile.write(reinterpret_cast<const char*>(&indexCount), sizeof(indexCount));
-
-    // Write index data
-    binaryFile.write(reinterpret_cast<const char*>(indexData.data()), indexCount * sizeof(uint16_t));
-
-    binaryFile.close();
 
 	return eae6320::Results::Success;
 }

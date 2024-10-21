@@ -14,11 +14,12 @@
 
 namespace
 {
-	void ConvertIndicesToCCW(uint16_t* io_indexData, size_t i_indexCount);
+	void ConvertIndicesToCCW(uint32_t* io_indexData, size_t i_indexCount);
 }
 
-eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, const uint16_t i_vertexCount,
-												      const uint16_t* i_indexData, const uint16_t i_indexCount)
+eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, const uint32_t i_vertexCount,
+	                                                  void* i_indexData, const uint32_t i_indexCount,
+	                                                  bool i_use32BitIndex)
 {
 	auto result = eae6320::Results::Success;
 
@@ -30,6 +31,7 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 	// Store the vertex count
 	// m_vertexCount = i_vertexCount;
 	m_indexCount = i_indexCount;
+	m_use32BitIndex = i_use32BitIndex;
 
 	// Create a vertex array object (VAO) and make it active
 	{
@@ -135,7 +137,9 @@ eae6320::cResult eae6320::Graphics::cMesh::Initialize(const void* i_vertexData, 
 	}
 	// Assign the Index data to the buffer
 	{
-		const auto bufferSize = static_cast<GLsizeiptr>(i_indexCount * sizeof(uint16_t));
+		const auto bufferSize = i_use32BitIndex
+			? static_cast<GLsizeiptr>(i_indexCount * sizeof(uint32_t))
+			: static_cast<GLsizeiptr>(i_indexCount * sizeof(uint16_t));
 		EAE6320_ASSERT(static_cast<GLsizeiptr>(bufferSize) <= std::numeric_limits<GLsizeiptr>::max());
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(bufferSize), i_indexData, GL_STATIC_DRAW);
 		const auto errorCode = glGetError();
@@ -234,7 +238,11 @@ void eae6320::Graphics::cMesh::Draw() const
 	{
 		constexpr GLenum mode = GL_TRIANGLES;
 		EAE6320_ASSERT(m_indexCount > 0);
-		glDrawElements(mode, static_cast<GLsizei>(m_indexCount), GL_UNSIGNED_SHORT, nullptr);
+
+		// Choose the index format based on whether 32-bit indices are used
+		// GL_UNSIGNED_SHORT(16 bits) or GL_UNSIGNED_INT (32 bits)
+		const GLenum indexType = m_use32BitIndex ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
+		glDrawElements(mode, static_cast<GLsizei>(m_indexCount), indexType, nullptr);
 		EAE6320_ASSERT(glGetError() == GL_NO_ERROR);
 	}
 }
@@ -327,7 +335,7 @@ eae6320::cResult eae6320::Graphics::cMesh::CleanUp()
 
 namespace
 {
-	void ConvertIndicesToCCW(uint16_t* io_indexData, size_t i_indexCount)
+	void ConvertIndicesToCCW(uint32_t* io_indexData, size_t i_indexCount)
 	{
 		EAE6320_ASSERT(i_indexCount % 3 == 0);  // index count must be 3 times
 

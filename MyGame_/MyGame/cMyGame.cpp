@@ -198,7 +198,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_helix, "data/Meshes/helix_gl.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_helix, "data/Meshes/helix_complex.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");

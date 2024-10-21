@@ -55,8 +55,9 @@ namespace eae6320
 			// This declares the reference count member variable
 			EAE6320_ASSETS_DECLAREREFERENCECOUNT()
 
-			uint16_t m_indexCount = 0;
-			uint16_t m_indexOfFirstVertexToRender = 0;
+			uint32_t m_indexCount = 0;
+			uint32_t m_indexOfFirstVertexToRender = 0;
+			bool m_use32BitIndex = false;
 
 #if defined( EAE6320_PLATFORM_D3D )
 
@@ -75,8 +76,9 @@ namespace eae6320
 			cMesh() = default;
 			~cMesh();
 
-			cResult Initialize(const void* i_vertexData,    const uint16_t i_vertexCount,
-				               const uint16_t* i_indexData, const uint16_t i_indexCount);
+			cResult Initialize(const void* i_vertexData, const uint32_t i_vertexCount,
+							   void* i_indexData, const uint32_t i_indexCount,
+				               bool i_use32BitIndex);
 
 			cResult CleanUp();
 

@@ -17,6 +17,7 @@ return
 	meshes = 
 	{
 		{ path = "Meshes/helix_gl.mesh" },
+                { path = "Meshes/helix_complex.mesh" },
 	        { path = "Meshes/pipe_gl.mesh" },
 		{ path = "Meshes/plane_gl.mesh" },
                 { path = "Meshes/torus_gl.mesh" },

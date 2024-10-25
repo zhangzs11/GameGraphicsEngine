@@ -105,16 +105,6 @@ eae6320::cResult eae6320::Graphics::cMesh::CreateMesh(eae6320::Graphics::cMesh*&
 	return result;
 }
 
-
-
-
-
-// Implementation
-//===============
-
-// Initialize / Clean Up
-//----------------------
-
 eae6320::Graphics::cMesh::~cMesh()
 {
 	const auto result = CleanUp();

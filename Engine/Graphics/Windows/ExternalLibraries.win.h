@@ -14,6 +14,8 @@
 
 #if defined( EAE6320_PLATFORM_D3D )
 	#pragma comment( lib, "d3d11.lib" )
+    #pragma comment( lib, "Ole32.lib")
+
 #elif defined( EAE6320_PLATFORM_GL )
 	#pragma comment( lib, "Opengl32.lib" )
 	#pragma comment( lib, "Glu32.lib" )

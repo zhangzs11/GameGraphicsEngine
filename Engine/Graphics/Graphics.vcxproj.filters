@@ -22,6 +22,9 @@
     <Filter Include="OpenGL">
       <UniqueIdentifier>{d13187da-0844-44e9-b1b8-a796c8bf719a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External">
+      <UniqueIdentifier>{a3373b0c-1943-4b5c-bf84-7671cb57f904}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cConstantBuffer.cpp">
@@ -96,6 +99,24 @@
     <ClCompile Include="cMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="External\DDSTextureLoader11.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="External\WICTextureLoader11.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="cTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\cTexture.d3d.cpp">
+      <Filter>Direct3D</Filter>
+    </ClCompile>
+    <ClCompile Include="cSampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3D\cSampler.d3d.cpp">
+      <Filter>Direct3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cConstantBuffer.h">
@@ -141,6 +162,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\DDSTextureLoader11.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="External\WICTextureLoader11.h">
+      <Filter>External</Filter>
+    </ClInclude>
+    <ClInclude Include="cTexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cSampler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

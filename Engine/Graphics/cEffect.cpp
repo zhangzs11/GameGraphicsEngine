@@ -12,7 +12,8 @@
 //----------------------
 
 eae6320::cResult eae6320::Graphics::cEffect::CreateEffect(eae6320::Graphics::cEffect*& o_effect, const char* i_vertexShaderPath, 
-											              const char* i_fragmentShaderPath, const uint8_t i_renderStateBits)
+											              const char* i_fragmentShaderPath, const uint8_t i_renderStateBits, 
+	                                                      const char* const i_texturePath)
 {
 	auto result = eae6320::Results::Success;
 
@@ -26,7 +27,7 @@ eae6320::cResult eae6320::Graphics::cEffect::CreateEffect(eae6320::Graphics::cEf
 	}
 
 	// initialize a new instance of class cEffect
-	if (!(result = newEffect->Initialize(i_vertexShaderPath, i_fragmentShaderPath, i_renderStateBits)))
+	if (!(result = newEffect->Initialize(i_vertexShaderPath, i_fragmentShaderPath, i_renderStateBits, i_texturePath)))
 	{
 		delete newEffect;
 		newEffect = nullptr;
@@ -37,13 +38,6 @@ eae6320::cResult eae6320::Graphics::cEffect::CreateEffect(eae6320::Graphics::cEf
 
 	return result;
 }
-
-
-
-
-
-
-
 
 // Implementation
 //===============

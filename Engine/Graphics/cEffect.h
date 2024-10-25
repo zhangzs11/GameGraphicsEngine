@@ -6,6 +6,8 @@
 
 #include "Configuration.h"
 #include "cRenderState.h"
+#include "cTexture.h"
+#include "cSampler.h"
 
 #ifdef EAE6320_PLATFORM_GL
 #include "OpenGL/Includes.h"
@@ -44,7 +46,8 @@ namespace eae6320
             void Bind() const;
 
             // factory function
-            static cResult CreateEffect(cEffect*& o_effect, const char* i_vertexShaderPath, const char* i_fragmentShaderPath, const uint8_t i_renderStateBits);
+            static cResult CreateEffect(cEffect*& o_effect, const char* i_vertexShaderPath, const char* i_fragmentShaderPath, 
+                                                            const uint8_t i_renderStateBits, const char* const i_texturePath);
 
         private:
             // This prevents the class or struct from using illegal functions
@@ -54,6 +57,9 @@ namespace eae6320
             EAE6320_ASSETS_DECLAREREFERENCECOUNT()
 
             eae6320::Graphics::cRenderState m_renderState;
+            eae6320::Graphics::cTexture* m_texture = nullptr;
+            eae6320::Graphics::cSampler* m_sampler = nullptr;
+
 #if defined( EAE6320_PLATFORM_D3D )
             // Direct3D specific members
             eae6320::Graphics::cShader* m_vertexShader = nullptr;
@@ -67,7 +73,8 @@ namespace eae6320
             ~cEffect();
 
             // Initialize the effect with shader paths
-            cResult Initialize(const char* i_vertexShaderPath, const char* i_fragmentShaderPath, const uint8_t i_renderStateBits);
+            cResult Initialize(const char* i_vertexShaderPath, const char* i_fragmentShaderPath, 
+                               const uint8_t i_renderStateBits, const char* const i_texturePath);
             // Clean up the effect
             cResult CleanUp();
 		};

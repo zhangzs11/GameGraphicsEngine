@@ -12,6 +12,7 @@ return
 		{ path = "Shaders/Vertex/vertexInputLayout_mesh.shader", arguments = { "vertex" } },
 		{ path = "Shaders/Fragment/animatedColor.shader", arguments = { "fragment" } },
 		{ path = "Shaders/Fragment/loopGradient.shader", arguments = { "fragment" } },
+                { path = "Shaders/Fragment/light.shader", arguments = { "fragment" } },
 	},
 
 	meshes = 
@@ -22,5 +23,15 @@ return
 		{ path = "Meshes/plane_gl.mesh" },
                 { path = "Meshes/torus_gl.mesh" },
                 { path = "Meshes/Alien.mesh" },
+	},
+
+	textures = 
+	{
+		{ path = "Textures/bricks.dds" },
+		{ path = "Textures/flare.dds" },
+		{ path = "Textures/grass.dds" },
+		{ path = "Textures/stone.dds" },
+		{ path = "Textures/water1.dds" },
+		{ path = "Textures/water2.dds" },
 	},
 }

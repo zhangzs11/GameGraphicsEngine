@@ -44,6 +44,14 @@ namespace eae6320
 				// COLOR
 				// 4 uint8 == 4 bytes 
 				uint8_t r, g, b, a;
+
+				// UV
+				// 2 floats == 8 bytes
+				float u, v;
+
+				// NORMAL
+				// 3 floats == 12 bytes
+				float nx, ny, nz;
 			};
 		}
 	}

@@ -205,6 +205,8 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
+
+
 	// result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_pipe, "data/Meshes/pipe_gl.binmesh");
 
 	/*if (result = eae6320::Time::Initialize(); !result)
@@ -213,7 +215,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	}
 	const uint64_t startTicks = eae6320::Time::GetCurrentSystemTimeTickCount();*/
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_pipe, "data/Meshes/Alien.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_Alien, "data/Meshes/Alien.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
@@ -235,16 +237,16 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::RenderStates::EnableDepthWriting(renderStateBits);
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_color, "data/Shaders/Vertex/standard.binshader", "data/Shaders/Fragment/standard.binshader",
-		renderStateBits);
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_color, "data/Shaders/Vertex/standard.binshader", "data/Shaders/Fragment/light.binshader",
+		renderStateBits, "data/Textures/water1.bintexture");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize effect");
 		return result;
 	}
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_animited_color, "data/Shaders/Vertex/standard.binshader", "data/Shaders/Fragment/animatedColor.binshader",
-		renderStateBits);
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_animited_color, "data/Shaders/Vertex/standard.binshader", "data/Shaders/Fragment/light.binshader",
+		renderStateBits, "data/Textures/flare.bintexture");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize effect");
@@ -265,12 +267,12 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_gameObject_gear.SetPosition(eae6320::Math::sVector(0.0f, -1.0f, 2.0f));
 
 	m_gameObject_helix.SetMesh(m_mesh_helix);
-	m_gameObject_helix.SetEffect(m_effect_color);
+	m_gameObject_helix.SetEffect(m_effect_animited_color);
 	m_gameObject_helix.SetMaxVelocity(2.0f);
 	m_gameObject_helix.SetPosition(eae6320::Math::sVector(2.0f, 1.0f, 0.0f));
 
-	m_gameObject_pipe.SetMesh(m_mesh_pipe);
-	m_gameObject_pipe.SetEffect(m_effect_color);
+	m_gameObject_pipe.SetMesh(m_mesh_Alien);
+	m_gameObject_pipe.SetEffect(m_effect_animited_color);
 	m_gameObject_pipe.SetMaxVelocity(2.0f);
 	m_gameObject_pipe.SetPosition(eae6320::Math::sVector(-2.0f, -1.0f, 0.0f));
 
@@ -307,10 +309,10 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 		m_mesh_helix = nullptr;
 	}
 
-	if (m_mesh_pipe)
+	if (m_mesh_Alien)
 	{
-		m_mesh_pipe->DecrementReferenceCount();
-		m_mesh_pipe = nullptr;
+		m_mesh_Alien->DecrementReferenceCount();
+		m_mesh_Alien = nullptr;
 	}
 
 	if (m_effect_color)

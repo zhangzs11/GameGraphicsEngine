@@ -68,6 +68,8 @@ eae6320::cResult eae6320::Assets::cMeshBuilder::Build(const std::vector<std::str
     {
         float   x, y, z;       // Position
         uint8_t r, g, b, a;    // Color
+        float u, v;            // UV
+        float nx, ny, nz;      // NORMAL
     };
 
     lua_getfield(luaState, -1, "vertices");
@@ -145,6 +147,50 @@ eae6320::cResult eae6320::Assets::cMeshBuilder::Build(const std::vector<std::str
                 v.a = static_cast<uint8_t>(255.0f);
             }
             lua_pop(luaState, 1); // Pop color
+
+            // Get UV
+            lua_getfield(luaState, -1, "texcoord");
+            if (lua_istable(luaState, -1))
+            {
+                lua_getfield(luaState, -1, "u");
+                v.u = static_cast<float>(lua_tonumber(luaState, -1));
+                lua_pop(luaState, 1);
+
+                lua_getfield(luaState, -1, "v");
+                v.v = static_cast<float>(lua_tonumber(luaState, -1));
+                lua_pop(luaState, 1);
+            }
+            else
+            {
+                // Use default uv if uv is not provided
+                v.u = static_cast<float>(0.0f);
+                v.v = static_cast<float>(0.0f);
+            }
+            lua_pop(luaState, 1); // Pop UV
+
+            // Get normal
+            lua_getfield(luaState, -1, "normal");
+            if (lua_istable(luaState, -1))
+            {
+                lua_getfield(luaState, -1, "nx");
+                v.nx = static_cast<float>(lua_tonumber(luaState, -1));
+                lua_pop(luaState, 1);
+
+                lua_getfield(luaState, -1, "ny");
+                v.ny = static_cast<float>(lua_tonumber(luaState, -1));
+                lua_pop(luaState, 1);
+
+                lua_getfield(luaState, -1, "nz");
+                v.nz = static_cast<float>(lua_tonumber(luaState, -1));
+                lua_pop(luaState, 1);
+            }
+            else
+            {
+                OutputErrorMessageWithFileInfo(m_path_source, "The Lua file must contain a 'normal' table within each vertex");
+                lua_close(luaState);
+                return eae6320::Results::InvalidFile;
+            }
+            lua_pop(luaState, 1); // Pop normal
 
             // Add vertex to vextex vector
             vertexData.push_back(v);

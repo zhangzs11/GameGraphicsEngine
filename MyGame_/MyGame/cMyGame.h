@@ -69,6 +69,12 @@ namespace eae6320
 		// If you want to try creating your own a convenient website that will help is: http://icoconvert.com/
 		const WORD* GetLargeIconId() const final { static constexpr WORD iconId_large = IDI_EAEGAMEPAD; return &iconId_large; }
 		const WORD* GetSmallIconId() const final { static constexpr WORD iconId_small = IDI_EAEGAMEPAD; return &iconId_small; }
+
+		void GetDefaultInitialResolution(uint16_t& o_width, uint16_t& o_height) const final
+		{
+			o_width = 1024;
+			o_height = 1024;
+		}
 #endif
 
 		// Run
@@ -93,9 +99,13 @@ namespace eae6320
 		Graphics::cMesh* m_mesh_plane = nullptr;
 		Graphics::cMesh* m_mesh_gear = nullptr;
 		Graphics::cMesh* m_mesh_helix = nullptr;
-		Graphics::cMesh* m_mesh_pipe = nullptr;
+		Graphics::cMesh* m_mesh_Alien = nullptr;
 		Graphics::cEffect* m_effect_color = nullptr;
 		Graphics::cEffect* m_effect_animited_color = nullptr;
+
+		// Texture
+		// ---------------------
+		
 
 		// Game Objects
 		//----------------------

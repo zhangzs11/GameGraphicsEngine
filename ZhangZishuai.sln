@@ -89,6 +89,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MeshBuilder", "Tools\MeshBu
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MayaMeshExporter", "Tools\MayaMeshExporter\MayaMeshExporter.vcxproj", "{7E1B3DFF-88C1-43F2-AE97-BE197D80EF2B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TextureBuilder", "Tools\TextureBuilder\TextureBuilder.vcxproj", "{75BEF046-AF46-4E3F-BC2B-C6B68C2C5336}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -337,6 +339,14 @@ Global
 		{7E1B3DFF-88C1-43F2-AE97-BE197D80EF2B}.Release|x64.Build.0 = Release|x64
 		{7E1B3DFF-88C1-43F2-AE97-BE197D80EF2B}.Release|x86.ActiveCfg = Release|x64
 		{7E1B3DFF-88C1-43F2-AE97-BE197D80EF2B}.Release|x86.Build.0 = Release|x64
+		{75BEF046-AF46-4E3F-BC2B-C6B68C2C5336}.Debug|x64.ActiveCfg = Debug|x64
+		{75BEF046-AF46-4E3F-BC2B-C6B68C2C5336}.Debug|x64.Build.0 = Debug|x64
+		{75BEF046-AF46-4E3F-BC2B-C6B68C2C5336}.Debug|x86.ActiveCfg = Debug|Win32
+		{75BEF046-AF46-4E3F-BC2B-C6B68C2C5336}.Debug|x86.Build.0 = Debug|Win32
+		{75BEF046-AF46-4E3F-BC2B-C6B68C2C5336}.Release|x64.ActiveCfg = Release|x64
+		{75BEF046-AF46-4E3F-BC2B-C6B68C2C5336}.Release|x64.Build.0 = Release|x64
+		{75BEF046-AF46-4E3F-BC2B-C6B68C2C5336}.Release|x86.ActiveCfg = Release|Win32
+		{75BEF046-AF46-4E3F-BC2B-C6B68C2C5336}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -373,6 +383,7 @@ Global
 		{C3E2C0A2-98D5-4EBB-BCFD-78C093A209D2} = {242E14BE-879F-4991-951D-9BC7251B2282}
 		{78594530-7D40-458B-84EA-7F990EDF16C9} = {31B05C03-4BB2-4A0D-B621-B41DA6B0F57E}
 		{7E1B3DFF-88C1-43F2-AE97-BE197D80EF2B} = {31B05C03-4BB2-4A0D-B621-B41DA6B0F57E}
+		{75BEF046-AF46-4E3F-BC2B-C6B68C2C5336} = {31B05C03-4BB2-4A0D-B621-B41DA6B0F57E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A89F366F-0B7F-464F-90A8-A4828B273298}

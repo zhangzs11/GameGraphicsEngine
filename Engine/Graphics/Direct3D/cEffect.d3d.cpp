@@ -9,7 +9,8 @@
 
 #include <Engine/Asserts/Asserts.h>
 
-eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShaderPath, const char* i_fragmentShaderPath, const uint8_t i_renderStateBits)
+eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShaderPath, const char* i_fragmentShaderPath, 
+	                                                    const uint8_t i_renderStateBits, const char* const i_texturePath)
 {
 	auto result = eae6320::Results::Success;
 
@@ -38,6 +39,25 @@ eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShad
 		return result;
 	}
 
+	// Load Texture
+	{
+		if (!(result = cTexture::CreateTextureDDS(m_texture, i_texturePath)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize effect without texture");
+			return result;
+		}
+		// cTexture::CreateTextureWIC(m_texture, i_texturePath);
+	}
+
+	// Load Sampler
+	{
+		if (!(result = cSampler::CreateSampler(m_sampler)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize effect without sampler");
+			return result;
+		}
+	}
+
 	return result;
 }
 
@@ -58,6 +78,17 @@ void eae6320::Graphics::cEffect::Bind() const
 
 	// Bind Render State
 	m_renderState.Bind();
+
+	// Bind Texture
+	if (m_texture) {
+		m_texture->Bind(0);
+	}
+
+	// Bind Sampler
+	if (m_sampler) {
+		m_sampler->Bind(0);
+	}
+
 }
 
 eae6320::cResult eae6320::Graphics::cEffect::CleanUp()
@@ -78,8 +109,14 @@ eae6320::cResult eae6320::Graphics::cEffect::CleanUp()
 		m_fragmentShader = nullptr;
 	}
 
+	// Release the Texture
+	if (m_texture)
+	{
+		m_texture->DecrementReferenceCount();
+		m_texture = nullptr;
+	}
 	// Clean up Render State
 	// TODO :
-
+	// Clean up the Sampler
 	return result;
 }

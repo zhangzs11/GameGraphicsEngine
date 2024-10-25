@@ -20,7 +20,8 @@ void main(
 	// These values come from one of the VertexFormats::sVertex_mesh that the vertex buffer was filled with in C code
 	in const float3 i_position : POSITION,
 	in const float4 i_color : COLOR,
-
+	in const float2 i_uv : TEXCOORD0,
+	in const float4 i_normal : NORMAL,
 	// Output
 	//=======
 
@@ -48,7 +49,8 @@ void main(
 // These values come from one of the VertexFormats::sVertex_mesh that the vertex buffer was filled with in C code
 layout( location = 0 ) in vec3 i_position;
 layout( location = 1 ) in vec4 i_color;
-
+layout( location = 2 ) in vec2 i_uv;
+layout( location = 3 ) in vec3 i_normal; 
 // Output
 //=======
 layout( location = 1 ) out vec4 o_color;

@@ -26,13 +26,17 @@ void main(
 	// These values come from one of the VertexFormats::sVertex_mesh that the vertex buffer was filled with in C code
 	in const float3 i_vertexPosition_local : POSITION,
 	in const float4 i_vertexColor : COLOR,
+	in const float2 i_vertexUV : TEXCOORD0,
+	in const float3 i_vertexNormal : NORMAL,
 	// Output
 	//=======
 
 	// An SV_POSITION value must always be output from every vertex shader
 	// so that the GPU can figure out which fragments need to be shaded
 	out float4 o_vertexPosition_projected : SV_POSITION,
-	out float4 o_vertexColor : COLOR
+	out float4 o_vertexColor : COLOR,
+	out float2 o_vertexUV : TEXCOORD0,
+	out float3 o_vertexNormal : NORMAL
 
 )
 
@@ -47,10 +51,14 @@ void main(
 // These values come from one of the VertexFormats::sVertex_mesh that the vertex buffer was filled with in C code
 layout( location = 0 ) in vec3 i_vertexPosition_local;
 layout( location = 1 ) in vec4 i_vertexColor;
+layout( location = 2 ) in vec2 i_vertexUV;  
+layout( location = 3 ) in vec3 i_vertexNormal;
 
 // Output
 //=======
 layout( location = 1 ) out vec4 o_vertexColor;
+layout( location = 2 ) out vec2 o_vertexUV;
+layout( location = 3 ) out vec3 o_vertexNormal;
 // The vertex shader must always output a position value,
 // but unlike HLSL where the value is explicit
 // GLSL has an automatically-required variable named "gl_Position"
@@ -87,5 +95,7 @@ void main()
 
 		// Assign the color
 		o_vertexColor = i_vertexColor;
+		o_vertexNormal = i_vertexNormal;
+		o_vertexUV = i_vertexUV;  
 	}
 }

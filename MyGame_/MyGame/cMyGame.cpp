@@ -94,11 +94,12 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	}
 
 	// Rotation: Arrow keys for pitch and yaw
-	//if (UserInput::IsKeyPressed('I'))
-	//{
-	//	cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
-	//	cameraRigidBody.angularSpeed = rotationSpeed;
-	//}
+	if (UserInput::IsKeyPressed('I'))
+	{
+		// cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
+		// cameraRigidBody.angularSpeed = rotationSpeed;
+		m_gameObject_gear.GetRigidBodyState().angularSpeed = 1.1f;
+	}
 	//else if (UserInput::IsKeyPressed('K'))
 	//{
 	//	cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
@@ -209,22 +210,12 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	// result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_pipe, "data/Meshes/pipe_gl.binmesh");
 
-	/*if (result = eae6320::Time::Initialize(); !result)
-	{
-		return result;
-	}
-	const uint64_t startTicks = eae6320::Time::GetCurrentSystemTimeTickCount();*/
-
 	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_Alien, "data/Meshes/Alien.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
 	}
-	// const uint64_t endTicks = eae6320::Time::GetCurrentSystemTimeTickCount();
-	// const uint64_t elapsedTicks = endTicks - startTicks;
-	// const double elapsedSeconds = eae6320::Time::ConvertTicksToSeconds(elapsedTicks);
-	// eae6320::Logging::OutputMessage(("Bin file load and extract time: " + std::to_string(elapsedSeconds) + " seconds\n").c_str());
 
 	// Initialize effect
 	// -----------------
@@ -237,21 +228,28 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::RenderStates::EnableDepthWriting(renderStateBits);
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_color, "data/Shaders/Vertex/standard.binshader", "data/Shaders/Fragment/light.binshader",
-		renderStateBits, "data/Textures/water1.bintexture");
+	std::vector<std::string> texturePaths = { "data/Textures/water1.bintexture", 
+		                                      "data/Textures/grass.bintexture" };
+
+	std::vector<eae6320::Graphics::eSamplerType> samplerTypes = { eae6320::Graphics::eSamplerType::Linear};
+
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_color, 
+		                                              "data/Shaders/Vertex/standard.binshader", 
+		                                              "data/Shaders/Fragment/light.binshader",
+		                                              renderStateBits, texturePaths, samplerTypes);
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize effect");
 		return result;
 	}
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_animited_color, "data/Shaders/Vertex/standard.binshader", "data/Shaders/Fragment/light.binshader",
-		renderStateBits, "data/Textures/flare.bintexture");
-	if (!result)
-	{
-		EAE6320_ASSERTF(false, "Failed to initialize effect");
-		return result;
-	}
+	//result = eae6320::Graphics::cEffect::CreateEffect(m_effect_animited_color, "data/Shaders/Vertex/standard.binshader", "data/Shaders/Fragment/light.binshader",
+	//	renderStateBits, "data/Textures/flare.bintexture");
+	//if (!result)
+	//{
+	//	EAE6320_ASSERTF(false, "Failed to initialize effect");
+	//	return result;
+	//}
 
 	// Initialize GameObject
 	// ---------------------
@@ -267,12 +265,12 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_gameObject_gear.SetPosition(eae6320::Math::sVector(0.0f, -1.0f, 2.0f));
 
 	m_gameObject_helix.SetMesh(m_mesh_helix);
-	m_gameObject_helix.SetEffect(m_effect_animited_color);
+	m_gameObject_helix.SetEffect(m_effect_color);
 	m_gameObject_helix.SetMaxVelocity(2.0f);
 	m_gameObject_helix.SetPosition(eae6320::Math::sVector(2.0f, 1.0f, 0.0f));
 
 	m_gameObject_pipe.SetMesh(m_mesh_Alien);
-	m_gameObject_pipe.SetEffect(m_effect_animited_color);
+	m_gameObject_pipe.SetEffect(m_effect_color);
 	m_gameObject_pipe.SetMaxVelocity(2.0f);
 	m_gameObject_pipe.SetPosition(eae6320::Math::sVector(-2.0f, -1.0f, 0.0f));
 

@@ -70,6 +70,7 @@ eae6320::cResult eae6320::Assets::cMeshBuilder::Build(const std::vector<std::str
         uint8_t r, g, b, a;    // Color
         float u, v;            // UV
         float nx, ny, nz;      // NORMAL
+        float tx, ty, tz;      // TANGENT
     };
 
     lua_getfield(luaState, -1, "vertices");
@@ -191,6 +192,30 @@ eae6320::cResult eae6320::Assets::cMeshBuilder::Build(const std::vector<std::str
                 return eae6320::Results::InvalidFile;
             }
             lua_pop(luaState, 1); // Pop normal
+
+            // Get tangent
+            lua_getfield(luaState, -1, "tangent");
+            if (lua_istable(luaState, -1))
+            {
+                lua_getfield(luaState, -1, "tx");
+                v.tx = static_cast<float>(lua_tonumber(luaState, -1));
+                lua_pop(luaState, 1);
+
+                lua_getfield(luaState, -1, "ty");
+                v.ty = static_cast<float>(lua_tonumber(luaState, -1));
+                lua_pop(luaState, 1);
+
+                lua_getfield(luaState, -1, "tz");
+                v.tz = static_cast<float>(lua_tonumber(luaState, -1));
+                lua_pop(luaState, 1);
+            }
+            else
+            {
+                OutputErrorMessageWithFileInfo(m_path_source, "The Lua file must contain a 'tangent' table within each vertex");
+                lua_close(luaState);
+                return eae6320::Results::InvalidFile;
+            }
+            lua_pop(luaState, 1); // Pop tangent
 
             // Add vertex to vextex vector
             vertexData.push_back(v);

@@ -134,6 +134,8 @@ void eae6320::Graphics::SubmitMatrixLocalToWorld(const eae6320::Math::cMatrix_tr
 	if (currentFrameData.submittedPairCount < sDataRequiredToRenderAFrame::MAX_SUBMITTED_PAIRS)
 	{
 		currentFrameData.constantData_drawCall[currentFrameData.submittedPairCount].g_transform_localToWorld = i_transform_localToWorld;
+
+		currentFrameData.constantData_drawCall[currentFrameData.submittedPairCount].g_transform_localToWorld_Inv_Transpose = i_transform_localToWorld.GetInverse().GetTranspose();
 	}
 	else
 	{

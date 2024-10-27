@@ -19,7 +19,8 @@
 // Initialize / Clean Up
 //----------------------
 
-eae6320::cResult eae6320::Graphics::cSampler::CreateSampler(eae6320::Graphics::cSampler*& o_sampler)
+eae6320::cResult eae6320::Graphics::cSampler::CreateSampler(eae6320::Graphics::cSampler*& o_sampler,
+                                                            eae6320::Graphics::eSamplerType i_type)
 {
     auto result = eae6320::Results::Success;
 
@@ -30,7 +31,7 @@ eae6320::cResult eae6320::Graphics::cSampler::CreateSampler(eae6320::Graphics::c
         return result;
     }
 
-    if (!(result = newSampler->Initialize()))
+    if (!(result = newSampler->Initialize(i_type)))
     {
         delete newSampler;
         newSampler = nullptr;

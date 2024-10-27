@@ -9,7 +9,7 @@
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Logging/Logging.h>
 
-eae6320::cResult eae6320::Graphics::cSampler::Initialize()
+eae6320::cResult eae6320::Graphics::cSampler::Initialize(eae6320::Graphics::eSamplerType i_type)
 {
     auto result = eae6320::Results::Success;
 
@@ -17,7 +17,25 @@ eae6320::cResult eae6320::Graphics::cSampler::Initialize()
     EAE6320_ASSERT(direct3dDevice);
 
     D3D11_SAMPLER_DESC samplerDesc{};
-    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; // LINEAR
+
+    switch (i_type)
+    {
+    case eSamplerType::Point:
+        samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+        break;
+    case eSamplerType::Linear:
+        samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+        break;
+    case eSamplerType::Anisotropic:
+        samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+        samplerDesc.MaxAnisotropy = 16;
+        break;
+
+        // maybe more...
+    }
+
+
+    // samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; // LINEAR
     samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;

@@ -83,12 +83,12 @@ namespace eae6320
 
 			static cResult Load( const std::string& i_path, cShader*& o_shader, const eShaderType i_type );
 
-			EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS( cShader );
+			EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS( cShader )
 
 			// Reference Counting
 			//-------------------
 
-			EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS();
+			EAE6320_ASSETS_DECLAREREFERENCECOUNTINGFUNCTIONS()
 
 			// Data
 			//=====
@@ -109,7 +109,7 @@ namespace eae6320
 #elif defined( EAE6320_PLATFORM_GL )
 			GLuint m_shaderId = 0;
 #endif
-			EAE6320_ASSETS_DECLAREREFERENCECOUNT();
+			EAE6320_ASSETS_DECLAREREFERENCECOUNT()
 			const eShaderType m_type = eShaderType::Unknown;
 
 			// Implementation

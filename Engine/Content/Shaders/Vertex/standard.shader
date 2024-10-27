@@ -10,8 +10,6 @@
 
 #include <Shaders/shaders.inc>
 
-#if defined( EAE6320_PLATFORM_D3D )
-
 // Entry Point
 //============
 
@@ -28,74 +26,51 @@ void main(
 	in const float4 i_vertexColor : COLOR,
 	in const float2 i_vertexUV : TEXCOORD0,
 	in const float3 i_vertexNormal : NORMAL,
+	in const float3 i_vertexTangent : TANGENT,
 	// Output
 	//=======
 
 	// An SV_POSITION value must always be output from every vertex shader
 	// so that the GPU can figure out which fragments need to be shaded
 	out float4 o_vertexPosition_projected : SV_POSITION,
+	out float3 o_vertexPosition_world : POSITION,
 	out float4 o_vertexColor : COLOR,
 	out float2 o_vertexUV : TEXCOORD0,
-	out float3 o_vertexNormal : NORMAL
-
+	out float3 o_vertexNormal_world : NORMAL,
+	out float4 o_vertexTangent_world : TANGENT
 )
-
-#elif defined( EAE6320_PLATFORM_GL )
-
-// Input
-//======
-
-// The locations assigned are arbitrary
-// but must match the C calls to glVertexAttribPointer()
-
-// These values come from one of the VertexFormats::sVertex_mesh that the vertex buffer was filled with in C code
-layout( location = 0 ) in vec3 i_vertexPosition_local;
-layout( location = 1 ) in vec4 i_vertexColor;
-layout( location = 2 ) in vec2 i_vertexUV;  
-layout( location = 3 ) in vec3 i_vertexNormal;
-
-// Output
-//=======
-layout( location = 1 ) out vec4 o_vertexColor;
-layout( location = 2 ) out vec2 o_vertexUV;
-layout( location = 3 ) out vec3 o_vertexNormal;
-// The vertex shader must always output a position value,
-// but unlike HLSL where the value is explicit
-// GLSL has an automatically-required variable named "gl_Position"
-
-// Entry Point
-//============
-
-void main()
-
-#endif
 
 // Main Body
 //============
 {
 	// Transform the local vertex into world space
-	float4_t vertexPosition_world;
+	float4 vertexPosition_world;
 	{
 		// This will be done in a future assignment.
 		// For now, however, local space is treated as if it is the same as world space.
-		float4_t vertexPosition_local = float4_t( i_vertexPosition_local, 1.0 );
+		float4 vertexPosition_local = float4( i_vertexPosition_local, 1.0 );
 		// Transform the vertex from local to world space
-		vertexPosition_world = MUL_MATRIX_VECTOR( g_transform_localToWorld, vertexPosition_local );
+
+		vertexPosition_world = mul( g_transform_localToWorld, vertexPosition_local );
 	}
 	// Calculate the position of this vertex projected onto the display
 	{
 		// Transform the vertex from world space into camera space
-		float4_t vertexPosition_camera = MUL_MATRIX_VECTOR( g_transform_worldToCamera, vertexPosition_world );
+
+		float4 vertexPosition_camera = mul( g_transform_worldToCamera, vertexPosition_world );
+
 		// Project the vertex from camera space into projected space
-		#if defined( EAE6320_PLATFORM_D3D )
-			o_vertexPosition_projected = MUL_MATRIX_VECTOR( g_transform_cameraToProjected, vertexPosition_camera );
-		#elif defined( EAE6320_PLATFORM_GL )
-			gl_Position = MUL_MATRIX_VECTOR(g_transform_cameraToProjected, vertexPosition_camera);
-		#endif
+
+		o_vertexPosition_projected = mul( g_transform_cameraToProjected, vertexPosition_camera );
 
 		// Assign the color
+		o_vertexPosition_world = vertexPosition_world.xyz;
 		o_vertexColor = i_vertexColor;
-		o_vertexNormal = i_vertexNormal;
+
+		o_vertexNormal_world = mul( (float3x3) g_transform_localToWorld_Inv_Transpose, i_vertexNormal );
+
+		o_vertexTangent_world = float4(mul((float3x3) g_transform_localToWorld, i_vertexTangent), 1.0);
+
 		o_vertexUV = i_vertexUV;  
 	}
 }

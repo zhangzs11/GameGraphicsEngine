@@ -9,6 +9,23 @@
 struct ID3D11SamplerState;
 #endif
 
+// Enum Declaration
+//==================
+
+namespace eae6320
+{
+	namespace Graphics
+	{
+		enum class eSamplerType
+		{
+			Point,
+			Linear,
+			Anisotropic,
+		};
+	}
+}
+
+
 // Class Declaration
 //==================
 
@@ -19,7 +36,7 @@ namespace eae6320
 		class cSampler
 		{
 		public:
-			static cResult CreateSampler(cSampler*& o_sampler);
+			static cResult CreateSampler(cSampler*& o_sampler, eSamplerType i_type);
 
 			void Bind(unsigned int i_slot) const;
 
@@ -32,7 +49,7 @@ namespace eae6320
 			cSampler() = default;
 			~cSampler();
 
-			cResult Initialize();
+			cResult Initialize(eSamplerType i_type);
 			cResult CleanUp();
 		};
 	}

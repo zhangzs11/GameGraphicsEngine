@@ -14,6 +14,7 @@
 #endif
 
 #include <cstdint>
+#include <vector>
 #include <Engine/Results/Results.h>
 #include <Engine/Assets/ReferenceCountedAssets.h>
 
@@ -47,7 +48,9 @@ namespace eae6320
 
             // factory function
             static cResult CreateEffect(cEffect*& o_effect, const char* i_vertexShaderPath, const char* i_fragmentShaderPath, 
-                                                            const uint8_t i_renderStateBits, const char* const i_texturePath);
+                                                            const uint8_t i_renderStateBits, 
+                                                            const std::vector<std::string>& texturePaths,
+                                                            const std::vector<eSamplerType>& samplerTypes);
 
         private:
             // This prevents the class or struct from using illegal functions
@@ -57,8 +60,10 @@ namespace eae6320
             EAE6320_ASSETS_DECLAREREFERENCECOUNT()
 
             eae6320::Graphics::cRenderState m_renderState;
-            eae6320::Graphics::cTexture* m_texture = nullptr;
-            eae6320::Graphics::cSampler* m_sampler = nullptr;
+            // eae6320::Graphics::cTexture* m_texture = nullptr;
+            // eae6320::Graphics::cSampler* m_sampler = nullptr;
+            std::vector<cTexture*> m_textures;
+            std::vector<cSampler*> m_samplers;
 
 #if defined( EAE6320_PLATFORM_D3D )
             // Direct3D specific members
@@ -74,7 +79,9 @@ namespace eae6320
 
             // Initialize the effect with shader paths
             cResult Initialize(const char* i_vertexShaderPath, const char* i_fragmentShaderPath, 
-                               const uint8_t i_renderStateBits, const char* const i_texturePath);
+                               const uint8_t i_renderStateBits, 
+                               const std::vector<std::string>& texturePaths,
+                               const std::vector<eSamplerType>& samplerTypes);
             // Clean up the effect
             cResult CleanUp();
 		};

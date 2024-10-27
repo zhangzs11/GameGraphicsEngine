@@ -51,7 +51,7 @@ eae6320::cResult eae6320::Graphics::cVertexFormat::Initialize( const eVertexType
 		{
 		case eVertexType::Mesh:
 			{
-				constexpr unsigned int vertexElementCount = 4;
+				constexpr unsigned int vertexElementCount = 5;
 				D3D11_INPUT_ELEMENT_DESC layoutDescription[vertexElementCount] = {};
 				{
 					// Slot 0
@@ -109,6 +109,19 @@ eae6320::cResult eae6320::Graphics::cVertexFormat::Initialize( const eVertexType
 						normalElement.AlignedByteOffset = offsetof(VertexFormats::sVertex_mesh, nx);
 						normalElement.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 						normalElement.InstanceDataStepRate = 0;// (Must be zero for per-vertex data)
+					}
+
+					// TANGENT
+					// 3 floats == 12 bytes
+					{
+						auto& tangentElement = layoutDescription[4];
+						tangentElement.SemanticName = "TANGENT";
+						tangentElement.SemanticIndex = 0;
+						tangentElement.Format = DXGI_FORMAT_R32G32B32_FLOAT; // 3 floats for normal
+						tangentElement.InputSlot = 0;
+						tangentElement.AlignedByteOffset = offsetof(VertexFormats::sVertex_mesh, tx);
+						tangentElement.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+						tangentElement.InstanceDataStepRate = 0;// (Must be zero for per-vertex data)
 					}
 				}
 

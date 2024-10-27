@@ -40,6 +40,7 @@ namespace eae6320
 			struct sDrawCall
 			{
 				Math::cMatrix_transformation g_transform_localToWorld;
+				Math::cMatrix_transformation g_transform_localToWorld_Inv_Transpose;
 			};
 		}
 	}

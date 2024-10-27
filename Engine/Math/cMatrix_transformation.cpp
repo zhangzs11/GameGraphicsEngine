@@ -7,9 +7,72 @@
 #include "sVector.h"
 
 #include <cmath>
-
+#include <DirectXMath.h>
 // Interface
 //==========
+const DirectX::XMMATRIX eae6320::Math::cMatrix_transformation::ToXMMATRIX() const
+{
+	return DirectX::XMMATRIX(
+		m_00, m_01, m_02, m_03,
+		m_10, m_11, m_12, m_13,
+		m_20, m_21, m_22, m_23,
+		m_30, m_31, m_32, m_33
+	);
+
+}
+const eae6320::Math::cMatrix_transformation eae6320::Math::cMatrix_transformation::GetInverse() const
+{
+	DirectX::XMMATRIX dxMatrix = this->ToXMMATRIX();
+	DirectX::XMMATRIX inverseMatrix = DirectX::XMMatrixInverse(nullptr, dxMatrix);
+	cMatrix_transformation result;
+	result.m_00 = inverseMatrix.r[0].m128_f32[0];
+	result.m_01 = inverseMatrix.r[0].m128_f32[1];
+	result.m_02 = inverseMatrix.r[0].m128_f32[2];
+	result.m_03 = inverseMatrix.r[0].m128_f32[3];
+
+	result.m_10 = inverseMatrix.r[1].m128_f32[0];
+	result.m_11 = inverseMatrix.r[1].m128_f32[1];
+	result.m_12 = inverseMatrix.r[1].m128_f32[2];
+	result.m_13 = inverseMatrix.r[1].m128_f32[3];
+
+	result.m_20 = inverseMatrix.r[2].m128_f32[0];
+	result.m_21 = inverseMatrix.r[2].m128_f32[1];
+	result.m_22 = inverseMatrix.r[2].m128_f32[2];
+	result.m_23 = inverseMatrix.r[2].m128_f32[3];
+
+	result.m_30 = inverseMatrix.r[3].m128_f32[0];
+	result.m_31 = inverseMatrix.r[3].m128_f32[1];
+	result.m_32 = inverseMatrix.r[3].m128_f32[2];
+	result.m_33 = inverseMatrix.r[3].m128_f32[3];
+
+	return result;
+}
+
+const eae6320::Math::cMatrix_transformation eae6320::Math::cMatrix_transformation::GetTranspose() const
+{
+	cMatrix_transformation result;
+	result.m_00 = m_00;
+	result.m_01 = m_10;
+	result.m_02 = m_20;
+	result.m_03 = m_30;
+
+	result.m_10 = m_01;
+	result.m_11 = m_11;
+	result.m_12 = m_21;
+	result.m_13 = m_31;
+
+	result.m_20 = m_02;
+	result.m_21 = m_12;
+	result.m_22 = m_22;
+	result.m_23 = m_32;
+
+	result.m_30 = m_03;
+	result.m_31 = m_13;
+	result.m_32 = m_23;
+	result.m_33 = m_33;
+
+	return result;
+}
 
 // Access
 //-------

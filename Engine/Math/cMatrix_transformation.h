@@ -33,6 +33,10 @@ namespace eae6320
 		struct sVector;
 	}
 }
+namespace DirectX
+{
+	struct XMMATRIX;
+}
 
 // Class Declaration
 //==================
@@ -43,10 +47,13 @@ namespace eae6320
 	{
 		class cMatrix_transformation
 		{
-			// Interface
-			//==========
 
 		public:
+			// Inverse & Transpose
+			//==========
+			const DirectX::XMMATRIX ToXMMATRIX() const;
+			const cMatrix_transformation GetInverse() const;
+			const cMatrix_transformation GetTranspose() const;
 
 			// Multiplication
 			//---------------

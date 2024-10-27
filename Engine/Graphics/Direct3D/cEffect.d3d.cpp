@@ -10,7 +10,9 @@
 #include <Engine/Asserts/Asserts.h>
 
 eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShaderPath, const char* i_fragmentShaderPath, 
-	                                                    const uint8_t i_renderStateBits, const char* const i_texturePath)
+	                                                    const uint8_t i_renderStateBits, 
+	                                                    const std::vector<std::string>& texturePaths,
+	                                                    const std::vector<eSamplerType>& samplerTypes)
 {
 	auto result = eae6320::Results::Success;
 
@@ -40,22 +42,28 @@ eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShad
 	}
 
 	// Load Texture
+	for (const auto texturePath : texturePaths)
 	{
-		if (!(result = cTexture::CreateTextureDDS(m_texture, i_texturePath)))
+		cTexture* texture = nullptr;
+		if (!(result = cTexture::CreateTextureDDS(texture, texturePath.c_str())))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize effect without texture");
 			return result;
 		}
 		// cTexture::CreateTextureWIC(m_texture, i_texturePath);
+		m_textures.push_back(texture);
 	}
 
 	// Load Sampler
+	for (const auto samplerType : samplerTypes)
 	{
-		if (!(result = cSampler::CreateSampler(m_sampler)))
+		cSampler* sampler = nullptr;
+		if (!(result = cSampler::CreateSampler(sampler, samplerType)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize effect without sampler");
 			return result;
 		}
+		m_samplers.push_back(sampler);
 	}
 
 	return result;
@@ -79,14 +87,18 @@ void eae6320::Graphics::cEffect::Bind() const
 	// Bind Render State
 	m_renderState.Bind();
 
-	// Bind Texture
-	if (m_texture) {
-		m_texture->Bind(0);
+	// Bind each Texture
+	for (size_t i = 0; i < m_textures.size(); ++i) {
+		if (m_textures[i]) {
+			m_textures[i]->Bind(static_cast<unsigned int>(i));
+		}
 	}
 
-	// Bind Sampler
-	if (m_sampler) {
-		m_sampler->Bind(0);
+	// Bind each Sampler
+	for (size_t i = 0; i < m_samplers.size(); ++i) {
+		if (m_samplers[i]) {
+			m_samplers[i]->Bind(static_cast<unsigned int>(i));
+		}
 	}
 
 }
@@ -110,10 +122,11 @@ eae6320::cResult eae6320::Graphics::cEffect::CleanUp()
 	}
 
 	// Release the Texture
-	if (m_texture)
-	{
-		m_texture->DecrementReferenceCount();
-		m_texture = nullptr;
+	for (auto* texture : m_textures) {
+		if (texture) {
+			texture->DecrementReferenceCount();
+			texture = nullptr;
+		}
 	}
 	// Clean up Render State
 	// TODO :

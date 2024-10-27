@@ -52,6 +52,10 @@ namespace eae6320
 				// NORMAL
 				// 3 floats == 12 bytes
 				float nx, ny, nz;
+
+				// TANGENT
+				// 3 floats == 12 bytes
+				float tx, ty, tz;
 			};
 		}
 	}

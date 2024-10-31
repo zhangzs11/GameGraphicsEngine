@@ -35,7 +35,6 @@ namespace eae6320
 			void Bind(unsigned int i_textureSlot) const;
 
 			// factory function
-			static cResult CreateTextureWIC(cTexture*& o_texture, const char* const i_path);
 			static cResult CreateTextureDDS(cTexture*& o_texture, const char* const i_path);
 
 		private:
@@ -57,7 +56,6 @@ namespace eae6320
 			~cTexture();
 
 			// Texture loading and initialization logic
-			cResult InitializeWIC(const char* const i_path);
 			cResult InitializeDDS(const char* const i_path);
 
 			cResult CleanUp();

@@ -36,6 +36,19 @@ constexpr void eae6320::Graphics::RenderStates::DisableDepthTesting( uint8_t& io
 {
 	io_renderStateBits &= ~DepthTesting;
 }
+constexpr bool eae6320::Graphics::RenderStates::IsDepthTestLessEqualEnabled(const uint8_t i_renderStateBits) 
+{ 
+	return (i_renderStateBits & DepthTestLessEqual) != 0; 
+}
+constexpr void eae6320::Graphics::RenderStates::EnableDepthTestLessEqual(uint8_t& io_renderStateBits) 
+{ 
+	io_renderStateBits |= DepthTestLessEqual; 
+}
+constexpr void eae6320::Graphics::RenderStates::DisableDepthTestLessEqual(uint8_t& io_renderStateBits) 
+{ 
+	io_renderStateBits &= ~DepthTestLessEqual; 
+}
+
 constexpr bool eae6320::Graphics::RenderStates::IsDepthWritingEnabled( const uint8_t i_renderStateBits )
 {
 	return ( i_renderStateBits & DepthWriting ) != 0;

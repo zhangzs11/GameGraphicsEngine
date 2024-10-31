@@ -11,36 +11,6 @@
 #include <Engine/Asserts/Asserts.h>
 #include <Engine/Logging/Logging.h>
 
-eae6320::cResult eae6320::Graphics::cTexture::InitializeWIC(const char* const i_path)
-{
-	auto result = Results::Success;
-
-	auto* const direct3dDevice = eae6320::Graphics::sContext::g_context.direct3dDevice;
-	EAE6320_ASSERT(direct3dDevice);
-
-	//char* transform into wchar_t*
-	wchar_t wPath[MAX_PATH];
-	MultiByteToWideChar(CP_ACP, 0, i_path, -1, wPath, MAX_PATH);
-
-	ID3D11Resource* textureResource = nullptr;
-	const auto d3dResult = DirectX::CreateWICTextureFromFile(direct3dDevice, wPath, &textureResource, &m_textureView);
-
-	if (FAILED(d3dResult))
-	{
-		result = Results::Failure;
-		EAE6320_ASSERTF(false, "Failed to load WIC texture from file: %s", i_path);
-		eae6320::Logging::OutputError("Direct3D failed to load WIC texture from file (HRESULT %#010x)", d3dResult);
-		return result;
-	}
-
-	if (textureResource)
-	{
-		textureResource->Release();
-	}
-
-	return result;
-}
-
 eae6320::cResult eae6320::Graphics::cTexture::InitializeDDS(const char* const i_path)
 {
 	auto result = Results::Success;

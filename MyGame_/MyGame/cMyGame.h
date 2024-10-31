@@ -87,6 +87,10 @@ namespace eae6320
 
 		void SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
 		void SubmitCameraToGraphics(cCamera& i_camera, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
+		void SubmitLightDataToGraphics(eae6320::Graphics::sDirectionalLight& i_dirL,
+			                           eae6320::Graphics::sPointLight& i_pointL,
+			                           eae6320::Graphics::sSpotLight& i_spotL);
+
 
 		// Initialize / Clean Up
 		//----------------------
@@ -100,8 +104,14 @@ namespace eae6320
 		Graphics::cMesh* m_mesh_gear = nullptr;
 		Graphics::cMesh* m_mesh_helix = nullptr;
 		Graphics::cMesh* m_mesh_Alien = nullptr;
-		Graphics::cEffect* m_effect_color = nullptr;
-		Graphics::cEffect* m_effect_animited_color = nullptr;
+		Graphics::cMesh* m_mesh_cube = nullptr;
+
+		Graphics::cEffect* m_effect_light = nullptr;
+		Graphics::cEffect* m_effect_skybox = nullptr;
+
+		Graphics::sDirectionalLight m_directionalLight;
+		Graphics::sPointLight m_pointLight;
+		Graphics::sSpotLight m_spotLight;
 
 		// Texture
 		// ---------------------
@@ -113,6 +123,7 @@ namespace eae6320
 		cGameObject m_gameObject_gear;
 		cGameObject m_gameObject_helix;
 		cGameObject m_gameObject_pipe;
+		cGameObject m_gameObject_skybox;
 		cCamera m_camera;
 		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
 

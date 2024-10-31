@@ -11,6 +11,7 @@
 #include "Configuration.h"
 #include "cMesh.h"
 #include "cEffect.h"
+#include "sLight.h"
 
 #include <cstdint>
 #include <Engine/Results/Results.h>
@@ -44,7 +45,14 @@ namespace eae6320
 
 		void SubmitMatrixLocalToWorld(const eae6320::Math::cMatrix_transformation& i_transform_localToWorld);
 
-		void SubmitCameraData(const eae6320::Math::cMatrix_transformation& i_transform_worldToCamera, const eae6320::Math::cMatrix_transformation& i_transform_cameraToProjected);
+		void SubmitCameraData(const eae6320::Math::cMatrix_transformation& i_transform_worldToCamera, const eae6320::Math::cMatrix_transformation& i_transform_cameraToProjected, const Math::sVector& i_eyePosW);
+
+		void SubmitLightData(const sDirectionalLight& i_directionalLight,
+			                 const sPointLight& i_pointLight,
+			                 const sSpotLight& i_spotLight);
+
+		void SubmitMaterial(const sMaterial& i_material);
+
 
 		// When the application is ready to submit data for a new frame
 		// it should call this before submitting anything

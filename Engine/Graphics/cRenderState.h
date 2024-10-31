@@ -33,11 +33,12 @@ namespace eae6320
 				AlphaTransparency = 1 << 0,
 				// Set to enable depth testing
 				DepthTesting = 1 << 1,
+				DepthTestLessEqual = 1 << 2,
 				// Set to enable depth writing
-				DepthWriting = 1 << 2,
+				DepthWriting = 1 << 3,
 				// Set to draw triangles regardless of whether they are front-facing or back-facing
 				// (set to disable culling)
-				DrawBothTriangleSides = 1 << 3,
+				DrawBothTriangleSides = 1 << 4,
 			};
 
 			// Alpha Transparency
@@ -48,6 +49,12 @@ namespace eae6320
 			constexpr bool IsDepthTestingEnabled( const uint8_t i_renderStateBits );
 			constexpr void EnableDepthTesting( uint8_t& io_renderStateBits );
 			constexpr void DisableDepthTesting( uint8_t& io_renderStateBits );
+
+			// Depth Test Less Equal
+			constexpr bool IsDepthTestLessEqualEnabled(const uint8_t i_renderStateBits);
+			constexpr void EnableDepthTestLessEqual(uint8_t& io_renderStateBits);
+			constexpr void DisableDepthTestLessEqual(uint8_t& io_renderStateBits);
+
 			constexpr bool IsDepthWritingEnabled( const uint8_t i_renderStateBits );
 			constexpr void EnableDepthWriting( uint8_t& io_renderStateBits );
 			constexpr void DisableDepthWriting( uint8_t& io_renderStateBits );

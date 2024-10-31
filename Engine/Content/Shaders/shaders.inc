@@ -5,6 +5,8 @@
 #ifndef SHADER_INC_H
 #define SHADER_INC_H
 
+#include <Shaders/lightHelper.inc>
+
 // Constant Buffers
 //=================
 cbuffer g_constantBuffer_frame : register( b0 )
@@ -15,19 +17,28 @@ cbuffer g_constantBuffer_frame : register( b0 )
 	float g_elapsedSecondCount_systemTime;
 	float g_elapsedSecondCount_simulationTime;
 	// For float4 alignment
-	float2 g_padding;
+	float2 g_padding1;
+	
+    DirectionalLight g_DirLight;
+    PointLight g_PointLight;
+    SpotLight g_SpotLight;
+	
+    float3 g_EyePosW;
+    float g_padding2;
 };
 cbuffer g_constantBuffer_drawCall : register( b2 )
 {
     float4x4 g_transform_localToWorld;
 	float4x4 g_transform_localToWorld_Inv_Transpose;
+	
+    Material g_Material;
 };
 
 // Texture and Sampler
 //====================
-Texture2D g_texture0 : register(t0);    // Texture bound to slot t0
-Texture2D g_texture1 : register(t1);    // Texture bound to slot t0
-SamplerState g_sampler : register(s0); // Sampler bound to slot s0
+// Texture2D g_texture0 : register(t0);    // Texture bound to slot t0
+// Texture2D g_texture1 : register(t1);    // Texture bound to slot t0
+// SamplerState g_sampler : register(s0); // Sampler bound to slot s0
 
 
 #endif // SHADER_INC_H

@@ -130,7 +130,17 @@ eae6320::cResult eae6320::Graphics::cRenderState::Initialize( const uint8_t i_re
 		{
 			// The new fragment becomes a pixel if its depth is less than what has previously been written
 			depthStateDescription.DepthEnable = TRUE;
-			depthStateDescription.DepthFunc = D3D11_COMPARISON_LESS;
+
+			if (RenderStates::IsDepthTestLessEqualEnabled(i_renderStateBits))
+			{
+				// For Skybox or other specific effects that need LESS_EQUAL
+				depthStateDescription.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+			}
+			else
+			{
+				// Default depth testing
+				depthStateDescription.DepthFunc = D3D11_COMPARISON_LESS;
+			}
 		}
 		else
 		{

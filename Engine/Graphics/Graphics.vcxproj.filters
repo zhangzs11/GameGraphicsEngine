@@ -176,6 +176,9 @@
     <ClInclude Include="cSampler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sLight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cRenderState.inl">

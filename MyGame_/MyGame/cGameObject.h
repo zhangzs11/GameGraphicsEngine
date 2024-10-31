@@ -6,6 +6,7 @@
 
 #include <Engine/Graphics/cMesh.h>
 #include <Engine/Graphics/cEffect.h>
+#include <Engine/Graphics/sLight.h>
 #include <Engine/Physics/sRigidBodyState.h>
 
 // Class Declaration
@@ -21,6 +22,7 @@ namespace eae6320
 
 		// Getters
 		Physics::sRigidBodyState& GetRigidBodyState() { return m_rigidBodyState; }
+		Graphics::sMaterial& GetMaterial() { return m_material; }
 		Graphics::cMesh* GetMesh() const { return m_mesh; }
 		Graphics::cEffect* GetEffect() const { return m_effect; }
 
@@ -28,12 +30,14 @@ namespace eae6320
 		void SetMesh(Graphics::cMesh* i_mesh) { m_mesh = i_mesh; }
 		void SetEffect(Graphics::cEffect* i_effect) { m_effect = i_effect; }
 		void SetMaxVelocity(float i_maxV) { m_maxVelocity = i_maxV; }
+		void SetMaterial(Graphics::sMaterial i_material) { m_material = i_material;  }
 		void SetPosition(Math::sVector i_position) { m_rigidBodyState.position = i_position; }
 
 	private:
 		Graphics::cMesh* m_mesh;
 		Graphics::cEffect* m_effect;
 		Physics::sRigidBodyState m_rigidBodyState;
+		Graphics::sMaterial m_material;
 		float m_maxVelocity;
 	};
 }

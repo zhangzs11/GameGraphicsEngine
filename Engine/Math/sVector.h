@@ -88,6 +88,20 @@ namespace eae6320
 		constexpr sVector operator *( const float i_lhs, const sVector& i_rhs );
 		constexpr float Dot( const sVector& i_lhs, const sVector& i_rhs );
 		constexpr sVector Cross( const sVector& i_lhs, const sVector& i_rhs );
+
+		struct sVector4
+		{
+			// Data
+			//=====
+
+			float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+
+			// Initialization / Clean Up
+			//--------------------------
+
+			constexpr sVector4() = default;
+			constexpr sVector4(const float i_x, const float i_y, const float i_z, const float i_w);
+		};
 	}
 }
 

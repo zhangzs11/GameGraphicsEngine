@@ -142,4 +142,11 @@ constexpr eae6320::Math::sVector::sVector( const float i_x, const float i_y, con
 
 }
 
+constexpr eae6320::Math::sVector4::sVector4(const float i_x, const float i_y, const float i_z, const float i_w)
+	:
+	x( i_x ), y( i_y ), z( i_z ), w( i_w )
+{
+
+}
+
 #endif	// EAE6320_MATH_SVECTOR_INL

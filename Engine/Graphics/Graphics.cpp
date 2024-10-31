@@ -94,7 +94,7 @@ void eae6320::Graphics::SubmitElapsedTime(const float i_elapsedSecondCount_syste
 	constantData_frame.g_elapsedSecondCount_simulationTime = i_elapsedSecondCount_simulationTime;
 }
 
-void eae6320::Graphics::SubmitCameraData(const Math::cMatrix_transformation& i_transform_worldToCamera, const Math::cMatrix_transformation& i_transform_cameraToProjected)
+void eae6320::Graphics::SubmitCameraData(const Math::cMatrix_transformation& i_transform_worldToCamera, const Math::cMatrix_transformation& i_transform_cameraToProjected, const Math::sVector& i_eyePosW)
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
 	auto& constantData_frame = s_dataBeingSubmittedByApplicationThread->constantData_frame;
@@ -102,6 +102,18 @@ void eae6320::Graphics::SubmitCameraData(const Math::cMatrix_transformation& i_t
 	// Set the camera transformation matrices
 	constantData_frame.g_transform_worldToCamera = i_transform_worldToCamera;
 	constantData_frame.g_transform_cameraToProjected = i_transform_cameraToProjected;
+	constantData_frame.g_EyePosW = i_eyePosW;
+}
+
+void eae6320::Graphics::SubmitLightData(const eae6320::Graphics::sDirectionalLight& i_directionalLight,
+	                 const eae6320::Graphics::sPointLight& i_pointLight,
+	                 const eae6320::Graphics::sSpotLight& i_spotLight)
+{
+	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
+	auto& constantData_frame = s_dataBeingSubmittedByApplicationThread->constantData_frame;
+	constantData_frame.g_DirLight = i_directionalLight;
+	constantData_frame.g_PointLight = i_pointLight;
+	constantData_frame.g_SpotLight = i_spotLight;
 }
 
 void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, eae6320::Graphics::cEffect* i_effect)
@@ -143,6 +155,23 @@ void eae6320::Graphics::SubmitMatrixLocalToWorld(const eae6320::Math::cMatrix_tr
 		eae6320::Logging::OutputError("The maximum number of submitted Matrix LocalToWorld has been exceeded!");
 	}
 }
+
+void eae6320::Graphics::SubmitMaterial(const eae6320::Graphics::sMaterial& i_material)
+{
+	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
+
+	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
+	if (currentFrameData.submittedPairCount < sDataRequiredToRenderAFrame::MAX_SUBMITTED_PAIRS)
+	{
+		currentFrameData.constantData_drawCall[currentFrameData.submittedPairCount].g_Material = i_material;
+	}
+	else
+	{
+		// Handle the case where the maximum number is exceeded
+		eae6320::Logging::OutputError("The maximum number of submitted Matrix LocalToWorld has been exceeded!");
+	}
+}
+
 
 void eae6320::Graphics::SubmitBackgroundColor(const float i_backgroundColor[4])
 {
@@ -240,7 +269,6 @@ void eae6320::Graphics::RenderFrame()
 	// so that the struct can be re-used (i.e. so that data for a new frame can be submitted to it)
 	{
 		// (At this point in the class there isn't anything that needs to be cleaned up)
-		//dataRequiredToRenderFrame	// TODO
 		for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
 		{
 			auto& pair = dataRequiredToRenderFrame->meshEffectPairs[i];

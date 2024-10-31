@@ -8,6 +8,7 @@
 #include <Engine/UserInput/UserInput.h>
 #include <Engine/Logging/Logging.h>
 #include <Engine/Graphics/VertexFormats.h>
+#include <Engine/Graphics/sLight.h>
 #include <Engine/Math/Functions.h>
 
 #include <Engine/Time/Time.h>
@@ -150,6 +151,7 @@ void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, con
 	if (i_gameObject.GetMesh() && i_gameObject.GetEffect())
 	{
 		eae6320::Graphics::SubmitMatrixLocalToWorld(i_gameObject.GetRigidBodyState().PredictFutureTransform(i_elapsedSecondCount_sinceLastSimulationUpdate));
+		eae6320::Graphics::SubmitMaterial(i_gameObject.GetMaterial());
 		eae6320::Graphics::SubmitMeshEffectPair(i_gameObject.GetMesh(), i_gameObject.GetEffect());
 	}
 }
@@ -158,20 +160,30 @@ void eae6320::cMyGame::SubmitCameraToGraphics(cCamera& i_camera, const float i_e
 {
 	auto worldToCameraTransform = i_camera.GetWorldToCameraTransform(i_elapsedSecondCount_sinceLastSimulationUpdate);
 	auto cameraToProjectedTransform = i_camera.GetCameraToProjectedTransform();
-	eae6320::Graphics::SubmitCameraData(worldToCameraTransform, cameraToProjectedTransform);
+	eae6320::Graphics::SubmitCameraData(worldToCameraTransform, cameraToProjectedTransform, i_camera.GetPosition());
 }
+
+void eae6320::cMyGame::SubmitLightDataToGraphics(eae6320::Graphics::sDirectionalLight& i_dirL,
+	                                             eae6320::Graphics::sPointLight& i_pointL,
+	                                             eae6320::Graphics::sSpotLight& i_spotL)
+{
+	eae6320::Graphics::SubmitLightData(i_dirL, i_pointL, i_spotL);
+}
+
 
 void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
-	float color[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
-	color[0] = (sinf(i_elapsedSecondCount_systemTime) + 1.0f) / 2.0f;
+	float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	// color[0] = (sinf(i_elapsedSecondCount_systemTime) + 1.0f) / 10.0f;
 	eae6320::Graphics::SubmitBackgroundColor(color);
 
 	SubmitGameObjectToGraphics(m_gameObject_plane, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 	SubmitGameObjectToGraphics(m_gameObject_gear, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 	SubmitGameObjectToGraphics(m_gameObject_helix, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 	SubmitGameObjectToGraphics(m_gameObject_pipe, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_skybox, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
+	SubmitLightDataToGraphics(m_directionalLight, m_pointLight, m_spotLight);
 	SubmitCameraToGraphics(m_camera, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 }
 
@@ -206,9 +218,12 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
-
-
-	// result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_pipe, "data/Meshes/pipe_gl.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_cube, "data/Meshes/cube.binmesh");
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize mesh");
+		return result;
+	}
 
 	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_Alien, "data/Meshes/Alien.binmesh");
 	if (!result)
@@ -222,8 +237,6 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	uint8_t renderStateBits = 0;
 	eae6320::Graphics::RenderStates::DisableAlphaTransparency(renderStateBits);
-	// eae6320::Graphics::RenderStates::DisableDepthTesting(renderStateBits);
-	// eae6320::Graphics::RenderStates::DisableDepthWriting(renderStateBits);
 	eae6320::Graphics::RenderStates::EnableDepthTesting(renderStateBits);
 	eae6320::Graphics::RenderStates::EnableDepthWriting(renderStateBits);
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
@@ -233,9 +246,9 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	std::vector<eae6320::Graphics::eSamplerType> samplerTypes = { eae6320::Graphics::eSamplerType::Linear};
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_color, 
-		                                              "data/Shaders/Vertex/standard.binshader", 
-		                                              "data/Shaders/Fragment/light.binshader",
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_light, 
+		                                              "data/Shaders/Vertex/light_VS.binshader", 
+		                                              "data/Shaders/Fragment/light_PS.binshader",
 		                                              renderStateBits, texturePaths, samplerTypes);
 	if (!result)
 	{
@@ -243,43 +256,96 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
-	//result = eae6320::Graphics::cEffect::CreateEffect(m_effect_animited_color, "data/Shaders/Vertex/standard.binshader", "data/Shaders/Fragment/light.binshader",
-	//	renderStateBits, "data/Textures/flare.bintexture");
-	//if (!result)
-	//{
-	//	EAE6320_ASSERTF(false, "Failed to initialize effect");
-	//	return result;
-	//}
+	// SKYBOX EFFECT
+	uint8_t skybox_renderStateBits = 0;
+	eae6320::Graphics::RenderStates::DisableAlphaTransparency(skybox_renderStateBits);
+	eae6320::Graphics::RenderStates::EnableDepthTesting(skybox_renderStateBits);
+	eae6320::Graphics::RenderStates::EnableDepthWriting(skybox_renderStateBits);
+	eae6320::Graphics::RenderStates::EnableDepthTestLessEqual(skybox_renderStateBits);
+	eae6320::Graphics::RenderStates::EnableDrawingBothTriangleSides(skybox_renderStateBits);
+
+	texturePaths = { "data/Textures/desertcube1024.bintexture" };
+
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_skybox,
+		"data/Shaders/Vertex/skybox_VS.binshader",
+		"data/Shaders/Fragment/skybox_PS.binshader",
+		skybox_renderStateBits, texturePaths, samplerTypes);
+
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize effect");
+		return result;
+	}
+
 
 	// Initialize GameObject
 	// ---------------------
+	eae6320::Graphics::sMaterial mat(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),          // ambient
+		                             eae6320::Math::sVector4(1.0f, 1.0f, 1.0f, 1.0f),          // diffuse
+		                             eae6320::Math::sVector4(0.1f, 0.1f, 0.1f, 5.0f),          // specular
+		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f));         // reflect
 
 	m_gameObject_plane.SetMesh(m_mesh_plane);
-	m_gameObject_plane.SetEffect(m_effect_color);
+	m_gameObject_plane.SetEffect(m_effect_light);
 	m_gameObject_plane.SetMaxVelocity(2.0f);
 	m_gameObject_plane.SetPosition(eae6320::Math::sVector(0.0f, -2.0f, 0.0f));
+	m_gameObject_plane.SetMaterial(mat);
 
 	m_gameObject_gear.SetMesh(m_mesh_gear);
-	m_gameObject_gear.SetEffect(m_effect_color);
+	m_gameObject_gear.SetEffect(m_effect_light);
 	m_gameObject_gear.SetMaxVelocity(2.0f);
-	m_gameObject_gear.SetPosition(eae6320::Math::sVector(0.0f, -1.0f, 2.0f));
+	m_gameObject_gear.SetPosition(eae6320::Math::sVector(0.0f, -1.0f, 0.0f));
+	m_gameObject_gear.SetMaterial(mat);
 
 	m_gameObject_helix.SetMesh(m_mesh_helix);
-	m_gameObject_helix.SetEffect(m_effect_color);
+	m_gameObject_helix.SetEffect(m_effect_light);
 	m_gameObject_helix.SetMaxVelocity(2.0f);
-	m_gameObject_helix.SetPosition(eae6320::Math::sVector(2.0f, 1.0f, 0.0f));
+	m_gameObject_helix.SetPosition(eae6320::Math::sVector(2.0f, 1.0f, -2.0f));
+	m_gameObject_helix.SetMaterial(mat);
 
 	m_gameObject_pipe.SetMesh(m_mesh_Alien);
-	m_gameObject_pipe.SetEffect(m_effect_color);
+	m_gameObject_pipe.SetEffect(m_effect_light);
 	m_gameObject_pipe.SetMaxVelocity(2.0f);
-	m_gameObject_pipe.SetPosition(eae6320::Math::sVector(-2.0f, -1.0f, 0.0f));
+	m_gameObject_pipe.SetPosition(eae6320::Math::sVector(0.0f, -2.0f, -2.7f));
+	m_gameObject_pipe.SetMaterial(mat);
+
+	m_gameObject_skybox.SetMesh(m_mesh_cube);
+	m_gameObject_skybox.SetEffect(m_effect_skybox);
+	m_gameObject_skybox.SetMaxVelocity(2.0f);
+	m_gameObject_skybox.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 0.0f));
+	m_gameObject_skybox.SetMaterial(mat);
+	
+
+
+	m_directionalLight = eae6320::Graphics::sDirectionalLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f), //ambient
+		                                                      eae6320::Math::sVector4(0.0f, 2.0f, 0.5f, 1.0f), //diffuse
+		                                                      eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f), //specular
+		                                                      eae6320::Math::sVector(-1.0f, -0.2f, 0.0f));     //direction
+
+	m_pointLight = eae6320::Graphics::sPointLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),             //ambient
+		                                          eae6320::Math::sVector4(5.0f, 0.0f, 0.0f, 1.0f),             //diffuse
+		                                          eae6320::Math::sVector4(0.0f, 1.0f, 0.0f, 1.0f),             //specular
+		                                          eae6320::Math::sVector(0.0f, 0.0f, 0.0f),                    //position
+		                                          10000.0f,                                                    //range
+		                                          eae6320::Math::sVector(1.0f, 1.0f, 1.0f));                   //att
+
+	m_spotLight = eae6320::Graphics::sSpotLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),               //ambient
+		                                        eae6320::Math::sVector4(0.0f, 50.0f, 0.0f, 1.0f),               //diffuse
+		                                        eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),               //specular
+		                                        eae6320::Math::sVector(0.0f, 5.0f, 0.0f),                      //position
+		                                        10000.0f,                                                         //range
+		                                        eae6320::Math::sVector(0.0f, -1.0f, 0.0f),                    //direction
+		                                        10.0f,                                                          //spot
+		                                        eae6320::Math::sVector(1.0f, 1.0f, 1.0f));                     //att
+	
+
 
 
 	// Initialize Camera
 	// -----------------
 
 	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1.0f, 0.1f, 100000.0f);
-	m_camera.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 10.0f));
+	m_camera.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 2.0f));
 	m_camera.SetOrientation(eae6320::Math::cQuaternion());
 
 	return Results::Success;
@@ -313,16 +379,23 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 		m_mesh_Alien = nullptr;
 	}
 
-	if (m_effect_color)
+	if (m_mesh_cube)
 	{
-		m_effect_color->DecrementReferenceCount();
-		m_effect_color = nullptr;
+		m_mesh_cube->DecrementReferenceCount();
+		m_mesh_cube = nullptr;
 	}
 
-	if (m_effect_animited_color)
+	if (m_effect_light)
 	{
-		m_effect_animited_color->DecrementReferenceCount();
-		m_effect_animited_color = nullptr;
+		m_effect_light->DecrementReferenceCount();
+		m_effect_light = nullptr;
+	}
+
+	// SKYBOX
+	if (m_effect_skybox)
+	{
+		m_effect_skybox->DecrementReferenceCount();
+		m_effect_skybox = nullptr;
 	}
 
 	return Results::Success;

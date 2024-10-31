@@ -6,11 +6,15 @@ return
 {
 	shaders =
 	{
-		{ path = "Shaders/Vertex/standard.shader", arguments = { "vertex" } },
+		{ path = "Shaders/Vertex/light_VS.shader", arguments = { "vertex" } },
 
 		{ path = "Shaders/Vertex/vertexInputLayout_mesh.shader", arguments = { "vertex" } },
 
-                { path = "Shaders/Fragment/light.shader", arguments = { "fragment" } },
+                { path = "Shaders/Fragment/light_PS.shader", arguments = { "fragment" } },
+
+                { path = "Shaders/Vertex/skybox_VS.shader", arguments = { "vertex" } },
+
+                { path = "Shaders/Fragment/skybox_PS.shader", arguments = { "fragment" } },
 	},
 
 	meshes = 
@@ -21,6 +25,7 @@ return
 		{ path = "Meshes/plane_gl.mesh" },
                 { path = "Meshes/torus_gl.mesh" },
                 { path = "Meshes/Alien.mesh" },
+                { path = "Meshes/cube.mesh" },
 	},
 
 	textures = 
@@ -31,5 +36,6 @@ return
 		{ path = "Textures/stone.dds" },
 		{ path = "Textures/water1.dds" },
 		{ path = "Textures/water2.dds" },
+                { path = "Textures/desertcube1024.dds" },
 	},
 }

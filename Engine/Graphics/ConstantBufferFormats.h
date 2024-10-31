@@ -12,8 +12,10 @@
 //=========
 
 #include "Configuration.h"
+#include "sLight.h"
 
 #include <Engine/Math/cMatrix_transformation.h>
+
 
 // Format Definitions
 //===================
@@ -33,7 +35,15 @@ namespace eae6320
 				float g_elapsedSecondCount_systemTime = 0.0f;
 				float g_elapsedSecondCount_simulationTime = 0.0f;
 				// For float4 alignment
-				float padding[2];
+				float g_padding1[2];
+
+				sDirectionalLight g_DirLight;
+				sPointLight g_PointLight;
+				sSpotLight g_SpotLight;
+
+				// For float4 alignment
+				Math::sVector g_EyePosW;
+				float g_padding2;
 			};
 
 			// Data that is constant for a single draw call
@@ -41,6 +51,8 @@ namespace eae6320
 			{
 				Math::cMatrix_transformation g_transform_localToWorld;
 				Math::cMatrix_transformation g_transform_localToWorld_Inv_Transpose;
+
+				sMaterial g_Material;
 			};
 		}
 	}

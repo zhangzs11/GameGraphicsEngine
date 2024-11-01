@@ -24,13 +24,34 @@ eae6320::cResult eae6320::Graphics::cConstantBuffer::Initialize( const void* con
 		{
 			switch ( m_type )
 			{
-				case ConstantBufferTypes::Frame: m_size = sizeof( ConstantBufferFormats::sFrame ); break;
+			case ConstantBufferTypes::Frame:
+			{
+				switch (m_effectType)
+				{
+				case eConstantBufferEffectType::Light:
+					m_size = sizeof(ConstantBufferFormats::sLight_Frame); break;
+				case eConstantBufferEffectType::Shadow:
+					m_size = sizeof(ConstantBufferFormats::sShadow_Frame); break;
+				}
+				break;
+			}
+					
+
 //				case ConstantBufferTypes::Material: m_size = sizeof( ConstantBufferFormats::sMaterial ); break;
-				case ConstantBufferTypes::DrawCall: m_size = sizeof( ConstantBufferFormats::sDrawCall ); break;
+			case ConstantBufferTypes::DrawCall:
+			{
+				switch (m_effectType)
+				{
+				case eConstantBufferEffectType::Light:
+					m_size = sizeof(ConstantBufferFormats::sDrawCall); break;
+				case eConstantBufferEffectType::Shadow:
+					m_size = sizeof(ConstantBufferFormats::sDrawCall); break;
+				}
+				break;
+			}
 
 			// This should never happen
 			default:
-
 				result = Results::Failure;
 				EAE6320_ASSERTF( false, "Unrecognized constant buffer type %u", m_type );
 				Logging::OutputError( "The size couldn't be calculated for a constant buffer of type %u", m_type );
@@ -55,9 +76,9 @@ eae6320::cResult eae6320::Graphics::cConstantBuffer::Initialize( const void* con
 	return result;
 }
 
-eae6320::Graphics::cConstantBuffer::cConstantBuffer( const ConstantBufferTypes i_type )
+eae6320::Graphics::cConstantBuffer::cConstantBuffer( const ConstantBufferTypes i_type, const eConstantBufferEffectType i_effectType)
 	:
-	m_type( i_type )
+	m_type( i_type ), m_effectType(i_effectType)
 {
 
 }

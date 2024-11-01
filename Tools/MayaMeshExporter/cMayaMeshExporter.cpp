@@ -817,7 +817,7 @@ namespace
 						<< ", btz = " << vertex.vertex.btz
 						<< " },""\n"
 						<< " texcoord = { u = " << vertex.vertex.u
-						<< ", v = " << vertex.vertex.v  // Adjust v for Direct3D
+						<< ", v = " << 1 - vertex.vertex.v  // Adjust v for Direct3D
 						<< " },""\n"
 						<< " color = { r = " << vertex.vertex.r
 						<< ", g = " << vertex.vertex.g

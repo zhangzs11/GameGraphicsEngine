@@ -29,8 +29,10 @@
 namespace
 {
 	// Constant buffer object
-	eae6320::Graphics::cConstantBuffer s_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame);
-	eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall(eae6320::Graphics::ConstantBufferTypes::DrawCall);
+	eae6320::Graphics::cConstantBuffer s_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame,
+		eae6320::Graphics::eConstantBufferEffectType::Light);
+	eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall(eae6320::Graphics::ConstantBufferTypes::DrawCall,
+		eae6320::Graphics::eConstantBufferEffectType::Light);
 
 	// Submission Data
 	//----------------
@@ -39,7 +41,7 @@ namespace
 	// it must cache whatever is necessary in order to render a frame
 	struct sDataRequiredToRenderAFrame
 	{
-		eae6320::Graphics::ConstantBufferFormats::sFrame constantData_frame;
+		eae6320::Graphics::ConstantBufferFormats::sLight_Frame constantData_frame;
 
 		float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 

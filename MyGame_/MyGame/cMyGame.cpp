@@ -41,35 +41,36 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Left))
 	{
-		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(-1.0f, 0.0f, 0.0f);
+		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(-1.0f, 0.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Right))
 	{
-		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(1.0f, 0.0f, 0.0f);
+		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(1.0f, 0.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
 	{
-		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(0.0f, 1.0f, 0.0f);
+		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(0.0f, 1.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Down))
 	{
-		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(0.0f, -1.0f, 0.0f);
+		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(0.0f, -1.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed('N'))
 	{
-		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, 1.0f);
+		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(0.0f, 0.0f, 1.0f);
 	}
 	else if (UserInput::IsKeyPressed('M'))
 	{
-		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, -1.0f);
+		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(0.0f, 0.0f, -1.0f);
 	}
 	else
 	{
-		m_gameObject_pipe.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, 0.0f);
+		m_gameObject_house.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, 0.0f);
+		m_gameObject_house.GetRigidBodyState().velocity = Math::sVector(0.0f, 0.0f, 0.0f);
 	}
 
 	auto& cameraRigidBody = m_camera.GetRigidBodyState();
-	const float movementSpeed = 5.0f;  // Units per second
+	const float movementSpeed = 50.0f;  // Units per second
 	constexpr float rotationSpeed = eae6320::Math::ConvertDegreesToRadians(60.0f);  // Radians per second
 
 	// Movement: WASD for forward, backward, left, right
@@ -97,15 +98,8 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	// Rotation: Arrow keys for pitch and yaw
 	if (UserInput::IsKeyPressed('I'))
 	{
-		// cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
-		// cameraRigidBody.angularSpeed = rotationSpeed;
-		m_gameObject_gear.GetRigidBodyState().angularSpeed = 1.1f;
+		// m_gameObject_gear.GetRigidBodyState().angularSpeed = 1.1f;
 	}
-	//else if (UserInput::IsKeyPressed('K'))
-	//{
-	//	cameraRigidBody.angularVelocity_axis_local = m_camera.GetRightDirection();
-	//	cameraRigidBody.angularSpeed = -rotationSpeed;
-	//}
 	if (UserInput::IsKeyPressed('J'))
 	{
 		cameraRigidBody.angularVelocity_axis_local = Math::sVector(0.0f, 1.0f, 0.0f);  // Yaw rotation axis
@@ -133,16 +127,15 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 }
 void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
-	// m_gameObject.Update(i_elapsedSecondCount_sinceLastUpdate);
-	// m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
+
 }
 
 void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
-	m_gameObject_plane.Update(i_elapsedSecondCount_sinceLastUpdate);
-	m_gameObject_gear.Update(i_elapsedSecondCount_sinceLastUpdate);
-	m_gameObject_helix.Update(i_elapsedSecondCount_sinceLastUpdate);
-	m_gameObject_pipe.Update(i_elapsedSecondCount_sinceLastUpdate);
+	// m_gameObject_plane.Update(i_elapsedSecondCount_sinceLastUpdate);
+	// m_gameObject_gear.Update(i_elapsedSecondCount_sinceLastUpdate);
+	// m_gameObject_helix.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_gameObject_house.Update(i_elapsedSecondCount_sinceLastUpdate);
 	m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
 }
 
@@ -177,10 +170,13 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 	// color[0] = (sinf(i_elapsedSecondCount_systemTime) + 1.0f) / 10.0f;
 	eae6320::Graphics::SubmitBackgroundColor(color);
 
+	// SubmitGameObjectToGraphics(m_gameObject_plane, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	// SubmitGameObjectToGraphics(m_gameObject_gear, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	// SubmitGameObjectToGraphics(m_gameObject_helix, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	// SubmitGameObjectToGraphics(m_gameObject_pipe, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	
+	SubmitGameObjectToGraphics(m_gameObject_house, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 	SubmitGameObjectToGraphics(m_gameObject_plane, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
-	SubmitGameObjectToGraphics(m_gameObject_gear, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
-	SubmitGameObjectToGraphics(m_gameObject_helix, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
-	SubmitGameObjectToGraphics(m_gameObject_pipe, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 	SubmitGameObjectToGraphics(m_gameObject_skybox, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 	SubmitLightDataToGraphics(m_directionalLight, m_pointLight, m_spotLight);
@@ -197,7 +193,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize mesh
 	// ---------------
 
-	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_plane, "data/Meshes/plane_gl.binmesh");
+	/*auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_plane, "data/Meshes/plane_gl.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
@@ -216,21 +212,35 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
-	}
+	}*/
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_cube, "data/Meshes/cube.binmesh");
+	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_cube, "data/Meshes/cube.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
 	}
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_Alien, "data/Meshes/Alien.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_plane, "data/Meshes/plane_gl.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
 	}
+
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_house, "data/Meshes/house_debug.binmesh");
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize mesh");
+		return result;
+	}
+
+	/*result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_Alien, "data/Meshes/Alien.binmesh");
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize mesh");
+		return result;
+	}*/
 
 	// Initialize effect
 	// -----------------
@@ -241,7 +251,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::RenderStates::EnableDepthWriting(renderStateBits);
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
 
-	std::vector<std::string> texturePaths = { "data/Textures/water1.bintexture", 
+	std::vector<std::string> texturePaths = { "data/Textures/house.bintexture", 
 		                                      "data/Textures/grass.bintexture" };
 
 	std::vector<eae6320::Graphics::eSamplerType> samplerTypes = { eae6320::Graphics::eSamplerType::Linear};
@@ -255,6 +265,14 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		EAE6320_ASSERTF(false, "Failed to initialize effect");
 		return result;
 	}
+
+	texturePaths = { "data/Textures/grass.bintexture",
+					};
+
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_light2,
+		"data/Shaders/Vertex/light_VS.binshader",
+		"data/Shaders/Fragment/light_PS.binshader",
+		renderStateBits, texturePaths, samplerTypes);
 
 	// SKYBOX EFFECT
 	uint8_t skybox_renderStateBits = 0;
@@ -280,12 +298,12 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	// Initialize GameObject
 	// ---------------------
-	eae6320::Graphics::sMaterial mat(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),          // ambient
-		                             eae6320::Math::sVector4(1.0f, 1.0f, 1.0f, 1.0f),          // diffuse
-		                             eae6320::Math::sVector4(0.1f, 0.1f, 0.1f, 5.0f),          // specular
+	eae6320::Graphics::sMaterial mat(eae6320::Math::sVector4(1.0f, 1.0f, 1.0f, 1.0f),          // ambient
+		                             eae6320::Math::sVector4(0.64f, 0.64f, 0.64f, 1.0f),          // diffuse
+		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f),          // specular
 		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f));         // reflect
 
-	m_gameObject_plane.SetMesh(m_mesh_plane);
+	/*m_gameObject_plane.SetMesh(m_mesh_plane);
 	m_gameObject_plane.SetEffect(m_effect_light);
 	m_gameObject_plane.SetMaxVelocity(2.0f);
 	m_gameObject_plane.SetPosition(eae6320::Math::sVector(0.0f, -2.0f, 0.0f));
@@ -307,30 +325,37 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_gameObject_pipe.SetEffect(m_effect_light);
 	m_gameObject_pipe.SetMaxVelocity(2.0f);
 	m_gameObject_pipe.SetPosition(eae6320::Math::sVector(0.0f, -2.0f, -2.7f));
-	m_gameObject_pipe.SetMaterial(mat);
+	m_gameObject_pipe.SetMaterial(mat);*/
 
 	m_gameObject_skybox.SetMesh(m_mesh_cube);
 	m_gameObject_skybox.SetEffect(m_effect_skybox);
-	m_gameObject_skybox.SetMaxVelocity(2.0f);
 	m_gameObject_skybox.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 0.0f));
-	m_gameObject_skybox.SetMaterial(mat);
 	
+	m_gameObject_house.SetMesh(m_mesh_house);
+	m_gameObject_house.SetEffect(m_effect_light);
+	m_gameObject_house.SetPosition(eae6320::Math::sVector(0.0f, -10.0f, 0.0f));
+	m_gameObject_house.SetMaxVelocity(2.0f);
+	m_gameObject_house.SetMaterial(mat);
 
+	m_gameObject_plane.SetMesh(m_mesh_plane);
+	m_gameObject_plane.SetEffect(m_effect_light2);
+	m_gameObject_plane.SetPosition(eae6320::Math::sVector(0.0f, -12.0f, 0.0f));
+	m_gameObject_plane.SetMaterial(mat);
 
-	m_directionalLight = eae6320::Graphics::sDirectionalLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f), //ambient
-		                                                      eae6320::Math::sVector4(0.0f, 2.0f, 0.5f, 1.0f), //diffuse
+	m_directionalLight = eae6320::Graphics::sDirectionalLight(eae6320::Math::sVector4(0.3f, 0.3f, 0.3f, 1.0f), //ambient
+		                                                      eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f), //diffuse
 		                                                      eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f), //specular
 		                                                      eae6320::Math::sVector(-1.0f, -0.2f, 0.0f));     //direction
 
 	m_pointLight = eae6320::Graphics::sPointLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),             //ambient
-		                                          eae6320::Math::sVector4(5.0f, 0.0f, 0.0f, 1.0f),             //diffuse
+		                                          eae6320::Math::sVector4(0.0f, 1500.0f, 150.0f, 1.0f),             //diffuse
 		                                          eae6320::Math::sVector4(0.0f, 1.0f, 0.0f, 1.0f),             //specular
-		                                          eae6320::Math::sVector(0.0f, 0.0f, 0.0f),                    //position
+		                                          eae6320::Math::sVector(50.0f, -10.0f, 0.0f),                    //position
 		                                          10000.0f,                                                    //range
-		                                          eae6320::Math::sVector(1.0f, 1.0f, 1.0f));                   //att
+		                                          eae6320::Math::sVector(0.1f, 1.0f, 0.8f));                   //att
 
 	m_spotLight = eae6320::Graphics::sSpotLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),               //ambient
-		                                        eae6320::Math::sVector4(0.0f, 50.0f, 0.0f, 1.0f),               //diffuse
+		                                        eae6320::Math::sVector4(50.0f, 0.0f, 50.0f, 1.0f),               //diffuse
 		                                        eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),               //specular
 		                                        eae6320::Math::sVector(0.0f, 5.0f, 0.0f),                      //position
 		                                        10000.0f,                                                         //range
@@ -355,7 +380,7 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 {
 	eae6320::Logging::OutputMessage((std::string("Clean Up Window : ") + GetMainWindowName()).c_str());
 
-	if (m_mesh_plane)
+	/*if (m_mesh_plane)
 	{
 		m_mesh_plane->DecrementReferenceCount();
 		m_mesh_plane = nullptr;
@@ -377,20 +402,32 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 	{
 		m_mesh_Alien->DecrementReferenceCount();
 		m_mesh_Alien = nullptr;
+	}*/
+	if (m_mesh_plane)
+	{
+		m_mesh_plane->DecrementReferenceCount();
+		m_mesh_plane = nullptr;
 	}
-
 	if (m_mesh_cube)
 	{
 		m_mesh_cube->DecrementReferenceCount();
 		m_mesh_cube = nullptr;
 	}
-
+	if (m_mesh_house)
+	{
+		m_mesh_house->DecrementReferenceCount();
+		m_mesh_house = nullptr;
+	}
 	if (m_effect_light)
 	{
 		m_effect_light->DecrementReferenceCount();
 		m_effect_light = nullptr;
 	}
-
+	if (m_effect_light2)
+	{
+		m_effect_light2->DecrementReferenceCount();
+		m_effect_light2 = nullptr;
+	}
 	// SKYBOX
 	if (m_effect_skybox)
 	{

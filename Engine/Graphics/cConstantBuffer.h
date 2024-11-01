@@ -71,6 +71,14 @@ namespace eae6320
 			Count,
 			Invalid = Count
 		};
+
+		enum class eConstantBufferEffectType : uint8_t
+		{
+			Light = 0,
+			Shadow = 1,
+			Invalid
+		};
+
 	}
 }
 
@@ -109,7 +117,7 @@ namespace eae6320
 			cResult Initialize( const void* const i_initialData = nullptr );
 			cResult CleanUp();
 
-			cConstantBuffer( const ConstantBufferTypes i_type );
+			cConstantBuffer( const ConstantBufferTypes i_type, const eConstantBufferEffectType i_effectType);
 			~cConstantBuffer();
 
 			// Data
@@ -127,9 +135,10 @@ namespace eae6320
 			GLuint m_bufferId = 0;
 #endif
 			
-			// The constant buffer type defines the size of the constant data
+			// The constant buffer type and the effect type define the size of the constant data
 			// and is used to bind the constant buffer (the type enumeration is used as an ID)
 			const ConstantBufferTypes m_type = ConstantBufferTypes::Invalid;
+			const eConstantBufferEffectType m_effectType = eConstantBufferEffectType::Invalid;
 
 			// Implementation
 			//---------------

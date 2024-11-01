@@ -100,13 +100,17 @@ namespace eae6320
 
 		// Mesh / Effect
 		//----------------------
+
+		// Graphics::cMesh* m_mesh_gear = nullptr;
+		// Graphics::cMesh* m_mesh_helix = nullptr;
+		// Graphics::cMesh* m_mesh_Alien = nullptr;
+
 		Graphics::cMesh* m_mesh_plane = nullptr;
-		Graphics::cMesh* m_mesh_gear = nullptr;
-		Graphics::cMesh* m_mesh_helix = nullptr;
-		Graphics::cMesh* m_mesh_Alien = nullptr;
+		Graphics::cMesh* m_mesh_house = nullptr;
 		Graphics::cMesh* m_mesh_cube = nullptr;
 
 		Graphics::cEffect* m_effect_light = nullptr;
+		Graphics::cEffect* m_effect_light2 = nullptr;
 		Graphics::cEffect* m_effect_skybox = nullptr;
 
 		Graphics::sDirectionalLight m_directionalLight;
@@ -119,10 +123,13 @@ namespace eae6320
 
 		// Game Objects
 		//----------------------
+		// cGameObject m_gameObject_plane;
+		// cGameObject m_gameObject_gear;
+		// cGameObject m_gameObject_helix;
+		// cGameObject m_gameObject_pipe;
+
 		cGameObject m_gameObject_plane;
-		cGameObject m_gameObject_gear;
-		cGameObject m_gameObject_helix;
-		cGameObject m_gameObject_pipe;
+		cGameObject m_gameObject_house;
 		cGameObject m_gameObject_skybox;
 		cCamera m_camera;
 		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };

@@ -20,12 +20,13 @@ return
 	meshes = 
 	{
 		{ path = "Meshes/helix_gl.mesh" },
-                { path = "Meshes/helix_complex.mesh" },
-	        { path = "Meshes/pipe_gl.mesh" },
+        { path = "Meshes/helix_complex.mesh" },
+	    { path = "Meshes/pipe_gl.mesh" },
 		{ path = "Meshes/plane_gl.mesh" },
-                { path = "Meshes/torus_gl.mesh" },
-                { path = "Meshes/Alien.mesh" },
-                { path = "Meshes/cube.mesh" },
+        { path = "Meshes/torus_gl.mesh" },
+        { path = "Meshes/Alien.mesh" },
+        { path = "Meshes/cube.mesh" },
+		{ path = "Meshes/house_debug.mesh" },
 	},
 
 	textures = 
@@ -36,6 +37,7 @@ return
 		{ path = "Textures/stone.dds" },
 		{ path = "Textures/water1.dds" },
 		{ path = "Textures/water2.dds" },
-                { path = "Textures/desertcube1024.dds" },
+        { path = "Textures/desertcube1024.dds" },
+		{ path = "Textures/house.dds" },
 	},
 }

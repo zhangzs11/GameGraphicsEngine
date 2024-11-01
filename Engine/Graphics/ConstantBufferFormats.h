@@ -27,7 +27,7 @@ namespace eae6320
 		namespace ConstantBufferFormats
 		{
 			// Data that is constant for every frame
-			struct sFrame
+			struct sLight_Frame
 			{
 				Math::cMatrix_transformation g_transform_worldToCamera;
 				Math::cMatrix_transformation g_transform_cameraToProjected;
@@ -53,6 +53,19 @@ namespace eae6320
 				Math::cMatrix_transformation g_transform_localToWorld_Inv_Transpose;
 
 				sMaterial g_Material;
+			};
+
+
+			// Data that is constant for every frame
+			struct sShadow_Frame
+			{
+				Math::cMatrix_transformation g_transform_worldToCamera;
+				Math::cMatrix_transformation g_transform_cameraToProjected;
+
+				float g_elapsedSecondCount_systemTime = 0.0f;
+				float g_elapsedSecondCount_simulationTime = 0.0f;
+				// For float4 alignment
+				float g_padding1[2];
 			};
 		}
 	}

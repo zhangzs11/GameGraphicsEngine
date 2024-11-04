@@ -10,12 +10,7 @@
 //====================
 Texture2D g_texture0 : register(t0);    // Texture bound to slot t0
 Texture2D g_texture1 : register(t1);    // Texture bound to slot t1
-Texture2D g_ShadowMap : register(t2);   // Shadow map
 SamplerState g_sampler : register(s0); // Sampler bound to slot s0
-
-// TODO:
-// Add this sampler in CPU side
-SamplerComparisonState g_SamShadow : register(s1);
 
 // Entry Point
 //============
@@ -31,11 +26,6 @@ void main(
 	in const float2 i_fragmentUV : TEXCOORD0,
 	in float3 i_fragmentNormal_world : NORMAL,
 	in const float4 i_fragmentTangent_world : TANGENT,
-	in const float4 i_fragmentShadowPosH : TEXCOORD1,
-
-	// TODO:
-	// Add float4 ShadowPosH : TEXCOORD1;
-
 	// Output
 	//=======
 
@@ -59,13 +49,10 @@ void main(
     float4 D = float4(0.0f, 0.0f, 0.0f, 0.0f);
     float4 S = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-	// Calculate Shadow
-	float shadow = CalcShadowFactor(g_SamShadow, g_ShadowMap, i_fragmentShadowPosH, 0.0f); //Bias
-
 	ComputeDirectionalLight(g_Material, g_DirLight, i_fragmentNormal_world, hitToEyeW, A, D, S);
-    ambient += A; // Should just A, no shadow
-    diffuse += shadow * D;
-    spec += shadow * S;
+    ambient += A;
+    diffuse += D;
+    spec += S;
 
 	ComputePointLight(g_Material, g_PointLight, i_fragmentPosition_world, i_fragmentNormal_world, hitToEyeW, A, D, S);
     ambient += A;

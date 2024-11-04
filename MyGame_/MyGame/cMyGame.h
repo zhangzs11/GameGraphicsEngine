@@ -91,6 +91,10 @@ namespace eae6320
 			                           eae6320::Graphics::sPointLight& i_pointL,
 			                           eae6320::Graphics::sSpotLight& i_spotL);
 
+		void SubmitShadowDataToGraphics(eae6320::Graphics::cEffect* i_Shadoweffect,
+			eae6320::Graphics::sDirectionalLight& i_dirL);
+
+
 
 		// Initialize / Clean Up
 		//----------------------
@@ -112,6 +116,7 @@ namespace eae6320
 		Graphics::cEffect* m_effect_light = nullptr;
 		Graphics::cEffect* m_effect_light2 = nullptr;
 		Graphics::cEffect* m_effect_skybox = nullptr;
+		Graphics::cEffect* m_effect_shadowMap = nullptr;
 
 		Graphics::sDirectionalLight m_directionalLight;
 		Graphics::sPointLight m_pointLight;

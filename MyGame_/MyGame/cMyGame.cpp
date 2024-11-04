@@ -163,6 +163,28 @@ void eae6320::cMyGame::SubmitLightDataToGraphics(eae6320::Graphics::sDirectional
 	eae6320::Graphics::SubmitLightData(i_dirL, i_pointL, i_spotL);
 }
 
+void eae6320::cMyGame::SubmitShadowDataToGraphics(eae6320::Graphics::cEffect* i_Shadoweffect,
+	eae6320::Graphics::sDirectionalLight& i_dirL)
+{
+	Math::cMatrix_transformation WorldToLightCameraTransform = Math::cMatrix_transformation::CreateWorldToCameraTransform(
+		Math::cQuaternion::LookAt(i_dirL.direction, Math::sVector(1, 0, 0)), 
+		i_dirL.position);
+
+	Math::cMatrix_transformation CameraToProjectedTransform_orthographic = Math::cMatrix_transformation::CreateCameraToProjectedTransform_orthographic(
+		100.0f, -100.0f, 100.0f, -100.0f, 0.01f, 200.0f
+	);
+
+	Math::cMatrix_transformation T = Math::cMatrix_transformation(
+		0.5f, 0.0f, 0.0f, 0.0f,
+		0.0f, -0.5f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.0f, 1.0f);
+
+	eae6320::Graphics::SubmitShadowData(i_Shadoweffect, 
+		WorldToLightCameraTransform,
+		CameraToProjectedTransform_orthographic,
+		T * CameraToProjectedTransform_orthographic * WorldToLightCameraTransform);
+}
 
 void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
@@ -177,10 +199,22 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 	
 	SubmitGameObjectToGraphics(m_gameObject_house, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 	SubmitGameObjectToGraphics(m_gameObject_plane, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
-	SubmitGameObjectToGraphics(m_gameObject_skybox, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	// SubmitGameObjectToGraphics(m_gameObject_skybox, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 	SubmitLightDataToGraphics(m_directionalLight, m_pointLight, m_spotLight);
 	SubmitCameraToGraphics(m_camera, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+
+	// TODO:
+	// Submit the shadow effect need
+	// And
+	// Submit the i_ShadowTransform to light effect
+	// 
+	// SubmitShadowDataToGraphics(eae6320::Graphics::cEffect* i_Shadoweffect,
+	// const eae6320::Math::cMatrix_transformation& i_transform_worldToLightCamera,
+	// const eae6320::Math::cMatrix_transformation& i_transform_LightcameraToProjected,
+	// const eae6320::Math::cMatrix_transformation& i_ShadowTransform)
+	SubmitShadowDataToGraphics(m_effect_shadowMap,
+		                       m_directionalLight);
 }
 
 // Initialize / Clean Up
@@ -254,7 +288,8 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	std::vector<std::string> texturePaths = { "data/Textures/house.bintexture", 
 		                                      "data/Textures/grass.bintexture" };
 
-	std::vector<eae6320::Graphics::eSamplerType> samplerTypes = { eae6320::Graphics::eSamplerType::Linear};
+	std::vector<eae6320::Graphics::eSamplerType> samplerTypes = { eae6320::Graphics::eSamplerType::Linear, 
+																  eae6320::Graphics::eSamplerType::Comparison_less_equal};
 
 	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_light, 
 		                                              "data/Shaders/Vertex/light_VS.binshader", 
@@ -295,11 +330,33 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
+	// SHAODW MAP EFFECT
+	uint8_t shadowRenderStateBits = 0;
+	eae6320::Graphics::RenderStates::DisableAlphaTransparency(shadowRenderStateBits);
+	eae6320::Graphics::RenderStates::EnableDepthTesting(shadowRenderStateBits);
+	eae6320::Graphics::RenderStates::EnableDepthWriting(shadowRenderStateBits);
+	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(shadowRenderStateBits);
+
+	texturePaths = {};
+	samplerTypes = {};
+
+	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_shadowMap,
+		"data/Shaders/Vertex/shadow_VS.binshader",
+		NULL,  // no pixel shader
+		shadowRenderStateBits,
+		texturePaths,
+		samplerTypes);
+
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize shadow map effect");
+		return result;
+	}
 
 	// Initialize GameObject
 	// ---------------------
 	eae6320::Graphics::sMaterial mat(eae6320::Math::sVector4(1.0f, 1.0f, 1.0f, 1.0f),          // ambient
-		                             eae6320::Math::sVector4(0.64f, 0.64f, 0.64f, 1.0f),          // diffuse
+		                             eae6320::Math::sVector4(1.64f, 1.64f, 1.64f, 1.0f),          // diffuse
 		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f),          // specular
 		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f));         // reflect
 
@@ -342,10 +399,11 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_gameObject_plane.SetPosition(eae6320::Math::sVector(0.0f, -12.0f, 0.0f));
 	m_gameObject_plane.SetMaterial(mat);
 
-	m_directionalLight = eae6320::Graphics::sDirectionalLight(eae6320::Math::sVector4(0.3f, 0.3f, 0.3f, 1.0f), //ambient
-		                                                      eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f), //diffuse
+	m_directionalLight = eae6320::Graphics::sDirectionalLight(eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f), //ambient
+		                                                      eae6320::Math::sVector4(0.6f, 0.6f, 0.6f, 1.0f), //diffuse
 		                                                      eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f), //specular
-		                                                      eae6320::Math::sVector(-1.0f, -0.2f, 0.0f));     //direction
+		                                                      eae6320::Math::sVector(-0.4f, -0.3f, 0.0f),      //direction
+		                                                      eae6320::Math::sVector(50.0f, 100.5f, 0.0f));     //position
 
 	m_pointLight = eae6320::Graphics::sPointLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),             //ambient
 		                                          eae6320::Math::sVector4(0.0f, 1500.0f, 150.0f, 1.0f),             //diffuse
@@ -435,5 +493,12 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 		m_effect_skybox = nullptr;
 	}
 
+	// SHADOW MAP
+	if (m_effect_shadowMap)
+	{
+		m_effect_shadowMap->DecrementReferenceCount();
+		m_effect_shadowMap = nullptr;
+
+	}
 	return Results::Success;
 }

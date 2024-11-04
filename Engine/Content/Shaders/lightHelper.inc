@@ -8,6 +8,8 @@ struct DirectionalLight
     float4 specular;
     float3 direction;
     float pad;
+    float3 position;
+    float pad2;
 };
 
 struct PointLight
@@ -158,6 +160,32 @@ void ComputeSpotLight(Material material, SpotLight light,
     ambient *= spot;
     diffuse *= attenuation;
     specular *= attenuation;
+}
+
+static const float SMAP_SIZE = 1024.0f;
+static const float SMAP_DX = 1.0f / SMAP_SIZE;
+
+float CalcShadowFactor(SamplerComparisonState samShadow,
+                       Texture2D shadowMap,
+                       float4 shadowPosH,
+                       float depthBias)
+{
+    float percentLit = 0.0f;
+    
+    shadowPosH.xyz /= shadowPosH.w;
+    
+    float depth = shadowPosH.z - depthBias;
+    
+    const float dx = SMAP_DX;
+    
+    [unroll]
+    for (int i = 0; i < 9; ++i)
+    {
+        percentLit += shadowMap.SampleCmpLevelZero(samShadow,
+            shadowPosH.xy, depth, int2(i % 3 - 1, i / 3 - 1)).r;
+    }
+    
+    return percentLit /= 9.0f;
 }
 
 #endif // LIGHTHELPER_INC_H

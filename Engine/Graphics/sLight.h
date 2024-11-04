@@ -5,6 +5,8 @@
 //=========
 
 #include <Engine/Math/sVector.h>
+#include <Engine/Math/cQuaternion.h>
+#include <Engine/Math/cMatrix_transformation.h>
 
 // Class Declaration
 //==================
@@ -20,9 +22,10 @@ namespace eae6320
 			sDirectionalLight(const eae6320::Math::sVector4& i_ambient, 
 							  const eae6320::Math::sVector4& i_diffuse,
 							  const eae6320::Math::sVector4& i_specular,
-							  const eae6320::Math::sVector&  i_direction) :
-				ambient(i_ambient), diffuse(i_diffuse), specular(i_specular), direction(i_direction), pad() {}
-			
+							  const eae6320::Math::sVector&  i_direction,
+				              const eae6320::Math::sVector&  i_position) :
+				ambient(i_ambient), diffuse(i_diffuse), specular(i_specular), direction(i_direction), pad(), 
+			    position(i_position), pad2() {}
 
 			// Data
 			//=====
@@ -34,6 +37,8 @@ namespace eae6320
 			// 4 float
 			eae6320::Math::sVector direction;
 			float pad;
+			eae6320::Math::sVector position; // only for the position of shadow map camera
+			float pad2;
 		};
 
 		struct sPointLight

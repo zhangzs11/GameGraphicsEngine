@@ -21,6 +21,7 @@ namespace eae6320
 			Point,
 			Linear,
 			Anisotropic,
+			Comparison_less_equal,
 		};
 	}
 }

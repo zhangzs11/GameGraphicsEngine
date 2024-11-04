@@ -14,6 +14,8 @@ return
 
                 { path = "Shaders/Vertex/skybox_VS.shader", arguments = { "vertex" } },
 
+                { path = "Shaders/Vertex/shadow_VS.shader", arguments = { "vertex" } },
+
                 { path = "Shaders/Fragment/skybox_PS.shader", arguments = { "fragment" } },
 	},
 

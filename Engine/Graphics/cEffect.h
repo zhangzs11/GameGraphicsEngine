@@ -26,6 +26,7 @@ namespace eae6320
     namespace Graphics
     {
         class cShader;
+        class cView;
     }
 }
 
@@ -52,6 +53,8 @@ namespace eae6320
                                                             const std::vector<std::string>& texturePaths,
                                                             const std::vector<eSamplerType>& samplerTypes);
 
+            void SetShadowMapView(cView* i_shadowMapView) { m_shadowMapView = i_shadowMapView; }
+
         private:
             // This prevents the class or struct from using illegal functions
             EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS(cEffect)
@@ -64,6 +67,7 @@ namespace eae6320
             // eae6320::Graphics::cSampler* m_sampler = nullptr;
             std::vector<cTexture*> m_textures;
             std::vector<cSampler*> m_samplers;
+            cView* m_shadowMapView = nullptr;
 
 #if defined( EAE6320_PLATFORM_D3D )
             // Direct3D specific members

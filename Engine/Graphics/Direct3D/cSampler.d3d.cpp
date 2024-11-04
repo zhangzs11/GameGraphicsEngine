@@ -18,6 +18,14 @@ eae6320::cResult eae6320::Graphics::cSampler::Initialize(eae6320::Graphics::eSam
 
     D3D11_SAMPLER_DESC samplerDesc{};
 
+    // samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; // LINEAR
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
     switch (i_type)
     {
     case eSamplerType::Point:
@@ -30,18 +38,14 @@ eae6320::cResult eae6320::Graphics::cSampler::Initialize(eae6320::Graphics::eSam
         samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
         samplerDesc.MaxAnisotropy = 16;
         break;
+    case eSamplerType::Comparison_less_equal:
+        samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+        samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+        break;
 
-        // maybe more...
+        // more...
     }
 
-
-    // samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR; // LINEAR
-    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    samplerDesc.MinLOD = 0;
-    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
     const auto d3dResult = direct3dDevice->CreateSamplerState(&samplerDesc, &m_samplerState);
     if (FAILED(d3dResult))

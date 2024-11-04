@@ -3,7 +3,7 @@
 */
 
 
-#include <Shaders/light.inc>
+#include <Shaders/shadow.inc>
 
 // Entry Point
 //============
@@ -25,20 +25,16 @@ void main(
 
 	// An SV_POSITION value must always be output from every vertex shader
 	// so that the GPU can figure out which fragments need to be shaded
-	out float4 o_vertexPosition_projected : SV_POSITION,
-	out float3 o_vertexPosition_local : POSITION
+	out float4 o_vertexPosition_projected : SV_POSITION
 )
 
 // Main Body
 //============
 {
-	float4 vertexPosition_projected = mul(g_transform_localToWorld, float4(i_vertexPosition_local, 1.0f));
+	float4 vertexPosition_world = mul(g_transform_localToWorld, float4(i_vertexPosition_local, 1.0f));
 
-	float3 cameraRotatedPosition = mul((float3x3)g_transform_worldToCamera, vertexPosition_projected.xyz);
-    vertexPosition_projected = float4(cameraRotatedPosition, 1.0f);
+	float4 vertexPosition_camera = mul(g_transform_worldToCamera, vertexPosition_world);
 
-	vertexPosition_projected = mul(g_transform_cameraToProjected, vertexPosition_projected).xyww;
+    o_vertexPosition_projected = mul( g_transform_cameraToProjected, vertexPosition_camera );
 
-	o_vertexPosition_projected = vertexPosition_projected;
-	o_vertexPosition_local = i_vertexPosition_local;
 }

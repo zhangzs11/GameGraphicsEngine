@@ -124,6 +124,30 @@ eae6320::Math::cMatrix_transformation eae6320::Math::cMatrix_transformation::Cre
 #endif
 }
 
+eae6320::Math::cMatrix_transformation eae6320::Math::cMatrix_transformation::CreateCameraToProjectedTransform_orthographic(
+	const float i_left, const float i_right,
+	const float i_bottom, const float i_top,
+	const float i_z_nearPlane, const float i_z_farPlane)
+{
+	const auto xScale = 2.0f / (i_right - i_left);
+	const auto yScale = 2.0f / (i_top - i_bottom);
+#if defined( EAE6320_PLATFORM_D3D )
+	const auto zScale = 1.0f / (i_z_farPlane - i_z_nearPlane);
+	return cMatrix_transformation(
+		xScale, 0.0f, 0.0f, 0.0f,
+		0.0f, yScale, 0.0f, 0.0f,
+		0.0f, 0.0f, zScale, 0.0f,
+		-(i_left + i_right) * xScale * 0.5f, -(i_top + i_bottom) * yScale * 0.5f, - i_z_nearPlane * zScale, 1.0f);
+#elif defined( EAE6320_PLATFORM_GL )
+	const auto zScale = 2.0f / (i_z_nearPlane - i_z_farPlane);
+	return cMatrix_transformation(
+		xScale, 0.0f, 0.0f, 0.0f,
+		0.0f, yScale, 0.0f, 0.0f,
+		0.0f, 0.0f, zScale, 0.0f,
+		-(i_left + i_right) * xScale * 0.5f, -(i_top + i_bottom) * yScale * 0.5f, (i_z_nearPlane + i_z_farPlane) * zScale * 0.5f, 1.0f);
+#endif
+}
+
 // Initialize / Clean Up
 //----------------------
 

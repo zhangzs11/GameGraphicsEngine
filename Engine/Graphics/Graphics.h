@@ -52,7 +52,10 @@ namespace eae6320
 			                 const sSpotLight& i_spotLight);
 
 		void SubmitMaterial(const sMaterial& i_material);
-
+		void SubmitShadowData(cEffect* i_Shadoweffect,
+			const eae6320::Math::cMatrix_transformation& i_transform_worldToLightCamera,
+			const eae6320::Math::cMatrix_transformation& i_transform_LightcameraToProjected, 
+			const eae6320::Math::cMatrix_transformation& i_ShadowTransform);
 
 		// When the application is ready to submit data for a new frame
 		// it should call this before submitting anything

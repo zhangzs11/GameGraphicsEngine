@@ -6,6 +6,7 @@
 #include "../cShader.h"
 #include "../sContext.h"
 #include "../cRenderState.h"
+#include "../cView.h"
 
 #include <Engine/Asserts/Asserts.h>
 
@@ -18,7 +19,7 @@ eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShad
 
 	// Load Vertex Shader
 	{
-		if (!(result = cShader::Load(i_vertexShaderPath, m_vertexShader, eae6320::Graphics::eShaderType::Vertex)))
+		if (i_vertexShaderPath && !(result = cShader::Load(i_vertexShaderPath, m_vertexShader, eae6320::Graphics::eShaderType::Vertex)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize effect without vertex shader");
 			return result;
@@ -27,7 +28,7 @@ eae6320::cResult eae6320::Graphics::cEffect::Initialize(const char* i_vertexShad
 
 	// Load Fragment Shader
 	{
-		if (!(result = cShader::Load(i_fragmentShaderPath, m_fragmentShader, eae6320::Graphics::eShaderType::Fragment)))
+		if (i_fragmentShaderPath && !(result = cShader::Load(i_fragmentShaderPath, m_fragmentShader, eae6320::Graphics::eShaderType::Fragment)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize effect without pixel shader");
 			return result;
@@ -81,8 +82,15 @@ void eae6320::Graphics::cEffect::Bind() const
 	direct3dImmediateContext->VSSetShader(m_vertexShader->m_shaderObject.vertex, noInterfaces, interfaceCount);
 
 	// Bind Pixel Shader
-	EAE6320_ASSERT((m_fragmentShader != nullptr) && (m_fragmentShader->m_shaderObject.fragment != nullptr));
-	direct3dImmediateContext->PSSetShader(m_fragmentShader->m_shaderObject.fragment, noInterfaces, interfaceCount);
+	if (m_fragmentShader) {
+		EAE6320_ASSERT((m_fragmentShader != nullptr) && (m_fragmentShader->m_shaderObject.fragment != nullptr));
+		direct3dImmediateContext->PSSetShader(m_fragmentShader->m_shaderObject.fragment, noInterfaces, interfaceCount);
+	}
+	else {
+		direct3dImmediateContext->PSSetShader(NULL, noInterfaces, interfaceCount);
+	}
+	// EAE6320_ASSERT((m_fragmentShader != nullptr) && (m_fragmentShader->m_shaderObject.fragment != nullptr));
+	// direct3dImmediateContext->PSSetShader(m_fragmentShader->m_shaderObject.fragment, noInterfaces, interfaceCount);
 
 	// Bind Render State
 	m_renderState.Bind();
@@ -99,6 +107,12 @@ void eae6320::Graphics::cEffect::Bind() const
 		if (m_samplers[i]) {
 			m_samplers[i]->Bind(static_cast<unsigned int>(i));
 		}
+	}
+
+	// Bind Shadow Map if available
+	if (m_shadowMapView && m_shadowMapView->GetshaderResourceView()) {
+		ID3D11ShaderResourceView* shaderResourceViews[] = { m_shadowMapView->GetshaderResourceView() };
+		direct3dImmediateContext->PSSetShaderResources(static_cast<unsigned int>(m_textures.size()), 1, shaderResourceViews);
 	}
 
 }

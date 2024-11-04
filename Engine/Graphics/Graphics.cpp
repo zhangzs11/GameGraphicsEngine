@@ -33,7 +33,8 @@ namespace
 		eae6320::Graphics::eConstantBufferEffectType::Light);
 	eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall(eae6320::Graphics::ConstantBufferTypes::DrawCall,
 		eae6320::Graphics::eConstantBufferEffectType::Light);
-
+	eae6320::Graphics::cConstantBuffer s_shadow_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame,
+		eae6320::Graphics::eConstantBufferEffectType::Shadow);
 	// Submission Data
 	//----------------
 
@@ -42,6 +43,8 @@ namespace
 	struct sDataRequiredToRenderAFrame
 	{
 		eae6320::Graphics::ConstantBufferFormats::sLight_Frame constantData_frame;
+		eae6320::Graphics::ConstantBufferFormats::sShadow_Frame shadow_constantData_frame;
+		eae6320::Graphics::cEffect* shadowEffect;
 
 		float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -72,6 +75,8 @@ namespace
 	// View
 	//-------------
 	eae6320::Graphics::cView s_view;
+
+	eae6320::Graphics::cView s_shadowMap_view;
 }
 
 // Helper Declarations
@@ -174,7 +179,6 @@ void eae6320::Graphics::SubmitMaterial(const eae6320::Graphics::sMaterial& i_mat
 	}
 }
 
-
 void eae6320::Graphics::SubmitBackgroundColor(const float i_backgroundColor[4])
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
@@ -187,6 +191,21 @@ void eae6320::Graphics::SubmitBackgroundColor(const float i_backgroundColor[4])
 		currentFrameData.backgroundColor[i] = i_backgroundColor[i];
 	}
 }
+
+void eae6320::Graphics::SubmitShadowData(cEffect* i_Shadoweffect,
+	const eae6320::Math::cMatrix_transformation& i_transform_worldToLightCamera,
+	const eae6320::Math::cMatrix_transformation& i_transform_LightcameraToProjected,
+	const eae6320::Math::cMatrix_transformation& i_ShadowTransform)
+{
+	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
+
+	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
+	currentFrameData.shadowEffect = i_Shadoweffect;
+	currentFrameData.shadow_constantData_frame.g_transform_worldToCamera = i_transform_worldToLightCamera;
+	currentFrameData.shadow_constantData_frame.g_transform_cameraToProjected = i_transform_LightcameraToProjected;
+	currentFrameData.constantData_frame.g_ShadowTransform = i_ShadowTransform; // ShadowView * ShadowProj * T
+}
+
 
 eae6320::cResult eae6320::Graphics::WaitUntilDataForANewFrameCanBeSubmitted(const unsigned int i_timeToWait_inMilliseconds)
 {
@@ -233,15 +252,45 @@ void eae6320::Graphics::RenderFrame()
 	EAE6320_ASSERT(s_dataBeingRenderedByRenderThread);
 	auto* const dataRequiredToRenderFrame = s_dataBeingRenderedByRenderThread;
 
-	// Clear render buffer with the submitted background color
-	s_view.Clear(dataRequiredToRenderFrame->backgroundColor);
+    // RenderShadow map
+    // ----------------
+	//
+	s_shadowMap_view.Bind();
+	s_shadowMap_view.Clear(nullptr);
+	// Update the frame constant in Shadow Effect buffer
+	{
+		auto& shadow_constantData_frame = dataRequiredToRenderFrame->shadow_constantData_frame;
+		s_shadow_constantBuffer_frame.Update(&shadow_constantData_frame);
+		s_shadow_constantBuffer_frame.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex));
+		dataRequiredToRenderFrame->shadowEffect->Bind();
+	}
 
+	// Draw submitted mesh in pairs
+	for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
+	{
+		auto& pair = dataRequiredToRenderFrame->meshEffectPairs[i];
+		auto& constantData_drawCall = dataRequiredToRenderFrame->constantData_drawCall[i];
+		s_constantBuffer_drawCall.Update(&constantData_drawCall);
+		s_constantBuffer_drawCall.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex));
+
+		pair.first->Draw();
+	}
+
+	// Render Forward Object and Skybox
+	// --------------------------------
+	// 
 	// Update the frame constant buffer
 	{
 		// Copy the data from the system memory that the application owns to GPU memory
 		auto& constantData_frame = dataRequiredToRenderFrame->constantData_frame;
 		s_constantBuffer_frame.Update(&constantData_frame);
+		s_constantBuffer_frame.Bind(
+			static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
 	}
+
+	s_view.Bind();
+	// Clear render buffer with the submitted background color
+	s_view.Clear(dataRequiredToRenderFrame->backgroundColor);
 
 	// Draw submitted mesh-effect pairs
 	for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
@@ -255,6 +304,7 @@ void eae6320::Graphics::RenderFrame()
 			s_constantBuffer_drawCall.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
 		}
 
+		pair.second->SetShadowMapView(&s_shadowMap_view);
 		pair.second->Bind();  // Bind effect
 		pair.first->Draw();   // Draw mesh
 	}
@@ -316,6 +366,21 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 		if (!(result = s_constantBuffer_drawCall.Initialize()))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without draw call constant buffer");
+			return result;
+		}
+
+		// Shadow CBuffer
+		if (result = s_shadow_constantBuffer_frame.Initialize())
+		{
+			// There is only a single frame constant buffer that is reused
+			// and so it can be bound at initialization time and never unbound
+			//s_constantBuffer_frame.Bind(
+				// In our class both vertex and fragment shaders use per-frame constant data
+			//	static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
+		}
+		else
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without frame constant buffer");
 			return result;
 		}
 	}
@@ -423,7 +488,13 @@ namespace
 	{
 		auto result = eae6320::Results::Success;
 
-		if (!(result = s_view.Initialize(i_initializationParameters)))
+		if (!(result = s_view.Initialize(i_initializationParameters, eae6320::Graphics::eViewType::Screen)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+
+		if (!(result = s_shadowMap_view.Initialize(i_initializationParameters, eae6320::Graphics::eViewType::ShadowMap)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;

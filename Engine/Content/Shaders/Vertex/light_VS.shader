@@ -8,7 +8,7 @@
 			* This data will be interpolated across the triangle and thus vary for each fragment of a triangle that gets shaded
 */
 
-#include <Shaders/shaders.inc>
+#include <Shaders/light.inc>
 
 // Entry Point
 //============
@@ -37,7 +37,8 @@ void main(
 	out float4 o_vertexColor : COLOR,
 	out float2 o_vertexUV : TEXCOORD0,
 	out float3 o_vertexNormal_world : NORMAL,
-	out float4 o_vertexTangent_world : TANGENT
+	out float4 o_vertexTangent_world : TANGENT,
+	out float4 o_vertexShadowPosH : TEXCOORD1
 )
 
 // Main Body
@@ -70,6 +71,8 @@ void main(
 		o_vertexNormal_world = mul( (float3x3) g_transform_localToWorld_Inv_Transpose, i_vertexNormal );
 
 		o_vertexTangent_world = float4(mul((float3x3) g_transform_localToWorld, i_vertexTangent), 1.0);
+
+		o_vertexShadowPosH = mul(g_ShadowTransform, vertexPosition_world);
 
 		o_vertexUV = i_vertexUV;  
 	}

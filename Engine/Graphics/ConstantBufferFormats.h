@@ -41,6 +41,8 @@ namespace eae6320
 				sPointLight g_PointLight;
 				sSpotLight g_SpotLight;
 
+				Math::cMatrix_transformation g_ShadowTransform; // ShadowView * ShadowProj * T
+
 				// For float4 alignment
 				Math::sVector g_EyePosW;
 				float g_padding2;
@@ -61,11 +63,6 @@ namespace eae6320
 			{
 				Math::cMatrix_transformation g_transform_worldToCamera;
 				Math::cMatrix_transformation g_transform_cameraToProjected;
-
-				float g_elapsedSecondCount_systemTime = 0.0f;
-				float g_elapsedSecondCount_simulationTime = 0.0f;
-				// For float4 alignment
-				float g_padding1[2];
 			};
 		}
 	}

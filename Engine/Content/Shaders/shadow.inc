@@ -2,8 +2,8 @@
 	This file should be #included by all shaders
 */
 
-#ifndef SHADER_INC_H
-#define SHADER_INC_H
+#ifndef SHADOW_INC_H
+#define SHADOW_INC_H
 
 #include <Shaders/lightHelper.inc>
 
@@ -13,18 +13,6 @@ cbuffer g_constantBuffer_frame : register( b0 )
 {
 	float4x4 g_transform_worldToCamera;
 	float4x4 g_transform_cameraToProjected;
-
-	float g_elapsedSecondCount_systemTime;
-	float g_elapsedSecondCount_simulationTime;
-	// For float4 alignment
-	float2 g_padding1;
-	
-    DirectionalLight g_DirLight;
-    PointLight g_PointLight;
-    SpotLight g_SpotLight;
-	
-    float3 g_EyePosW;
-    float g_padding2;
 };
 cbuffer g_constantBuffer_drawCall : register( b2 )
 {
@@ -41,5 +29,5 @@ cbuffer g_constantBuffer_drawCall : register( b2 )
 // SamplerState g_sampler : register(s0); // Sampler bound to slot s0
 
 
-#endif // SHADER_INC_H
+#endif // SHADOW_INC_H
 

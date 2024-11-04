@@ -109,11 +109,13 @@ void eae6320::Graphics::cEffect::Bind() const
 		}
 	}
 
-	// Bind Shadow Map if available
+	// Bind Shadow Map if available (for light effect)
 	if (m_shadowMapView && m_shadowMapView->GetshaderResourceView()) {
 		ID3D11ShaderResourceView* shaderResourceViews[] = { m_shadowMapView->GetshaderResourceView() };
 		direct3dImmediateContext->PSSetShaderResources(static_cast<unsigned int>(m_textures.size()), 1, shaderResourceViews);
 	}
+
+	// 
 
 }
 

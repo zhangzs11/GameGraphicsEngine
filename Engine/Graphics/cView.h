@@ -59,7 +59,7 @@ namespace eae6320
 			D3D11_VIEWPORT* m_viewPort = nullptr;
 
 			ID3D11RenderTargetView* m_renderTargetView = nullptr;     // For Screen
-			ID3D11DepthStencilView* m_depthStencilView = nullptr;
+			ID3D11DepthStencilView* m_depthStencilView = nullptr;     // For Screen and shadow map
 			ID3D11ShaderResourceView* m_shaderResourceView = nullptr; // For shadow map
 #endif
 		};

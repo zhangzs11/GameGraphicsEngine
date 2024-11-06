@@ -70,6 +70,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="MyEffects\LightingEffect.d3d.cpp" />
+    <ClCompile Include="MyEffects\ShadowEffect.d3d.cpp" />
+    <ClCompile Include="MyEffects\SkyboxEffect.d3d.cpp" />
     <ClCompile Include="OpenGL\cConstantBuffer.gl.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -129,6 +132,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="IEffect.h" />
+    <ClInclude Include="MyEffects\LightingEffect.d3d.h" />
+    <ClInclude Include="MyEffects\ShadowEffect.d3d.h" />
+    <ClInclude Include="MyEffects\SkyboxEffect.d3d.h" />
     <ClInclude Include="OpenGL\Includes.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

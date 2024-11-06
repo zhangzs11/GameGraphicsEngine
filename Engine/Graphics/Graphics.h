@@ -12,6 +12,8 @@
 #include "cMesh.h"
 #include "cEffect.h"
 #include "sLight.h"
+#include "MyEffects/LightingEffect.d3d.h"
+#include "MyEffects/ShadowEffect.d3d.h"
 
 #include <cstdint>
 #include <Engine/Results/Results.h>
@@ -39,23 +41,25 @@ namespace eae6320
 		// for the frame currently being submitted
 		void SubmitElapsedTime( const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_simulationTime );
 
-		void SubmitMeshEffectPair(cMesh* i_mesh, cEffect* i_effect);
+		void SubmitMeshEffectPair(cMesh* i_mesh, LightingEffect* i_effect);
 
 		void SubmitBackgroundColor(const float i_backgroundColor[4]);
 
 		void SubmitMatrixLocalToWorld(const eae6320::Math::cMatrix_transformation& i_transform_localToWorld);
 
-		void SubmitCameraData(const eae6320::Math::cMatrix_transformation& i_transform_worldToCamera, const eae6320::Math::cMatrix_transformation& i_transform_cameraToProjected, const Math::sVector& i_eyePosW);
+		void SubmitCameraData(const eae6320::Math::cMatrix_transformation& i_transform_worldToCamera, 
+			                  const eae6320::Math::cMatrix_transformation& i_transform_cameraToProjected, 
+			                  const Math::sVector& i_eyePosW);
 
 		void SubmitLightData(const sDirectionalLight& i_directionalLight,
 			                 const sPointLight& i_pointLight,
 			                 const sSpotLight& i_spotLight);
 
 		void SubmitMaterial(const sMaterial& i_material);
-		void SubmitShadowData(cEffect* i_Shadoweffect,
-			const eae6320::Math::cMatrix_transformation& i_transform_worldToLightCamera,
-			const eae6320::Math::cMatrix_transformation& i_transform_LightcameraToProjected, 
-			const eae6320::Math::cMatrix_transformation& i_ShadowTransform);
+		void SubmitShadowData(ShadowEffect* i_Shadoweffect,
+			                  const eae6320::Math::cMatrix_transformation& i_transform_worldToLightCamera,
+			                  const eae6320::Math::cMatrix_transformation& i_transform_LightcameraToProjected, 
+			                  const eae6320::Math::cMatrix_transformation& i_ShadowTransform);
 
 		// When the application is ready to submit data for a new frame
 		// it should call this before submitting anything

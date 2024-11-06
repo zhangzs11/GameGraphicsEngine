@@ -114,16 +114,6 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	{
 		cameraRigidBody.angularSpeed = 0.0f;
 	}
-
-	//if (UserInput::IsKeyPressed('Q'))
-	//{
-	//	m_gameObject.SetMesh(m_mesh2);
-	//}
-	//if (UserInput::IsKeyPressed('E'))
-	//{
-	//	m_gameObject.SetMesh(m_mesh);
-	//}
-
 }
 void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
@@ -132,9 +122,6 @@ void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceL
 
 void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
-	// m_gameObject_plane.Update(i_elapsedSecondCount_sinceLastUpdate);
-	// m_gameObject_gear.Update(i_elapsedSecondCount_sinceLastUpdate);
-	// m_gameObject_helix.Update(i_elapsedSecondCount_sinceLastUpdate);
 	m_gameObject_house.Update(i_elapsedSecondCount_sinceLastUpdate);
 	m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
 }
@@ -163,7 +150,7 @@ void eae6320::cMyGame::SubmitLightDataToGraphics(eae6320::Graphics::sDirectional
 	eae6320::Graphics::SubmitLightData(i_dirL, i_pointL, i_spotL);
 }
 
-void eae6320::cMyGame::SubmitShadowDataToGraphics(eae6320::Graphics::cEffect* i_Shadoweffect,
+void eae6320::cMyGame::SubmitShadowDataToGraphics(eae6320::Graphics::ShadowEffect* i_Shadoweffect,
 	eae6320::Graphics::sDirectionalLight& i_dirL)
 {
 	Math::cMatrix_transformation WorldToLightCameraTransform = Math::cMatrix_transformation::CreateWorldToCameraTransform(
@@ -189,30 +176,16 @@ void eae6320::cMyGame::SubmitShadowDataToGraphics(eae6320::Graphics::cEffect* i_
 void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
 	float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	// color[0] = (sinf(i_elapsedSecondCount_systemTime) + 1.0f) / 10.0f;
-	eae6320::Graphics::SubmitBackgroundColor(color);
 
-	// SubmitGameObjectToGraphics(m_gameObject_plane, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
-	// SubmitGameObjectToGraphics(m_gameObject_gear, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
-	// SubmitGameObjectToGraphics(m_gameObject_helix, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
-	// SubmitGameObjectToGraphics(m_gameObject_pipe, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	eae6320::Graphics::SubmitBackgroundColor(color);
 	
 	SubmitGameObjectToGraphics(m_gameObject_house, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 	SubmitGameObjectToGraphics(m_gameObject_plane, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
-	SubmitGameObjectToGraphics(m_gameObject_skybox, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	// SubmitGameObjectToGraphics(m_gameObject_skybox, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 	SubmitLightDataToGraphics(m_directionalLight, m_pointLight, m_spotLight);
 	SubmitCameraToGraphics(m_camera, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
-	// TODO:
-	// Submit the shadow effect need
-	// And
-	// Submit the i_ShadowTransform to light effect
-	// 
-	// SubmitShadowDataToGraphics(eae6320::Graphics::cEffect* i_Shadoweffect,
-	// const eae6320::Math::cMatrix_transformation& i_transform_worldToLightCamera,
-	// const eae6320::Math::cMatrix_transformation& i_transform_LightcameraToProjected,
-	// const eae6320::Math::cMatrix_transformation& i_ShadowTransform)
 	SubmitShadowDataToGraphics(m_effect_shadowMap,
 		                       m_directionalLight);
 }
@@ -285,50 +258,58 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::RenderStates::EnableDepthWriting(renderStateBits);
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
 
-	std::vector<std::string> texturePaths = { "data/Textures/house.bintexture", 
-		                                      "data/Textures/grass.bintexture" };
-
-	std::vector<eae6320::Graphics::eSamplerType> samplerTypes = { eae6320::Graphics::eSamplerType::Linear, 
-																  eae6320::Graphics::eSamplerType::Comparison_less_equal};
-
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_light, 
+	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
+		                                              m_effect_light, 
 		                                              "data/Shaders/Vertex/light_VS.binshader", 
 		                                              "data/Shaders/Fragment/light_PS.binshader",
-		                                              renderStateBits, texturePaths, samplerTypes);
+		                                              renderStateBits, 
+		                                              "data/Textures/house.bintexture", 
+		                                              "data/Textures/grass.bintexture",
+		                                              eae6320::Graphics::eSamplerType::Linear,
+		                                              eae6320::Graphics::eSamplerType::Comparison_less_equal);
 	if (!result)
 	{
-		EAE6320_ASSERTF(false, "Failed to initialize effect");
+		EAE6320_ASSERTF(false, "Failed to initialize ligth_1 effect");
 		return result;
 	}
 
-	texturePaths = { "data/Textures/grass.bintexture",
-					};
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_light2,
-		"data/Shaders/Vertex/light_VS.binshader",
-		"data/Shaders/Fragment/light_PS.binshader",
-		renderStateBits, texturePaths, samplerTypes);
-
-	// SKYBOX EFFECT
-	uint8_t skybox_renderStateBits = 0;
-	eae6320::Graphics::RenderStates::DisableAlphaTransparency(skybox_renderStateBits);
-	eae6320::Graphics::RenderStates::EnableDepthTesting(skybox_renderStateBits);
-	eae6320::Graphics::RenderStates::EnableDepthWriting(skybox_renderStateBits);
-	eae6320::Graphics::RenderStates::EnableDepthTestLessEqual(skybox_renderStateBits);
-	eae6320::Graphics::RenderStates::EnableDrawingBothTriangleSides(skybox_renderStateBits);
-
-	texturePaths = { "data/Textures/desertcube1024.bintexture" };
-
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_skybox,
-		"data/Shaders/Vertex/skybox_VS.binshader",
-		"data/Shaders/Fragment/skybox_PS.binshader",
-		skybox_renderStateBits, texturePaths, samplerTypes);
+	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
+		                                              m_effect_light2,
+		                                              "data/Shaders/Vertex/light_VS.binshader",
+		                                              "data/Shaders/Fragment/light_PS.binshader",
+		                                              renderStateBits, 
+		                                              "data/Textures/grass.bintexture",
+		                                              "data/Textures/grass.bintexture",
+		                                              eae6320::Graphics::eSamplerType::Linear,
+		                                              eae6320::Graphics::eSamplerType::Comparison_less_equal);
 
 	if (!result)
 	{
-		EAE6320_ASSERTF(false, "Failed to initialize effect");
+		EAE6320_ASSERTF(false, "Failed to initialize light_2 effect");
 		return result;
 	}
+
+	//// SKYBOX EFFECT
+	//uint8_t skybox_renderStateBits = 0;
+	//eae6320::Graphics::RenderStates::DisableAlphaTransparency(skybox_renderStateBits);
+	//eae6320::Graphics::RenderStates::EnableDepthTesting(skybox_renderStateBits);
+	//eae6320::Graphics::RenderStates::EnableDepthWriting(skybox_renderStateBits);
+	//eae6320::Graphics::RenderStates::EnableDepthTestLessEqual(skybox_renderStateBits);
+	//eae6320::Graphics::RenderStates::EnableDrawingBothTriangleSides(skybox_renderStateBits);
+
+	//texturePaths = { "data/Textures/desertcube1024.bintexture" };
+
+	//result = eae6320::Graphics::cEffect::CreateEffect(m_effect_skybox,
+	//	"data/Shaders/Vertex/skybox_VS.binshader",
+	//	"data/Shaders/Fragment/skybox_PS.binshader",
+	//	skybox_renderStateBits, texturePaths, samplerTypes);
+
+	//if (!result)
+	//{
+	//	EAE6320_ASSERTF(false, "Failed to initialize effect");
+	//	return result;
+	//}
 
 	// SHAODW MAP EFFECT
 	uint8_t shadowRenderStateBits = 0;
@@ -337,15 +318,11 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::RenderStates::EnableDepthWriting(shadowRenderStateBits);
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(shadowRenderStateBits);
 
-	texturePaths = {};
-	samplerTypes = {};
 
-	result = eae6320::Graphics::cEffect::CreateEffect(m_effect_shadowMap,
-		"data/Shaders/Vertex/shadow_VS.binshader",
-		NULL,  // no pixel shader
-		shadowRenderStateBits,
-		texturePaths,
-		samplerTypes);
+	result = eae6320::Graphics::ShadowEffect::CreateShadowEffect(
+		                                              m_effect_shadowMap,
+		                                              "data/Shaders/Vertex/shadow_VS.binshader",
+		                                              shadowRenderStateBits);
 
 	if (!result)
 	{
@@ -360,33 +337,9 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f),          // specular
 		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f));         // reflect
 
-	/*m_gameObject_plane.SetMesh(m_mesh_plane);
-	m_gameObject_plane.SetEffect(m_effect_light);
-	m_gameObject_plane.SetMaxVelocity(2.0f);
-	m_gameObject_plane.SetPosition(eae6320::Math::sVector(0.0f, -2.0f, 0.0f));
-	m_gameObject_plane.SetMaterial(mat);
-
-	m_gameObject_gear.SetMesh(m_mesh_gear);
-	m_gameObject_gear.SetEffect(m_effect_light);
-	m_gameObject_gear.SetMaxVelocity(2.0f);
-	m_gameObject_gear.SetPosition(eae6320::Math::sVector(0.0f, -1.0f, 0.0f));
-	m_gameObject_gear.SetMaterial(mat);
-
-	m_gameObject_helix.SetMesh(m_mesh_helix);
-	m_gameObject_helix.SetEffect(m_effect_light);
-	m_gameObject_helix.SetMaxVelocity(2.0f);
-	m_gameObject_helix.SetPosition(eae6320::Math::sVector(2.0f, 1.0f, -2.0f));
-	m_gameObject_helix.SetMaterial(mat);
-
-	m_gameObject_pipe.SetMesh(m_mesh_Alien);
-	m_gameObject_pipe.SetEffect(m_effect_light);
-	m_gameObject_pipe.SetMaxVelocity(2.0f);
-	m_gameObject_pipe.SetPosition(eae6320::Math::sVector(0.0f, -2.0f, -2.7f));
-	m_gameObject_pipe.SetMaterial(mat);*/
-
-	m_gameObject_skybox.SetMesh(m_mesh_cube);
+	/*m_gameObject_skybox.SetMesh(m_mesh_cube);
 	m_gameObject_skybox.SetEffect(m_effect_skybox);
-	m_gameObject_skybox.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 0.0f));
+	m_gameObject_skybox.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 0.0f));*/
 	
 	m_gameObject_house.SetMesh(m_mesh_house);
 	m_gameObject_house.SetEffect(m_effect_light);
@@ -438,29 +391,6 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 {
 	eae6320::Logging::OutputMessage((std::string("Clean Up Window : ") + GetMainWindowName()).c_str());
 
-	/*if (m_mesh_plane)
-	{
-		m_mesh_plane->DecrementReferenceCount();
-		m_mesh_plane = nullptr;
-	}
-
-	if (m_mesh_gear)
-	{
-		m_mesh_gear->DecrementReferenceCount();
-		m_mesh_gear = nullptr;
-	}
-
-	if (m_mesh_helix)
-	{
-		m_mesh_helix->DecrementReferenceCount();
-		m_mesh_helix = nullptr;
-	}
-
-	if (m_mesh_Alien)
-	{
-		m_mesh_Alien->DecrementReferenceCount();
-		m_mesh_Alien = nullptr;
-	}*/
 	if (m_mesh_plane)
 	{
 		m_mesh_plane->DecrementReferenceCount();
@@ -486,12 +416,12 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 		m_effect_light2->DecrementReferenceCount();
 		m_effect_light2 = nullptr;
 	}
-	// SKYBOX
-	if (m_effect_skybox)
-	{
-		m_effect_skybox->DecrementReferenceCount();
-		m_effect_skybox = nullptr;
-	}
+	//// SKYBOX
+	//if (m_effect_skybox)
+	//{
+	//	m_effect_skybox->DecrementReferenceCount();
+	//	m_effect_skybox = nullptr;
+	//}
 
 	// SHADOW MAP
 	if (m_effect_shadowMap)

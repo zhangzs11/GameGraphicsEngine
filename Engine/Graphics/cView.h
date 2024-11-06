@@ -34,6 +34,7 @@ namespace eae6320
 struct ID3D11RenderTargetView;
 struct ID3D11DepthStencilView;
 struct D3D11_VIEWPORT;
+struct ID3D11Texture2D;
 #endif
 
 // Class Declaration
@@ -63,6 +64,49 @@ namespace eae6320
 			ID3D11ShaderResourceView* m_shaderResourceView = nullptr; // For shadow map
 #endif
 		};
+
+
+		class cView_RTV
+		{
+		public:
+			cResult Initialize(const sInitializationParameters& i_initializationParameters);
+			void Clear(const float i_clearColor[4]);
+			// void Bind();
+			cResult CleanUp();
+		public:
+			D3D11_VIEWPORT* m_viewPort = nullptr;
+			ID3D11RenderTargetView* m_renderTargetView = nullptr;
+			ID3D11Texture2D* m_TextureBuffer = nullptr;
+		};
+
+		class cView_DSV
+		{
+		public:
+			cResult Initialize(const sInitializationParameters& i_initializationParameters);
+			void Clear(const float i_clearColor[4]);
+			// void Bind();
+			cResult CleanUp();
+		public:
+			D3D11_VIEWPORT* m_viewPort = nullptr;
+			ID3D11DepthStencilView* m_depthStencilView = nullptr;
+			ID3D11Texture2D* m_TextureBuffer = nullptr;
+		};
+
+		class cView_SRV
+		{
+		public:
+			cResult Initialize(const sInitializationParameters& i_initializationParameters,
+				               ID3D11Texture2D* i_TextureBuffer);
+			// void Clear(const float i_clearColor[4]);
+			// void Bind();
+			cResult CleanUp();
+		public:
+			D3D11_VIEWPORT* m_viewPort = nullptr;
+			ID3D11ShaderResourceView* m_shaderResourceView = nullptr;
+
+			ID3D11Texture2D* m_TextureBuffer = nullptr;
+		};
+
 	}
 }
 

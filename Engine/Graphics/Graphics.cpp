@@ -3,7 +3,8 @@
 
 #include "Graphics.h"
 
-// #include "Includes.h"
+#include "Direct3D/Includes.h"
+#include "sContext.h"
 #include "cConstantBuffer.h"
 #include "ConstantBufferFormats.h"
 #include "cRenderState.h"
@@ -44,13 +45,13 @@ namespace
 	{
 		eae6320::Graphics::ConstantBufferFormats::sLight_Frame constantData_frame;
 		eae6320::Graphics::ConstantBufferFormats::sShadow_Frame shadow_constantData_frame;
-		eae6320::Graphics::cEffect* shadowEffect;
+		eae6320::Graphics::ShadowEffect* shadowEffect;
 
 		float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		static constexpr size_t MAX_SUBMITTED_PAIRS = 100;
 		size_t submittedPairCount = 0;  // Number of currently submitted pairs
-		std::pair<eae6320::Graphics::cMesh*, eae6320::Graphics::cEffect*> meshEffectPairs[MAX_SUBMITTED_PAIRS];
+		std::pair<eae6320::Graphics::cMesh*, eae6320::Graphics::LightingEffect*> meshEffectPairs[MAX_SUBMITTED_PAIRS];
 
 		eae6320::Graphics::ConstantBufferFormats::sDrawCall constantData_drawCall[MAX_SUBMITTED_PAIRS];
 	};
@@ -74,9 +75,11 @@ namespace
 
 	// View
 	//-------------
-	eae6320::Graphics::cView s_view;
+	eae6320::Graphics::cView_RTV s_Screen_RTV;
+	eae6320::Graphics::cView_DSV s_Screen_DSV;
 
-	eae6320::Graphics::cView s_shadowMap_view;
+	eae6320::Graphics::cView_DSV s_shadowMap_DSV;
+	eae6320::Graphics::cView_SRV s_shadowMap_SRV;
 }
 
 // Helper Declarations
@@ -123,7 +126,7 @@ void eae6320::Graphics::SubmitLightData(const eae6320::Graphics::sDirectionalLig
 	constantData_frame.g_SpotLight = i_spotLight;
 }
 
-void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, eae6320::Graphics::cEffect* i_effect)
+void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, eae6320::Graphics::LightingEffect* i_effect)
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
 
@@ -192,7 +195,7 @@ void eae6320::Graphics::SubmitBackgroundColor(const float i_backgroundColor[4])
 	}
 }
 
-void eae6320::Graphics::SubmitShadowData(cEffect* i_Shadoweffect,
+void eae6320::Graphics::SubmitShadowData(ShadowEffect* i_Shadoweffect,
 	const eae6320::Math::cMatrix_transformation& i_transform_worldToLightCamera,
 	const eae6320::Math::cMatrix_transformation& i_transform_LightcameraToProjected,
 	const eae6320::Math::cMatrix_transformation& i_ShadowTransform)
@@ -252,11 +255,15 @@ void eae6320::Graphics::RenderFrame()
 	EAE6320_ASSERT(s_dataBeingRenderedByRenderThread);
 	auto* const dataRequiredToRenderFrame = s_dataBeingRenderedByRenderThread;
 
+	auto* const direct3dImmediateContext = sContext::g_context.direct3dImmediateContext;
+	EAE6320_ASSERT(direct3dImmediateContext);
     // RenderShadow map
     // ----------------
 	//
-	s_shadowMap_view.Bind();
-	s_shadowMap_view.Clear(nullptr);
+	direct3dImmediateContext->OMSetRenderTargets(0, nullptr, s_shadowMap_DSV.m_depthStencilView);
+	s_shadowMap_DSV.Clear(nullptr);
+	direct3dImmediateContext->RSSetViewports(1, s_shadowMap_DSV.m_viewPort);
+
 	// Update the frame constant in Shadow Effect buffer
 	{
 		auto& shadow_constantData_frame = dataRequiredToRenderFrame->shadow_constantData_frame;
@@ -288,9 +295,15 @@ void eae6320::Graphics::RenderFrame()
 			static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
 	}
 
-	s_view.Bind();
 	// Clear render buffer with the submitted background color
-	s_view.Clear(dataRequiredToRenderFrame->backgroundColor);
+	s_Screen_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+	s_Screen_DSV.Clear(nullptr);
+	constexpr unsigned int renderTargetCount = 1;
+	direct3dImmediateContext->OMSetRenderTargets(renderTargetCount, 
+		                                         &(s_Screen_RTV.m_renderTargetView), 
+		                                         s_Screen_DSV.m_depthStencilView);
+
+	direct3dImmediateContext->RSSetViewports(1, s_Screen_RTV.m_viewPort);
 
 	// Draw submitted mesh-effect pairs
 	for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
@@ -304,7 +317,7 @@ void eae6320::Graphics::RenderFrame()
 			s_constantBuffer_drawCall.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
 		}
 
-		pair.second->SetShadowMapView(&s_shadowMap_view);
+		pair.second->SetShadowMapSRV(&s_shadowMap_SRV);
 		pair.second->Bind();  // Bind effect
 		pair.first->Draw();   // Draw mesh
 	}
@@ -405,7 +418,6 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the views");
 			return result;
 		}
-		s_view.Bind();
 	}
 
 	return result;
@@ -416,11 +428,23 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	auto result = Results::Success;
 
 	// Clean up the View
-	if (!(result = s_view.CleanUp()))
+	if (!(result = s_Screen_RTV.CleanUp()))
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
-	
+	if (!(result = s_Screen_DSV.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the View");
+	}
+	if (!(result = s_shadowMap_DSV.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the View");
+	}
+	if (!(result = s_shadowMap_SRV.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the View");
+	}
+
 	// Clean up submitted mesh/effect pairs from both frames
 	for (auto& frameData : s_dataRequiredToRenderAFrame)
 	{
@@ -488,13 +512,25 @@ namespace
 	{
 		auto result = eae6320::Results::Success;
 
-		if (!(result = s_view.Initialize(i_initializationParameters, eae6320::Graphics::eViewType::Screen)))
+		if (!(result = s_Screen_RTV.Initialize(i_initializationParameters)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
 		}
 
-		if (!(result = s_shadowMap_view.Initialize(i_initializationParameters, eae6320::Graphics::eViewType::ShadowMap)))
+		if (!(result = s_Screen_DSV.Initialize(i_initializationParameters)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+
+		if (!(result = s_shadowMap_DSV.Initialize(i_initializationParameters)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+
+		if (!(result = s_shadowMap_SRV.Initialize(i_initializationParameters, s_shadowMap_DSV.m_TextureBuffer)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;

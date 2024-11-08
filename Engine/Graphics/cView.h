@@ -69,10 +69,17 @@ namespace eae6320
 {
 	namespace Graphics
 	{
+		enum class eRenderTargetType
+		{
+			Screen,
+			Texture
+		};
+
 		class cView_RTV
 		{
 		public:
-			cResult Initialize(const sInitializationParameters& i_initializationParameters);
+			cResult Initialize(const sInitializationParameters& i_initializationParameters, 
+				               eRenderTargetType i_targetType);
 			void Clear(const float i_clearColor[4]);
 			// void Bind();
 			cResult CleanUp();
@@ -95,11 +102,18 @@ namespace eae6320
 			ID3D11Texture2D* m_TextureBuffer = nullptr;
 		};
 
+		enum class BufferType
+		{
+			Depth,
+			RenderTarget
+		};
+
 		class cView_SRV
 		{
 		public:
 			cResult Initialize(const sInitializationParameters& i_initializationParameters,
-				               ID3D11Texture2D* i_TextureBuffer);
+				               ID3D11Texture2D* i_TextureBuffer,
+				               BufferType i_bufferType);
 			// void Clear(const float i_clearColor[4]);
 			// void Bind();
 			cResult CleanUp();

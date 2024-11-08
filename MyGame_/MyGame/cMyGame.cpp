@@ -173,6 +173,12 @@ void eae6320::cMyGame::SubmitShadowDataToGraphics(eae6320::Graphics::ShadowEffec
 		T * CameraToProjectedTransform_orthographic * WorldToLightCameraTransform);
 }
 
+void eae6320::cMyGame::SubmitSkyboxDataToGraphics(eae6320::Graphics::SkyboxEffect* i_skyboxeffect,
+	eae6320::Graphics::cMesh* i_cubemesh)
+{
+	eae6320::Graphics::SubmitSkyboxData(i_skyboxeffect, i_cubemesh);
+}
+
 void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
 	float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -188,6 +194,8 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 
 	SubmitShadowDataToGraphics(m_effect_shadowMap,
 		                       m_directionalLight);
+
+	SubmitSkyboxDataToGraphics(m_effect_skybox, m_mesh_cube);
 }
 
 // Initialize / Clean Up
@@ -290,26 +298,27 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
-	//// SKYBOX EFFECT
-	//uint8_t skybox_renderStateBits = 0;
-	//eae6320::Graphics::RenderStates::DisableAlphaTransparency(skybox_renderStateBits);
-	//eae6320::Graphics::RenderStates::EnableDepthTesting(skybox_renderStateBits);
-	//eae6320::Graphics::RenderStates::EnableDepthWriting(skybox_renderStateBits);
-	//eae6320::Graphics::RenderStates::EnableDepthTestLessEqual(skybox_renderStateBits);
-	//eae6320::Graphics::RenderStates::EnableDrawingBothTriangleSides(skybox_renderStateBits);
+	// SKYBOX EFFECT
+	uint8_t skybox_renderStateBits = 0;
+	eae6320::Graphics::RenderStates::DisableAlphaTransparency(skybox_renderStateBits);
+	eae6320::Graphics::RenderStates::EnableDepthTesting(skybox_renderStateBits);
+	eae6320::Graphics::RenderStates::EnableDepthWriting(skybox_renderStateBits);
+	eae6320::Graphics::RenderStates::EnableDepthTestLessEqual(skybox_renderStateBits);
+	eae6320::Graphics::RenderStates::EnableDrawingBothTriangleSides(skybox_renderStateBits);
 
-	//texturePaths = { "data/Textures/desertcube1024.bintexture" };
+	result = eae6320::Graphics::SkyboxEffect::CreateSkyboxEffect(
+		m_effect_skybox,
+		"data/Shaders/Vertex/skybox_VS.binshader",
+		"data/Shaders/Fragment/skybox_PS.binshader",
+		skybox_renderStateBits, 
+		"data/Textures/desertcube1024.bintexture", 
+		eae6320::Graphics::eSamplerType::Linear);
 
-	//result = eae6320::Graphics::cEffect::CreateEffect(m_effect_skybox,
-	//	"data/Shaders/Vertex/skybox_VS.binshader",
-	//	"data/Shaders/Fragment/skybox_PS.binshader",
-	//	skybox_renderStateBits, texturePaths, samplerTypes);
-
-	//if (!result)
-	//{
-	//	EAE6320_ASSERTF(false, "Failed to initialize effect");
-	//	return result;
-	//}
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize effect");
+		return result;
+	}
 
 	// SHAODW MAP EFFECT
 	uint8_t shadowRenderStateBits = 0;
@@ -337,9 +346,9 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f),          // specular
 		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f));         // reflect
 
-	/*m_gameObject_skybox.SetMesh(m_mesh_cube);
-	m_gameObject_skybox.SetEffect(m_effect_skybox);
-	m_gameObject_skybox.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 0.0f));*/
+	m_gameObject_skybox.SetMesh(m_mesh_cube);
+	//m_gameObject_skybox.SetEffect(m_effect_skybox);
+	m_gameObject_skybox.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 0.0f));
 	
 	m_gameObject_house.SetMesh(m_mesh_house);
 	m_gameObject_house.SetEffect(m_effect_light);
@@ -416,13 +425,12 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 		m_effect_light2->DecrementReferenceCount();
 		m_effect_light2 = nullptr;
 	}
-	//// SKYBOX
-	//if (m_effect_skybox)
-	//{
-	//	m_effect_skybox->DecrementReferenceCount();
-	//	m_effect_skybox = nullptr;
-	//}
-
+	// SKYBOX
+	if (m_effect_skybox)
+	{
+		m_effect_skybox->DecrementReferenceCount();
+		m_effect_skybox = nullptr;
+	}
 	// SHADOW MAP
 	if (m_effect_shadowMap)
 	{

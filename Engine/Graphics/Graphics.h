@@ -14,6 +14,7 @@
 #include "sLight.h"
 #include "MyEffects/LightingEffect.d3d.h"
 #include "MyEffects/ShadowEffect.d3d.h"
+#include "MyEffects/SkyboxEffect.d3d.h"
 
 #include <cstdint>
 #include <Engine/Results/Results.h>
@@ -60,6 +61,9 @@ namespace eae6320
 			                  const eae6320::Math::cMatrix_transformation& i_transform_worldToLightCamera,
 			                  const eae6320::Math::cMatrix_transformation& i_transform_LightcameraToProjected, 
 			                  const eae6320::Math::cMatrix_transformation& i_ShadowTransform);
+
+		void SubmitSkyboxData(SkyboxEffect* i_skuboxeffect,
+			                  cMesh* i_cubemesh);
 
 		// When the application is ready to submit data for a new frame
 		// it should call this before submitting anything

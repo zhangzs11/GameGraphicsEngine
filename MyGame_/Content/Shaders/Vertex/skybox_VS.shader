@@ -32,7 +32,8 @@ void main(
 // Main Body
 //============
 {
-	float4 vertexPosition_projected = mul(g_transform_localToWorld, float4(i_vertexPosition_local, 1.0f));
+	// float4 vertexPosition_projected = mul(g_transform_localToWorld, float4(i_vertexPosition_local, 1.0f));
+	float4 vertexPosition_projected = float4(i_vertexPosition_local, 1.0f);
 
 	float3 cameraRotatedPosition = mul((float3x3)g_transform_worldToCamera, vertexPosition_projected.xyz);
     vertexPosition_projected = float4(cameraRotatedPosition, 1.0f);

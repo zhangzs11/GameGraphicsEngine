@@ -94,6 +94,9 @@ namespace eae6320
 		void SubmitShadowDataToGraphics(eae6320::Graphics::ShadowEffect* i_Shadoweffect,
 			eae6320::Graphics::sDirectionalLight& i_dirL);
 
+		void SubmitSkyboxDataToGraphics(eae6320::Graphics::SkyboxEffect* i_skuboxeffect,
+			eae6320::Graphics::cMesh* i_cubemesh);
+
 
 
 		// Initialize / Clean Up
@@ -115,7 +118,7 @@ namespace eae6320
 
 		Graphics::LightingEffect* m_effect_light = nullptr;
 		Graphics::LightingEffect* m_effect_light2 = nullptr;
-		// Graphics::cEffect* m_effect_skybox = nullptr;
+		Graphics::SkyboxEffect* m_effect_skybox = nullptr;
 		Graphics::ShadowEffect* m_effect_shadowMap = nullptr;
 
 		Graphics::sDirectionalLight m_directionalLight;
@@ -135,7 +138,8 @@ namespace eae6320
 
 		cGameObject m_gameObject_plane;
 		cGameObject m_gameObject_house;
-		// cGameObject m_gameObject_skybox;
+		cGameObject m_gameObject_skybox;
+
 		cCamera m_camera;
 		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
 

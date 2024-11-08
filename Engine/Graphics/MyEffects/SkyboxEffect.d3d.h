@@ -48,8 +48,8 @@ namespace eae6320
                 const eSamplerType texture_samplerType
             );
 
-            // void SetLitSRV(cView_SRV* i_LitTexture) { m_LitTexture = i_LitTexture; }
-            // void SetDepthSRV(cView_SRV* i_DepthTexture) { m_DepthTexture = i_DepthTexture; }
+            void SetLitSRV(cView_SRV* i_LitTexture) { m_LitTexture = i_LitTexture; }
+            void SetDepthSRV(cView_SRV* i_DepthTexture) { m_DepthTexture = i_DepthTexture; }
 
         private:
             // This prevents the class or struct from using illegal functions
@@ -72,8 +72,8 @@ namespace eae6320
             eae6320::Graphics::cTexture* m_textureCube = nullptr;                   // t0
 
             // Shader Resource View (Set)
-            // cView_SRV* m_DepthTexture = nullptr;                                 // t1
-            // cView_SRV* m_LitTexture = nullptr;                                   // t2
+            cView_SRV* m_DepthTexture = nullptr;                                 // t1
+            cView_SRV* m_LitTexture = nullptr;                                   // t2
 
             // Sampler
             eae6320::Graphics::cSampler* m_sampler_texture = nullptr;            // s0

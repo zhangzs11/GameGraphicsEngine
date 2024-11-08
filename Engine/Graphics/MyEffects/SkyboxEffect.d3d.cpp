@@ -130,11 +130,11 @@ void eae6320::Graphics::SkyboxEffect::Bind() const
 	m_textureCube->Bind(0);
 
 	// Bind SRV
-	// EAE6320_ASSERT((m_DepthTexture != nullptr));
-	// direct3dImmediateContext->PSSetShaderResources(1, 1, &(m_DepthTexture->m_shaderResourceView));
+	EAE6320_ASSERT((m_DepthTexture != nullptr));
+	direct3dImmediateContext->PSSetShaderResources(1, 1, &(m_DepthTexture->m_shaderResourceView));
 
 	// EAE6320_ASSERT((m_LitTexture != nullptr));
-	// direct3dImmediateContext->PSSetShaderResources(2, 1, &(m_LitTexture->m_shaderResourceView));
+	direct3dImmediateContext->PSSetShaderResources(2, 1, &(m_LitTexture->m_shaderResourceView));
 
 	// Bind Sampler
 	m_sampler_texture->Bind(0);

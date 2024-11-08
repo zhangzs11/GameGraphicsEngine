@@ -80,13 +80,13 @@ namespace
 	//-------------
 	eae6320::Graphics::cView_RTV s_Scene_RTV;
 	eae6320::Graphics::cView_DSV s_Scene_DSV;
-	//eae6320::Graphics::cView_SRV s_Lit_SRV;
-	//eae6320::Graphics::cView_SRV s_SceneDepth_SRV;
+	eae6320::Graphics::cView_SRV s_Lit_SRV;
+	eae6320::Graphics::cView_SRV s_SceneDepth_SRV;
 
 	eae6320::Graphics::cView_DSV s_shadowMap_DSV;
 	eae6320::Graphics::cView_SRV s_shadowMap_SRV;
 
-	// eae6320::Graphics::cView_RTV s_Skybox_RTV;
+	eae6320::Graphics::cView_RTV s_Skybox_RTV;
 }
 
 // Helper Declarations
@@ -345,6 +345,19 @@ void eae6320::Graphics::RenderFrame()
 	// constexpr unsigned int renderTargetCount = 1;
 
 	auto& skyboxEffect = dataRequiredToRenderFrame->skyboxEffect;
+
+
+	direct3dImmediateContext->OMSetRenderTargets(1,
+		&(s_Skybox_RTV.m_renderTargetView),
+		nullptr);
+
+	s_Skybox_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+	direct3dImmediateContext->RSSetViewports(1, s_Skybox_RTV.m_viewPort);
+
+	skyboxEffect->SetDepthSRV(&s_SceneDepth_SRV);
+
+	skyboxEffect->SetLitSRV(&s_Lit_SRV);
+
 	skyboxEffect->Bind();
 
 	auto& skyboxCube = dataRequiredToRenderFrame->skyboxCube;
@@ -465,14 +478,14 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
-	/*if (!(result = s_Lit_SRV.CleanUp()))
+	if (!(result = s_Lit_SRV.CleanUp()))
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
 	if (!(result = s_SceneDepth_SRV.CleanUp()))
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
-	}*/
+	}
 	if (!(result = s_shadowMap_DSV.CleanUp()))
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
@@ -481,10 +494,10 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
-	/*if (!(result = s_Skybox_RTV.CleanUp()))
+	if (!(result = s_Skybox_RTV.CleanUp()))
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
-	}*/
+	}
 
 	// Clean up submitted mesh/effect pairs from both frames
 	for (auto& frameData : s_dataRequiredToRenderAFrame)
@@ -554,7 +567,7 @@ namespace
 		auto result = eae6320::Results::Success;
 
 		if (!(result = s_Scene_RTV.Initialize(i_initializationParameters,
-			                                   eae6320::Graphics::eRenderTargetType::Screen)))
+			                                   eae6320::Graphics::eRenderTargetType::Texture)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
@@ -565,7 +578,7 @@ namespace
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
 		}
-		/*if (!(result = s_Lit_SRV.Initialize(i_initializationParameters, 
+		if (!(result = s_Lit_SRV.Initialize(i_initializationParameters, 
 			s_Scene_RTV.m_TextureBuffer,
 			eae6320::Graphics::BufferType::RenderTarget)))
 		{
@@ -578,7 +591,7 @@ namespace
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
-		}*/
+		}
 		if (!(result = s_shadowMap_DSV.Initialize(i_initializationParameters)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
@@ -592,11 +605,11 @@ namespace
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
 		}
-		/*if (!(result = s_Skybox_RTV.Initialize(i_initializationParameters, eae6320::Graphics::eRenderTargetType::Screen)))
+		if (!(result = s_Skybox_RTV.Initialize(i_initializationParameters, eae6320::Graphics::eRenderTargetType::Screen)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
-		}*/
+		}
 		return result;
 	}
 }

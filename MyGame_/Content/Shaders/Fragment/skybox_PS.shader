@@ -46,9 +46,5 @@ void main(
 		//lit += float3(1.0f, 0.0f, 0.0f);
     }
 	o_color = float4(lit, 1.0f);
-	// o_color = g_texture_cube.Sample(g_sampler, i_fragmentPosition_local);;
-
-
-
 	// o_color = g_texture_cube.Sample(g_sampler, i_fragmentPosition_local);
 }

@@ -179,6 +179,11 @@ void eae6320::cMyGame::SubmitSkyboxDataToGraphics(eae6320::Graphics::SkyboxEffec
 	eae6320::Graphics::SubmitSkyboxData(i_skyboxeffect, i_cubemesh);
 }
 
+void eae6320::cMyGame::SubmitPostProcessingDataToGraphics(eae6320::Graphics::PostProcessingEffect* i_postProcessingeffect)
+{
+	eae6320::Graphics::SubmitPostProcessingData(i_postProcessingeffect);
+}
+
 void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
 	float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -196,6 +201,8 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 		                       m_directionalLight);
 
 	SubmitSkyboxDataToGraphics(m_effect_skybox, m_mesh_cube);
+
+	SubmitPostProcessingDataToGraphics(m_effect_postProcessing);
 }
 
 // Initialize / Clean Up
@@ -339,6 +346,25 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
+	// POSTPROCESSING EFFECT
+	uint8_t postprocessingRenderStateBits = 0;
+	eae6320::Graphics::RenderStates::DisableAlphaTransparency(postprocessingRenderStateBits);
+	eae6320::Graphics::RenderStates::DisableDepthTesting(postprocessingRenderStateBits);
+	eae6320::Graphics::RenderStates::DisableDepthWriting(postprocessingRenderStateBits);
+	eae6320::Graphics::RenderStates::EnableDrawingBothTriangleSides(postprocessingRenderStateBits);
+
+	result = eae6320::Graphics::PostProcessingEffect::CreatePostProcessingEffect(
+		m_effect_postProcessing,
+		"data/Shaders/Vertex/fullScreenTriangle.binshader",
+		"data/Shaders/Fragment/postProcess_PS.binshader",
+		shadowRenderStateBits,
+		eae6320::Graphics::eSamplerType::Linear);
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize shadow map effect");
+		return result;
+	}
+
 	// Initialize GameObject
 	// ---------------------
 	eae6320::Graphics::sMaterial mat(eae6320::Math::sVector4(1.0f, 1.0f, 1.0f, 1.0f),          // ambient
@@ -389,7 +415,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize Camera
 	// -----------------
 
-	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1.0f, 0.1f, 100000.0f);
+	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1.0f, 20.0f, 200.0f);
 	m_camera.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 2.0f));
 	m_camera.SetOrientation(eae6320::Math::cQuaternion());
 
@@ -436,6 +462,13 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 	{
 		m_effect_shadowMap->DecrementReferenceCount();
 		m_effect_shadowMap = nullptr;
+
+	}
+	// POST PROCESSING
+	if (m_effect_postProcessing)
+	{
+		m_effect_postProcessing->DecrementReferenceCount();
+		m_effect_postProcessing = nullptr;
 
 	}
 	return Results::Success;

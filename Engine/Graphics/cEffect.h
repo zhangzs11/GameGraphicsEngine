@@ -6,6 +6,8 @@
 
 #include "MyEffects/LightingEffect.d3d.h"
 #include "MyEffects/ShadowEffect.d3d.h"
+#include "MyEffects/PostProcessingEffect.d3d.h"
+#include "MyEffects/SkyboxEffect.d3d.h"
 
 #include "Configuration.h"
 #include "cRenderState.h"

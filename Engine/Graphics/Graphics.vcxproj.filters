@@ -129,6 +129,9 @@
     <ClCompile Include="cEffect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MyEffects\PostProcessingEffect.d3d.cpp">
+      <Filter>MyEffects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cConstantBuffer.h">
@@ -202,6 +205,9 @@
     </ClInclude>
     <ClInclude Include="IEffect.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyEffects\PostProcessingEffect.d3d.h">
+      <Filter>MyEffects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

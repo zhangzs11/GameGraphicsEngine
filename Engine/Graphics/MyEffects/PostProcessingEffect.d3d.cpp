@@ -1,26 +1,28 @@
 // Includes
 //=========
 #include "../Direct3D/Includes.h"
-#include "SkyboxEffect.d3d.h"
+#include "PostProcessingEffect.d3d.h"
 #include "../cShader.h"
 #include "../sContext.h"
 #include "../cRenderState.h"
 #include "../cView.h"
 #include <new>
 
-eae6320::cResult eae6320::Graphics::SkyboxEffect::CreateSkyboxEffect(
-    SkyboxEffect*& o_effect,
-    const char* i_vertexShaderPath,
-    const char* i_fragmentShaderPath,
-    const uint8_t i_renderStateBits,
-    const std::string& textureCubePath,
-    const eSamplerType texture_samplerType
+// Initialize / Clean Up
+//----------------------
+
+eae6320::cResult eae6320::Graphics::PostProcessingEffect::CreatePostProcessingEffect(
+	PostProcessingEffect*& o_effect,
+	const char* i_vertexShaderPath,
+	const char* i_fragmentShaderPath,
+	const uint8_t i_renderStateBits,
+	const eSamplerType texture_samplerType
 )
 {
-    auto result = eae6320::Results::Success;
+	auto result = eae6320::Results::Success;
 
 	// allocate
-	SkyboxEffect* newEffect = new (std::nothrow) SkyboxEffect();
+	PostProcessingEffect* newEffect = new (std::nothrow) PostProcessingEffect();
 	if (!newEffect)
 	{
 		result = eae6320::Results::OutOfMemory;
@@ -33,7 +35,6 @@ eae6320::cResult eae6320::Graphics::SkyboxEffect::CreateSkyboxEffect(
 		i_vertexShaderPath,
 		i_fragmentShaderPath,
 		i_renderStateBits,
-		textureCubePath,
 		texture_samplerType)))
 	{
 		delete newEffect;
@@ -43,25 +44,24 @@ eae6320::cResult eae6320::Graphics::SkyboxEffect::CreateSkyboxEffect(
 
 	o_effect = newEffect;
 
-    return result;
+	return result;
 }
 
-eae6320::Graphics::SkyboxEffect::~SkyboxEffect()
+eae6320::Graphics::PostProcessingEffect::~PostProcessingEffect()
 {
-    const auto result = CleanUp();
-    EAE6320_ASSERT(result);
+	const auto result = CleanUp();
+	EAE6320_ASSERT(result);
 }
 
-eae6320::cResult eae6320::Graphics::SkyboxEffect::Initialize
+eae6320::cResult eae6320::Graphics::PostProcessingEffect::Initialize
 (
-    const char* i_vertexShaderPath,
-    const char* i_fragmentShaderPath,
-    const uint8_t i_renderStateBits,
-    const std::string& textureCubePath,
-    const eSamplerType texture_samplerType
+	const char* i_vertexShaderPath,
+	const char* i_fragmentShaderPath,
+	const uint8_t i_renderStateBits,
+	const eSamplerType texture_samplerType
 )
 {
-    auto result = eae6320::Results::Success;
+	auto result = eae6320::Results::Success;
 
 	// Load Vertex Shader
 	{
@@ -88,15 +88,6 @@ eae6320::cResult eae6320::Graphics::SkyboxEffect::Initialize
 		return result;
 	}
 
-	// Load Texture
-	{
-		if (!(result = cTexture::CreateTextureDDS(m_textureCube, textureCubePath.c_str())))
-		{
-			EAE6320_ASSERTF(false, "Can't initialize effect without texture");
-			return result;
-		}
-	}
-
 	// Load Sampler
 	if (!(result = cSampler::CreateSampler(m_sampler_texture, texture_samplerType)))
 	{
@@ -104,11 +95,10 @@ eae6320::cResult eae6320::Graphics::SkyboxEffect::Initialize
 		return result;
 	}
 
-    return result;
+	return result;
 }
 
-
-void eae6320::Graphics::SkyboxEffect::Bind() const
+void eae6320::Graphics::PostProcessingEffect::Bind() const
 {
 	auto* const direct3dImmediateContext = eae6320::Graphics::sContext::g_context.direct3dImmediateContext;
 	EAE6320_ASSERT(direct3dImmediateContext != nullptr);
@@ -126,21 +116,18 @@ void eae6320::Graphics::SkyboxEffect::Bind() const
 	// Bind Render State
 	m_renderState.Bind();
 
-	// Bind Texture
-	m_textureCube->Bind(0);
-
 	// Bind SRV
+	EAE6320_ASSERT((m_ScenceTexture != nullptr));
+	direct3dImmediateContext->PSSetShaderResources(0, 1, &(m_ScenceTexture->m_shaderResourceView));
+
 	EAE6320_ASSERT((m_DepthTexture != nullptr));
 	direct3dImmediateContext->PSSetShaderResources(1, 1, &(m_DepthTexture->m_shaderResourceView));
-
-	EAE6320_ASSERT((m_LitTexture != nullptr));
-	direct3dImmediateContext->PSSetShaderResources(2, 1, &(m_LitTexture->m_shaderResourceView));
 
 	// Bind Sampler
 	m_sampler_texture->Bind(0);
 }
 
-eae6320::cResult eae6320::Graphics::SkyboxEffect::CleanUp()
+eae6320::cResult eae6320::Graphics::PostProcessingEffect::CleanUp()
 {
 	auto result = eae6320::Results::Success;
 
@@ -155,13 +142,9 @@ eae6320::cResult eae6320::Graphics::SkyboxEffect::CleanUp()
 		m_fragmentShader->DecrementReferenceCount();
 		m_fragmentShader = nullptr;
 	}
-	// Release the Texture
-	if (m_textureCube) {
-		m_textureCube->DecrementReferenceCount();
-		m_textureCube = nullptr;
-	}
 	// TODO :
 	// Clean up the Sampler
 	// Clean up Render State
+
 	return result;
 }

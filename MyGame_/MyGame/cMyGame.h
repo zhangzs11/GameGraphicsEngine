@@ -97,7 +97,7 @@ namespace eae6320
 		void SubmitSkyboxDataToGraphics(eae6320::Graphics::SkyboxEffect* i_skuboxeffect,
 			eae6320::Graphics::cMesh* i_cubemesh);
 
-
+		void SubmitPostProcessingDataToGraphics(eae6320::Graphics::PostProcessingEffect* i_postProcessingeffect);
 
 		// Initialize / Clean Up
 		//----------------------
@@ -120,6 +120,7 @@ namespace eae6320
 		Graphics::LightingEffect* m_effect_light2 = nullptr;
 		Graphics::SkyboxEffect* m_effect_skybox = nullptr;
 		Graphics::ShadowEffect* m_effect_shadowMap = nullptr;
+		Graphics::PostProcessingEffect* m_effect_postProcessing = nullptr;
 
 		Graphics::sDirectionalLight m_directionalLight;
 		Graphics::sPointLight m_pointLight;

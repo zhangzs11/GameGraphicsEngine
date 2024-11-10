@@ -71,6 +71,7 @@
     </ClCompile>
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="MyEffects\LightingEffect.d3d.cpp" />
+    <ClCompile Include="MyEffects\PostProcessingEffect.d3d.cpp" />
     <ClCompile Include="MyEffects\ShadowEffect.d3d.cpp" />
     <ClCompile Include="MyEffects\SkyboxEffect.d3d.cpp" />
     <ClCompile Include="OpenGL\cConstantBuffer.gl.cpp">
@@ -134,6 +135,7 @@
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="IEffect.h" />
     <ClInclude Include="MyEffects\LightingEffect.d3d.h" />
+    <ClInclude Include="MyEffects\PostProcessingEffect.d3d.h" />
     <ClInclude Include="MyEffects\ShadowEffect.d3d.h" />
     <ClInclude Include="MyEffects\SkyboxEffect.d3d.h" />
     <ClInclude Include="OpenGL\Includes.h">

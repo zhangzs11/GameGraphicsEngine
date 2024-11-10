@@ -65,6 +65,8 @@ namespace eae6320
 		void SubmitSkyboxData(SkyboxEffect* i_skuboxeffect,
 			                  cMesh* i_cubemesh);
 
+		void SubmitPostProcessingData(PostProcessingEffect* i_postprocessEffect);
+
 		// When the application is ready to submit data for a new frame
 		// it should call this before submitting anything
 		// (or, said another way, it is not safe to submit data for a new frame

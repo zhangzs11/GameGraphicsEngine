@@ -47,6 +47,7 @@ namespace
 		eae6320::Graphics::ConstantBufferFormats::sShadow_Frame shadow_constantData_frame;
 		eae6320::Graphics::ShadowEffect* shadowEffect;
 		eae6320::Graphics::SkyboxEffect* skyboxEffect;
+		eae6320::Graphics::PostProcessingEffect* postProcessingEffect;
 
 		float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -81,12 +82,16 @@ namespace
 	eae6320::Graphics::cView_RTV s_Scene_RTV;
 	eae6320::Graphics::cView_DSV s_Scene_DSV;
 	eae6320::Graphics::cView_SRV s_Lit_SRV;
-	eae6320::Graphics::cView_SRV s_SceneDepth_SRV;
+	eae6320::Graphics::cView_SRV s_SceneDepth_SRV; // input post process
 
 	eae6320::Graphics::cView_DSV s_shadowMap_DSV;
 	eae6320::Graphics::cView_SRV s_shadowMap_SRV;
 
 	eae6320::Graphics::cView_RTV s_Skybox_RTV;
+	eae6320::Graphics::cView_SRV s_Skybox_SRV; // input post process
+
+	eae6320::Graphics::cView_RTV s_PostProcess_RTV;
+
 }
 
 // Helper Declarations
@@ -223,6 +228,14 @@ void eae6320::Graphics::SubmitSkyboxData(eae6320::Graphics::SkyboxEffect* i_skyb
 	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
 	currentFrameData.skyboxEffect = i_skyboxeffect;
 	currentFrameData.skyboxCube = i_cubemesh;
+}
+
+void eae6320::Graphics::SubmitPostProcessingData(eae6320::Graphics::PostProcessingEffect* i_postprocessEffect)
+{
+	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
+
+	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
+	currentFrameData.postProcessingEffect = i_postprocessEffect;
 }
 
 eae6320::cResult eae6320::Graphics::WaitUntilDataForANewFrameCanBeSubmitted(const unsigned int i_timeToWait_inMilliseconds)
@@ -364,6 +377,27 @@ void eae6320::Graphics::RenderFrame()
 	skyboxCube->Draw();
 
 
+	// Post Processing Effect
+	// --------------------------------
+	// 
+	auto& postProcessingEffect = dataRequiredToRenderFrame->postProcessingEffect;
+
+	direct3dImmediateContext->OMSetRenderTargets(1,
+		&(s_PostProcess_RTV.m_renderTargetView),
+		nullptr);
+
+	s_PostProcess_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+	direct3dImmediateContext->RSSetViewports(1, s_PostProcess_RTV.m_viewPort);
+
+	postProcessingEffect->SetDepthSRV(&s_SceneDepth_SRV);
+	postProcessingEffect->SetLitSRV(&s_Skybox_SRV);
+
+	postProcessingEffect->Bind();
+	// Draw VertexID : 0, 1, 2
+	direct3dImmediateContext->Draw(3, 0);
+
+
+
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
 	// In order to display it the contents of the back buffer must be "presented"
 	// (or "swapped" with the "front buffer", which is the image that is actually being displayed)
@@ -387,6 +421,9 @@ void eae6320::Graphics::RenderFrame()
 		}
 		dataRequiredToRenderFrame->submittedPairCount = 0;
 	}
+	// TODO:
+	// CLEAN EFFECT and other MEsh...
+	// Like this LOOP
 }
 
 // Initialize / Clean Up
@@ -498,7 +535,14 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
-
+	if (!(result = s_Skybox_SRV.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the View");
+	}
+	if (!(result = s_PostProcess_RTV.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the View");
+	}
 	// Clean up submitted mesh/effect pairs from both frames
 	for (auto& frameData : s_dataRequiredToRenderAFrame)
 	{
@@ -605,7 +649,21 @@ namespace
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
 		}
-		if (!(result = s_Skybox_RTV.Initialize(i_initializationParameters, eae6320::Graphics::eRenderTargetType::Screen)))
+		if (!(result = s_Skybox_RTV.Initialize(i_initializationParameters, 
+			                                   eae6320::Graphics::eRenderTargetType::Texture)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+		if (!(result = s_Skybox_SRV.Initialize(i_initializationParameters, 
+			                                   s_Skybox_RTV.m_TextureBuffer, 
+			                                   eae6320::Graphics::BufferType::RenderTarget)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+		if (!(result = s_PostProcess_RTV.Initialize(i_initializationParameters,
+			                                        eae6320::Graphics::eRenderTargetType::Screen)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;

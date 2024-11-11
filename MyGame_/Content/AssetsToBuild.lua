@@ -10,28 +10,30 @@ return
 
 		{ path = "Shaders/Vertex/vertexInputLayout_mesh.shader", arguments = { "vertex" } },
 
-                { path = "Shaders/Fragment/light_PS.shader", arguments = { "fragment" } },
+        { path = "Shaders/Fragment/light_PS.shader", arguments = { "fragment" } },
 
-                { path = "Shaders/Vertex/skybox_VS.shader", arguments = { "vertex" } },
+        { path = "Shaders/Vertex/skybox_VS.shader", arguments = { "vertex" } },
 
-                { path = "Shaders/Vertex/shadow_VS.shader", arguments = { "vertex" } },
+        { path = "Shaders/Vertex/shadow_VS.shader", arguments = { "vertex" } },
 
-                { path = "Shaders/Fragment/skybox_PS.shader", arguments = { "fragment" } },
+        { path = "Shaders/Fragment/skybox_PS.shader", arguments = { "fragment" } },
 
-                { path = "Shaders/Vertex/fullScreenTriangle.shader", arguments = { "vertex" } },
+        { path = "Shaders/Vertex/fullScreenTriangle.shader", arguments = { "vertex" } },
 
-                { path = "Shaders/Fragment/postProcess_PS.shader", arguments = { "fragment" } },
+        { path = "Shaders/Fragment/postProcess_PS.shader", arguments = { "fragment" } },
+
+		{ path = "Shaders/Fragment/FXAA_post_PS.shader", arguments = { "fragment" } },
 	},
 
 	meshes = 
 	{
 	    { path = "Meshes/helix_gl.mesh" },
-            { path = "Meshes/helix_complex.mesh" },
+        { path = "Meshes/helix_complex.mesh" },
 	    { path = "Meshes/pipe_gl.mesh" },
 	    { path = "Meshes/plane_gl.mesh" },
-            { path = "Meshes/torus_gl.mesh" },
-            { path = "Meshes/Alien.mesh" },
-            { path = "Meshes/cube.mesh" },
+        { path = "Meshes/torus_gl.mesh" },
+        { path = "Meshes/Alien.mesh" },
+        { path = "Meshes/cube.mesh" },
 	    { path = "Meshes/house_debug.mesh" },
 	},
 

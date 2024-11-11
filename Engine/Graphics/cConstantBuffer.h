@@ -76,6 +76,7 @@ namespace eae6320
 		{
 			Light = 0,
 			Shadow = 1,
+			FXAA = 2,
 			Invalid
 		};
 

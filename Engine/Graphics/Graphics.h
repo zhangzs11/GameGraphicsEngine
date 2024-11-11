@@ -67,6 +67,12 @@ namespace eae6320
 
 		void SubmitPostProcessingData(PostProcessingEffect* i_postprocessEffect);
 
+		void SubmitFXAAData(PostProcessingEffect* i_FXAAEffect,
+			                float g_TexelSize_x, float g_TexelSize_y,
+			                float g_QualitySubPix,
+			                float g_QualityEdgeThreshold,
+			                float g_QualityEdgeThresholdMin);
+
 		// When the application is ready to submit data for a new frame
 		// it should call this before submitting anything
 		// (or, said another way, it is not safe to submit data for a new frame

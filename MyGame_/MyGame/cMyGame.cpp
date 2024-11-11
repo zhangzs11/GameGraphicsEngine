@@ -95,6 +95,27 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		cameraRigidBody.velocity = Math::sVector(0.0f, 0.0f, 0.0f);
 	}
 
+	if (UserInput::IsKeyPressed('1'))
+	{
+		m_FXAA_QualitySubPix = 0.00f;
+		m_FXAA_QualityEdgeThreshold = 0.333f;
+		m_FXAA_QualityEdgeThresholdMin = 0.0833f;
+	}
+
+	if (UserInput::IsKeyPressed('2'))
+	{
+		m_FXAA_QualitySubPix = 0.50f;
+		m_FXAA_QualityEdgeThreshold = 0.166f;
+		m_FXAA_QualityEdgeThresholdMin = 0.0625f;
+	}
+
+	if (UserInput::IsKeyPressed('3'))
+	{
+		m_FXAA_QualitySubPix = 1.00f;
+		m_FXAA_QualityEdgeThreshold = 0.063f;
+		m_FXAA_QualityEdgeThresholdMin = 0.0312f;
+	}
+
 	// Rotation: Arrow keys for pitch and yaw
 	if (UserInput::IsKeyPressed('I'))
 	{
@@ -184,6 +205,20 @@ void eae6320::cMyGame::SubmitPostProcessingDataToGraphics(eae6320::Graphics::Pos
 	eae6320::Graphics::SubmitPostProcessingData(i_postProcessingeffect);
 }
 
+void eae6320::cMyGame::SubmitFXAADataToGraphics(eae6320::Graphics::PostProcessingEffect* i_FXAAffect,
+	float g_TexelSize_x, float g_TexelSize_y,
+	float g_QualitySubPix,
+	float g_QualityEdgeThreshold,
+	float g_QualityEdgeThresholdMin)
+{
+	eae6320::Graphics::SubmitFXAAData(
+		i_FXAAffect,
+		g_TexelSize_x, g_TexelSize_y,
+		g_QualitySubPix,
+		g_QualityEdgeThreshold,
+		g_QualityEdgeThresholdMin);
+}
+
 void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
 	float color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -203,6 +238,11 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 	SubmitSkyboxDataToGraphics(m_effect_skybox, m_mesh_cube);
 
 	SubmitPostProcessingDataToGraphics(m_effect_postProcessing);
+
+	SubmitFXAADataToGraphics(m_effect_FXAA, 1.0f / 1024.0f, 1.0f / 1024.0f, 
+		                     m_FXAA_QualitySubPix, 
+		                     m_FXAA_QualityEdgeThreshold, 
+		                     m_FXAA_QualityEdgeThresholdMin);
 }
 
 // Initialize / Clean Up
@@ -365,6 +405,24 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
+	// FXAA EFFECT
+	float m_FXAA_QualitySubPix = 1.00f;
+	float m_FXAA_QualityEdgeThreshold = 0.166f;
+	float m_FXAA_QualityEdgeThresholdMin = 0.0833f;
+
+	result = eae6320::Graphics::PostProcessingEffect::CreatePostProcessingEffect(
+		m_effect_FXAA,
+		"data/Shaders/Vertex/fullScreenTriangle.binshader",
+		"data/Shaders/Fragment/FXAA_post_PS.binshader",
+		shadowRenderStateBits,
+		eae6320::Graphics::eSamplerType::FXAA_LinearClamp);
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize shadow map effect");
+		return result;
+	}
+
+
 	// Initialize GameObject
 	// ---------------------
 	eae6320::Graphics::sMaterial mat(eae6320::Math::sVector4(1.0f, 1.0f, 1.0f, 1.0f),          // ambient
@@ -469,6 +527,13 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 	{
 		m_effect_postProcessing->DecrementReferenceCount();
 		m_effect_postProcessing = nullptr;
+
+	}
+	// FXAA
+	if (m_effect_FXAA)
+	{
+		m_effect_FXAA->DecrementReferenceCount();
+		m_effect_FXAA = nullptr;
 
 	}
 	return Results::Success;

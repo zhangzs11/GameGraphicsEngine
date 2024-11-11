@@ -98,6 +98,11 @@ namespace eae6320
 			eae6320::Graphics::cMesh* i_cubemesh);
 
 		void SubmitPostProcessingDataToGraphics(eae6320::Graphics::PostProcessingEffect* i_postProcessingeffect);
+		void SubmitFXAADataToGraphics(eae6320::Graphics::PostProcessingEffect* i_FXAAffect,
+			float g_TexelSize_x, float g_TexelSize_y,
+			float g_QualitySubPix,
+			float g_QualityEdgeThreshold,
+			float g_QualityEdgeThresholdMin);
 
 		// Initialize / Clean Up
 		//----------------------
@@ -121,6 +126,13 @@ namespace eae6320
 		Graphics::SkyboxEffect* m_effect_skybox = nullptr;
 		Graphics::ShadowEffect* m_effect_shadowMap = nullptr;
 		Graphics::PostProcessingEffect* m_effect_postProcessing = nullptr;
+		Graphics::PostProcessingEffect* m_effect_FXAA = nullptr;
+
+		// FXAA
+		float m_FXAA_QualitySubPix;
+		float m_FXAA_QualityEdgeThreshold;
+		float m_FXAA_QualityEdgeThresholdMin;
+
 
 		Graphics::sDirectionalLight m_directionalLight;
 		Graphics::sPointLight m_pointLight;

@@ -20,8 +20,10 @@ namespace eae6320
 		{
 			Point,
 			Linear,
+			FXAA_LinearClamp,
 			Anisotropic,
 			Comparison_less_equal,
+
 		};
 	}
 }

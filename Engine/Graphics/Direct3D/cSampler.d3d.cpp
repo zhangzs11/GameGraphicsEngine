@@ -42,7 +42,12 @@ eae6320::cResult eae6320::Graphics::cSampler::Initialize(eae6320::Graphics::eSam
         samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
         samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
         break;
-
+    case eSamplerType::FXAA_LinearClamp:
+        samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+        samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+        samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+        samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+        break;
         // more...
     }
 

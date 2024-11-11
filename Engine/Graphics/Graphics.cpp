@@ -36,6 +36,8 @@ namespace
 		eae6320::Graphics::eConstantBufferEffectType::Light);
 	eae6320::Graphics::cConstantBuffer s_shadow_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame,
 		eae6320::Graphics::eConstantBufferEffectType::Shadow);
+	eae6320::Graphics::cConstantBuffer s_FXAA_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame,
+		eae6320::Graphics::eConstantBufferEffectType::FXAA);
 	// Submission Data
 	//----------------
 
@@ -45,9 +47,11 @@ namespace
 	{
 		eae6320::Graphics::ConstantBufferFormats::sLight_Frame constantData_frame;
 		eae6320::Graphics::ConstantBufferFormats::sShadow_Frame shadow_constantData_frame;
+		eae6320::Graphics::ConstantBufferFormats::sFXAA_Frame FXAA_constantData_frame;
 		eae6320::Graphics::ShadowEffect* shadowEffect;
 		eae6320::Graphics::SkyboxEffect* skyboxEffect;
 		eae6320::Graphics::PostProcessingEffect* postProcessingEffect;
+		eae6320::Graphics::PostProcessingEffect* FXAAEffect;
 
 		float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -91,6 +95,9 @@ namespace
 	eae6320::Graphics::cView_SRV s_Skybox_SRV; // input post process
 
 	eae6320::Graphics::cView_RTV s_PostProcess_RTV;
+	eae6320::Graphics::cView_SRV s_PostProcess_SRV; // input FXAA 
+
+	eae6320::Graphics::cView_RTV s_FXAA_RTV;
 
 }
 
@@ -236,6 +243,23 @@ void eae6320::Graphics::SubmitPostProcessingData(eae6320::Graphics::PostProcessi
 
 	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
 	currentFrameData.postProcessingEffect = i_postprocessEffect;
+}
+
+void eae6320::Graphics::SubmitFXAAData(eae6320::Graphics::PostProcessingEffect* i_FXAAEffect,
+	float g_TexelSize_x, float g_TexelSize_y,
+	float g_QualitySubPix,
+	float g_QualityEdgeThreshold,
+	float g_QualityEdgeThresholdMin)
+{
+	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
+
+	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
+	currentFrameData.FXAAEffect = i_FXAAEffect;
+	currentFrameData.FXAA_constantData_frame.g_TexelSize_x = g_TexelSize_x;
+	currentFrameData.FXAA_constantData_frame.g_TexelSize_y = g_TexelSize_y;
+	currentFrameData.FXAA_constantData_frame.g_QualitySubPix = g_QualitySubPix;
+	currentFrameData.FXAA_constantData_frame.g_QualityEdgeThreshold = g_QualityEdgeThreshold;
+	currentFrameData.FXAA_constantData_frame.g_QualityEdgeThresholdMin = g_QualityEdgeThresholdMin;
 }
 
 eae6320::cResult eae6320::Graphics::WaitUntilDataForANewFrameCanBeSubmitted(const unsigned int i_timeToWait_inMilliseconds)
@@ -398,6 +422,31 @@ void eae6320::Graphics::RenderFrame()
 
 
 
+	// FXAA
+	// --------------------------------
+	// 
+
+	// Update the frame constant buffer
+	{
+		// Copy the data from the system memory that the application owns to GPU memory
+		auto& FXAA_constantData_frame = dataRequiredToRenderFrame->FXAA_constantData_frame;
+		s_FXAA_constantBuffer_frame.Update(&FXAA_constantData_frame);
+		s_FXAA_constantBuffer_frame.Bind(
+			static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
+	}
+
+	auto& FXAAEffect = dataRequiredToRenderFrame->FXAAEffect;
+	direct3dImmediateContext->OMSetRenderTargets(1,
+		&(s_FXAA_RTV.m_renderTargetView),
+		nullptr);
+	s_FXAA_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+	direct3dImmediateContext->RSSetViewports(1, s_FXAA_RTV.m_viewPort);
+
+	FXAAEffect->SetLitSRV(&s_PostProcess_SRV);
+	FXAAEffect->Bind();
+	direct3dImmediateContext->Draw(3, 0);
+	
+
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
 	// In order to display it the contents of the back buffer must be "presented"
 	// (or "swapped" with the "front buffer", which is the image that is actually being displayed)
@@ -475,6 +524,21 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without frame constant buffer");
 			return result;
 		}
+
+		// FXAA CBuffer
+		if (result = s_FXAA_constantBuffer_frame.Initialize())
+		{
+			// There is only a single frame constant buffer that is reused
+			// and so it can be bound at initialization time and never unbound
+			//s_constantBuffer_frame.Bind(
+				// In our class both vertex and fragment shaders use per-frame constant data
+			//	static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
+		}
+		else
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without frame constant buffer");
+			return result;
+		}
 	}
 	// Initialize the events
 	{
@@ -540,6 +604,14 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
 	if (!(result = s_PostProcess_RTV.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the View");
+	}
+	if (!(result = s_PostProcess_SRV.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the View");
+	}
+	if (!(result = s_FXAA_RTV.CleanUp()))
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
@@ -663,7 +735,20 @@ namespace
 			return result;
 		}
 		if (!(result = s_PostProcess_RTV.Initialize(i_initializationParameters,
-			                                        eae6320::Graphics::eRenderTargetType::Screen)))
+			                                        eae6320::Graphics::eRenderTargetType::Texture)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+		if (!(result = s_PostProcess_SRV.Initialize(i_initializationParameters,
+			s_PostProcess_RTV.m_TextureBuffer,
+			eae6320::Graphics::BufferType::RenderTarget)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+		if (!(result = s_FXAA_RTV.Initialize(i_initializationParameters,
+			eae6320::Graphics::eRenderTargetType::Screen)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;

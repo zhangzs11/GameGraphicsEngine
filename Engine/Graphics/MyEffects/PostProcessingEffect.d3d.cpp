@@ -117,11 +117,15 @@ void eae6320::Graphics::PostProcessingEffect::Bind() const
 	m_renderState.Bind();
 
 	// Bind SRV
-	EAE6320_ASSERT((m_ScenceTexture != nullptr));
-	direct3dImmediateContext->PSSetShaderResources(0, 1, &(m_ScenceTexture->m_shaderResourceView));
+	//EAE6320_ASSERT((m_ScenceTexture != nullptr));
+	if (m_ScenceTexture) {
+		direct3dImmediateContext->PSSetShaderResources(0, 1, &(m_ScenceTexture->m_shaderResourceView));
+	}
 
-	EAE6320_ASSERT((m_DepthTexture != nullptr));
-	direct3dImmediateContext->PSSetShaderResources(1, 1, &(m_DepthTexture->m_shaderResourceView));
+	//EAE6320_ASSERT((m_DepthTexture != nullptr));
+	if (m_DepthTexture) {
+		direct3dImmediateContext->PSSetShaderResources(1, 1, &(m_DepthTexture->m_shaderResourceView));
+	}
 
 	// Bind Sampler
 	m_sampler_texture->Bind(0);

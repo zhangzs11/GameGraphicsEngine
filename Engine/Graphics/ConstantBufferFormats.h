@@ -38,8 +38,8 @@ namespace eae6320
 				float g_padding1[2];
 
 				sDirectionalLight g_DirLight;
-				sPointLight g_PointLight;
-				sSpotLight g_SpotLight;
+				sPointLight g_PointLight[10];
+				sSpotLight g_SpotLight[10];
 
 				Math::cMatrix_transformation g_ShadowTransform; // ShadowView * ShadowProj * T
 

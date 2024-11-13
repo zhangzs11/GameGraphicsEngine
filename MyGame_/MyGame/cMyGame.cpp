@@ -13,6 +13,7 @@
 
 #include <Engine/Time/Time.h>
 #include <string>
+#include <cmath>
 // Inherited Implementation
 //=========================
 
@@ -41,32 +42,32 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 
 	if (UserInput::IsKeyPressed(UserInput::KeyCodes::Left))
 	{
-		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(-1.0f, 0.0f, 0.0f);
+		m_gameObject_tree.GetRigidBodyState().acceleration += Math::sVector(-1.0f, 0.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Right))
 	{
-		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(1.0f, 0.0f, 0.0f);
+		m_gameObject_tree.GetRigidBodyState().acceleration += Math::sVector(1.0f, 0.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Up))
 	{
-		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(0.0f, 1.0f, 0.0f);
+		m_gameObject_tree.GetRigidBodyState().acceleration += Math::sVector(0.0f, 1.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed(UserInput::KeyCodes::Down))
 	{
-		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(0.0f, -1.0f, 0.0f);
+		m_gameObject_tree.GetRigidBodyState().acceleration += Math::sVector(0.0f, -1.0f, 0.0f);
 	}
 	else if (UserInput::IsKeyPressed('N'))
 	{
-		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(0.0f, 0.0f, 1.0f);
+		m_gameObject_tree.GetRigidBodyState().acceleration += Math::sVector(0.0f, 0.0f, 1.0f);
 	}
 	else if (UserInput::IsKeyPressed('M'))
 	{
-		m_gameObject_house.GetRigidBodyState().acceleration += Math::sVector(0.0f, 0.0f, -1.0f);
+		m_gameObject_tree.GetRigidBodyState().acceleration += Math::sVector(0.0f, 0.0f, -1.0f);
 	}
 	else
 	{
-		m_gameObject_house.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, 0.0f);
-		m_gameObject_house.GetRigidBodyState().velocity = Math::sVector(0.0f, 0.0f, 0.0f);
+		m_gameObject_tree.GetRigidBodyState().acceleration = Math::sVector(0.0f, 0.0f, 0.0f);
+		m_gameObject_tree.GetRigidBodyState().velocity = Math::sVector(0.0f, 0.0f, 0.0f);
 	}
 
 	auto& cameraRigidBody = m_camera.GetRigidBodyState();
@@ -97,19 +98,29 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 
 	if (UserInput::IsKeyPressed('1'))
 	{
+		m_current_postprocess_effect = m_effect_postProcessing_Default;
+	}
+
+	if (UserInput::IsKeyPressed('2'))
+	{
+		m_current_postprocess_effect = m_effect_postProcessing_Distortion;
+	}
+
+	if (UserInput::IsKeyPressed('4'))
+	{
 		m_FXAA_QualitySubPix = 0.00f;
 		m_FXAA_QualityEdgeThreshold = 0.333f;
 		m_FXAA_QualityEdgeThresholdMin = 0.0833f;
 	}
 
-	if (UserInput::IsKeyPressed('2'))
+	if (UserInput::IsKeyPressed('5'))
 	{
 		m_FXAA_QualitySubPix = 0.50f;
 		m_FXAA_QualityEdgeThreshold = 0.166f;
 		m_FXAA_QualityEdgeThresholdMin = 0.0625f;
 	}
 
-	if (UserInput::IsKeyPressed('3'))
+	if (UserInput::IsKeyPressed('6'))
 	{
 		m_FXAA_QualitySubPix = 1.00f;
 		m_FXAA_QualityEdgeThreshold = 0.063f;
@@ -119,7 +130,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	// Rotation: Arrow keys for pitch and yaw
 	if (UserInput::IsKeyPressed('I'))
 	{
-		// m_gameObject_gear.GetRigidBodyState().angularSpeed = 1.1f;
+		// m_gameObject_table.GetRigidBodyState().angularSpeed = 0.1f;
 	}
 	if (UserInput::IsKeyPressed('J'))
 	{
@@ -143,11 +154,14 @@ void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceL
 
 void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
-	m_gameObject_house.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_gameObject_tree.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_gameObject_tree2.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_gameObject_table.Update(i_elapsedSecondCount_sinceLastUpdate);
+	// m_gameObject_marblebust.Update(i_elapsedSecondCount_sinceLastUpdate);
 	m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
 }
 
-void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
+void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
 	if (i_gameObject.GetMesh() && i_gameObject.GetEffect())
 	{
@@ -157,18 +171,27 @@ void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, con
 	}
 }
 
-void eae6320::cMyGame::SubmitCameraToGraphics(cCamera& i_camera, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
+void eae6320::cMyGame::SubmitCameraToGraphics(cCamera& i_camera, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
 	auto worldToCameraTransform = i_camera.GetWorldToCameraTransform(i_elapsedSecondCount_sinceLastSimulationUpdate);
 	auto cameraToProjectedTransform = i_camera.GetCameraToProjectedTransform();
 	eae6320::Graphics::SubmitCameraData(worldToCameraTransform, cameraToProjectedTransform, i_camera.GetPosition());
 }
 
-void eae6320::cMyGame::SubmitLightDataToGraphics(eae6320::Graphics::sDirectionalLight& i_dirL,
-	                                             eae6320::Graphics::sPointLight& i_pointL,
-	                                             eae6320::Graphics::sSpotLight& i_spotL)
+void eae6320::cMyGame::SubmitLightDataToGraphics(std::vector<eae6320::Graphics::sDirectionalLight>& i_directionalLights,
+	                                             std::vector<eae6320::Graphics::sPointLight>& i_pointLights,
+	                                             std::vector<eae6320::Graphics::sSpotLight>& i_spotLights,
+	                                             const float i_elapsedSecondCount_systemTime)
 {
-	eae6320::Graphics::SubmitLightData(i_dirL, i_pointL, i_spotL);
+	i_spotLights[0].position = (sinf(i_elapsedSecondCount_systemTime)) * eae6320::Math::sVector(10.0f, 0.0f, 0.0f)
+		                + eae6320::Math::sVector(35.0f, 10.0f, 35.0f);
+
+	i_pointLights[0].diffuse = eae6320::Math::sVector4(0.0f, 
+		                                               10.0f * abs(sinf(i_elapsedSecondCount_systemTime)), 
+		                                               200.0f * abs(cosf(i_elapsedSecondCount_systemTime)), 
+		                                               1.0f);
+
+	eae6320::Graphics::SubmitLightData(i_directionalLights, i_pointLights, i_spotLights);
 }
 
 void eae6320::cMyGame::SubmitShadowDataToGraphics(eae6320::Graphics::ShadowEffect* i_Shadoweffect,
@@ -179,7 +202,7 @@ void eae6320::cMyGame::SubmitShadowDataToGraphics(eae6320::Graphics::ShadowEffec
 		i_dirL.position);
 
 	Math::cMatrix_transformation CameraToProjectedTransform_orthographic = Math::cMatrix_transformation::CreateCameraToProjectedTransform_orthographic(
-		100.0f, -100.0f, 100.0f, -100.0f, 0.01f, 200.0f
+		250.0f, -250.0f, 250.0f, -250.0f, 0.01f, 500.0f
 	);
 
 	Math::cMatrix_transformation T = Math::cMatrix_transformation(
@@ -225,19 +248,27 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 
 	eae6320::Graphics::SubmitBackgroundColor(color);
 	
-	SubmitGameObjectToGraphics(m_gameObject_house, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
-	SubmitGameObjectToGraphics(m_gameObject_plane, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
-	// SubmitGameObjectToGraphics(m_gameObject_skybox, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	for (int i = 0; i < 60; i++) {
+		SubmitGameObjectToGraphics(m_gameObject_plane[i], i_elapsedSecondCount_sinceLastSimulationUpdate);
+	}
 
-	SubmitLightDataToGraphics(m_directionalLight, m_pointLight, m_spotLight);
-	SubmitCameraToGraphics(m_camera, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_tree, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_tree2, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_table, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_marblebust, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_marblebust_big, i_elapsedSecondCount_sinceLastSimulationUpdate);
+	SubmitGameObjectToGraphics(m_gameObject_wall, i_elapsedSecondCount_sinceLastSimulationUpdate);
+
+	SubmitLightDataToGraphics(m_directionalLights, m_pointLights, m_spotLights,
+		i_elapsedSecondCount_systemTime);
+	SubmitCameraToGraphics(m_camera, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 	SubmitShadowDataToGraphics(m_effect_shadowMap,
-		                       m_directionalLight);
+		                       m_directionalLights[0]);
 
 	SubmitSkyboxDataToGraphics(m_effect_skybox, m_mesh_cube);
 
-	SubmitPostProcessingDataToGraphics(m_effect_postProcessing);
+	SubmitPostProcessingDataToGraphics(m_current_postprocess_effect);
 
 	SubmitFXAADataToGraphics(m_effect_FXAA, 1.0f / 1024.0f, 1.0f / 1024.0f, 
 		                     m_FXAA_QualitySubPix, 
@@ -255,27 +286,6 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize mesh
 	// ---------------
 
-	/*auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_plane, "data/Meshes/plane_gl.binmesh");
-	if (!result)
-	{
-		EAE6320_ASSERTF(false, "Failed to initialize mesh");
-		return result;
-	}
-
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_gear, "data/Meshes/torus_gl.binmesh");
-	if (!result)
-	{
-		EAE6320_ASSERTF(false, "Failed to initialize mesh");
-		return result;
-	}
-
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_helix, "data/Meshes/helix_complex.binmesh");
-	if (!result)
-	{
-		EAE6320_ASSERTF(false, "Failed to initialize mesh");
-		return result;
-	}*/
-
 	auto result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_cube, "data/Meshes/cube.binmesh");
 	if (!result)
 	{
@@ -283,26 +293,47 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_plane, "data/Meshes/plane_gl.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_plane, "data/Meshes/plane.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
 	}
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_house, "data/Meshes/house_debug.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_tree, "data/Meshes/quiver_tree.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
 	}
 
-	/*result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_Alien, "data/Meshes/Alien.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_table, "data/Meshes/table.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
 		return result;
-	}*/
+	}
+
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_marblebust, "data/Meshes/marble_bust.binmesh");
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize mesh");
+		return result;
+	}
+
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_marblebust_big, "data/Meshes/marble_bust_big.binmesh");
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize mesh");
+		return result;
+	}
+
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_wall, "data/Meshes/wall.binmesh");
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize mesh");
+		return result;
+	}
 
 	// Initialize effect
 	// -----------------
@@ -314,12 +345,12 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::RenderStates::DisableDrawingBothTriangleSides(renderStateBits);
 
 	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
-		                                              m_effect_light, 
+		                                              m_effect_tree, 
 		                                              "data/Shaders/Vertex/light_VS.binshader", 
 		                                              "data/Shaders/Fragment/light_PS.binshader",
 		                                              renderStateBits, 
-		                                              "data/Textures/house.bintexture", 
-		                                              "data/Textures/grass.bintexture",
+		                                              "data/Textures/quiver_tree_diffuse.bintexture", 
+		                                              "data/Textures/quiver_tree_normal_dx.bintexture",
 		                                              eae6320::Graphics::eSamplerType::Linear,
 		                                              eae6320::Graphics::eSamplerType::Comparison_less_equal);
 	if (!result)
@@ -330,12 +361,12 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 
 	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
-		                                              m_effect_light2,
+		                                              m_effect_plane,
 		                                              "data/Shaders/Vertex/light_VS.binshader",
 		                                              "data/Shaders/Fragment/light_PS.binshader",
 		                                              renderStateBits, 
 		                                              "data/Textures/grass.bintexture",
-		                                              "data/Textures/grass.bintexture",
+		                                              "",
 		                                              eae6320::Graphics::eSamplerType::Linear,
 		                                              eae6320::Graphics::eSamplerType::Comparison_less_equal);
 
@@ -344,6 +375,56 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		EAE6320_ASSERTF(false, "Failed to initialize light_2 effect");
 		return result;
 	}
+
+
+	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
+		m_effect_table,
+		"data/Shaders/Vertex/light_VS.binshader",
+		"data/Shaders/Fragment/light_PS.binshader",
+		renderStateBits,
+		"data/Textures/wooden_table_diff.bintexture",
+		"",
+		eae6320::Graphics::eSamplerType::Linear,
+		eae6320::Graphics::eSamplerType::Comparison_less_equal);
+
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize light_2 effect");
+		return result;
+	}
+
+	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
+		m_effect_marblebust,
+		"data/Shaders/Vertex/light_VS.binshader",
+		"data/Shaders/Fragment/light_PS.binshader",
+		renderStateBits,
+		"data/Textures/marble_bust_diff.bintexture",
+		"",
+		eae6320::Graphics::eSamplerType::Linear,
+		eae6320::Graphics::eSamplerType::Comparison_less_equal);
+
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize light_2 effect");
+		return result;
+	}
+
+	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
+		m_effect_wall,
+		"data/Shaders/Vertex/light_VS.binshader",
+		"data/Shaders/Fragment/light_PS.binshader",
+		renderStateBits,
+		"data/Textures/bricks.bintexture",
+		"",
+		eae6320::Graphics::eSamplerType::Linear,
+		eae6320::Graphics::eSamplerType::Comparison_less_equal);
+
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize light_2 effect");
+		return result;
+	}
+
 
 	// SKYBOX EFFECT
 	uint8_t skybox_renderStateBits = 0;
@@ -358,7 +439,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		"data/Shaders/Vertex/skybox_VS.binshader",
 		"data/Shaders/Fragment/skybox_PS.binshader",
 		skybox_renderStateBits, 
-		"data/Textures/desertcube1024.bintexture", 
+		"data/Textures/grasscube1024.bintexture", 
 		eae6320::Graphics::eSamplerType::Linear);
 
 	if (!result)
@@ -394,9 +475,23 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::RenderStates::EnableDrawingBothTriangleSides(postprocessingRenderStateBits);
 
 	result = eae6320::Graphics::PostProcessingEffect::CreatePostProcessingEffect(
-		m_effect_postProcessing,
+		m_effect_postProcessing_Default,
 		"data/Shaders/Vertex/fullScreenTriangle.binshader",
 		"data/Shaders/Fragment/postProcess_PS.binshader",
+		shadowRenderStateBits,
+		eae6320::Graphics::eSamplerType::Linear);
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize shadow map effect");
+		return result;
+	}
+
+	m_current_postprocess_effect = m_effect_postProcessing_Default;
+
+	result = eae6320::Graphics::PostProcessingEffect::CreatePostProcessingEffect(
+		m_effect_postProcessing_Distortion,
+		"data/Shaders/Vertex/fullScreenTriangle.binshader",
+		"data/Shaders/Fragment/postProcess_Distortion_PS.binshader",
 		shadowRenderStateBits,
 		eae6320::Graphics::eSamplerType::Linear);
 	if (!result)
@@ -423,59 +518,102 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	}
 
 
-	// Initialize GameObject
-	// ---------------------
-	eae6320::Graphics::sMaterial mat(eae6320::Math::sVector4(1.0f, 1.0f, 1.0f, 1.0f),          // ambient
-		                             eae6320::Math::sVector4(1.64f, 1.64f, 1.64f, 1.0f),          // diffuse
+	// Initialize GameObjects
+	// ----------------------
+	eae6320::Graphics::sMaterial mat(eae6320::Math::sVector4(0.8f, 0.8f, 0.8f, 1.0f),          // ambient
+		                             eae6320::Math::sVector4(1.0f, 1.0f, 1.0f, 1.0f),          // diffuse
 		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f),          // specular
 		                             eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f));         // reflect
 
 	m_gameObject_skybox.SetMesh(m_mesh_cube);
-	//m_gameObject_skybox.SetEffect(m_effect_skybox);
 	m_gameObject_skybox.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 0.0f));
 	
-	m_gameObject_house.SetMesh(m_mesh_house);
-	m_gameObject_house.SetEffect(m_effect_light);
-	m_gameObject_house.SetPosition(eae6320::Math::sVector(0.0f, -10.0f, 0.0f));
-	m_gameObject_house.SetMaxVelocity(2.0f);
-	m_gameObject_house.SetMaterial(mat);
+	m_gameObject_tree.SetMesh(m_mesh_tree);
+	m_gameObject_tree.SetEffect(m_effect_tree);
+	m_gameObject_tree.SetPosition(eae6320::Math::sVector(35.0f, -15.0f, 35.0f));
+	// m_gameObject_tree.SetMaxVelocity(2.0f);
+	m_gameObject_tree.SetMaterial(mat);
 
-	m_gameObject_plane.SetMesh(m_mesh_plane);
-	m_gameObject_plane.SetEffect(m_effect_light2);
-	m_gameObject_plane.SetPosition(eae6320::Math::sVector(0.0f, -12.0f, 0.0f));
-	m_gameObject_plane.SetMaterial(mat);
+	for (int i = 0; i < 60; i++) {
+		m_gameObject_plane[i].SetMesh(m_mesh_plane);
+		m_gameObject_plane[i].SetEffect(m_effect_plane);
+		m_gameObject_plane[i].SetPosition(eae6320::Math::sVector(0.0f, -12.0f, 0.0f) + 
+			                              eae6320::Math::sVector(20.0f * (i % 10), 0.0f, 20.0f * (i / 10)));
+		m_gameObject_plane[i].SetMaterial(mat);
+	}
 
-	m_directionalLight = eae6320::Graphics::sDirectionalLight(eae6320::Math::sVector4(0.5f, 0.5f, 0.5f, 1.0f), //ambient
-		                                                      eae6320::Math::sVector4(0.6f, 0.6f, 0.6f, 1.0f), //diffuse
-		                                                      eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f), //specular
-		                                                      eae6320::Math::sVector(-0.4f, -0.3f, 0.0f),      //direction
-		                                                      eae6320::Math::sVector(50.0f, 100.5f, 0.0f));     //position
+	m_gameObject_table.SetMesh(m_mesh_table);
+	m_gameObject_table.SetEffect(m_effect_table);
+	m_gameObject_table.SetPosition(eae6320::Math::sVector(45.0f, -15.0f, 55.0f));
+	//m_gameObject_table.SetMaxVelocity(2.0f);
+	m_gameObject_table.SetMaterial(mat);
 
-	m_pointLight = eae6320::Graphics::sPointLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),             //ambient
-		                                          eae6320::Math::sVector4(0.0f, 1500.0f, 150.0f, 1.0f),             //diffuse
-		                                          eae6320::Math::sVector4(0.0f, 1.0f, 0.0f, 1.0f),             //specular
-		                                          eae6320::Math::sVector(50.0f, -10.0f, 0.0f),                    //position
-		                                          10000.0f,                                                    //range
-		                                          eae6320::Math::sVector(0.1f, 1.0f, 0.8f));                   //att
+	m_gameObject_marblebust.SetMesh(m_mesh_marblebust);
+	m_gameObject_marblebust.SetEffect(m_effect_marblebust);
+	m_gameObject_marblebust.SetPosition(eae6320::Math::sVector(45.0f, -11.0f, 55.0f));
+	//m_gameObject_marblebust.SetMaxVelocity(2.0f);
+	m_gameObject_marblebust.SetMaterial(mat);
 
-	m_spotLight = eae6320::Graphics::sSpotLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),               //ambient
-		                                        eae6320::Math::sVector4(50.0f, 0.0f, 50.0f, 1.0f),               //diffuse
-		                                        eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),               //specular
-		                                        eae6320::Math::sVector(0.0f, 5.0f, 0.0f),                      //position
-		                                        10000.0f,                                                         //range
-		                                        eae6320::Math::sVector(0.0f, -1.0f, 0.0f),                    //direction
-		                                        10.0f,                                                          //spot
-		                                        eae6320::Math::sVector(1.0f, 1.0f, 1.0f));                     //att
+	m_gameObject_marblebust_big.SetMesh(m_mesh_marblebust_big);
+	m_gameObject_marblebust_big.SetEffect(m_effect_marblebust);
+	m_gameObject_marblebust_big.SetPosition(eae6320::Math::sVector(80.0f, -15.0f, 65.0f));
+	//m_gameObject_marblebust_big.SetMaxVelocity(2.0f);
+	m_gameObject_marblebust_big.SetMaterial(mat);
+
+	m_gameObject_tree2.SetMesh(m_mesh_tree);
+	m_gameObject_tree2.SetEffect(m_effect_tree);
+	m_gameObject_tree2.SetPosition(eae6320::Math::sVector(100.0f, -15.0f, 65.0f));
+	// m_gameObject_tree2.SetMaxVelocity(2.0f);
+	m_gameObject_tree2.GetRigidBodyState().angularSpeed = 0.5f;
+	m_gameObject_tree2.SetMaterial(mat);
+
+	m_gameObject_wall.SetMesh(m_mesh_wall);
+	m_gameObject_wall.SetEffect(m_effect_wall);
+	m_gameObject_wall.SetPosition(eae6320::Math::sVector(85.0f, -12.0f, 55.0f));
+	m_gameObject_wall.SetOrientation(eae6320::Math::cQuaternion(
+		eae6320::Math::cQuaternion::LookAt(
+			eae6320::Math::sVector(-1.0f, 0.0f, 0.9f),
+			eae6320::Math::sVector(0.0f, 1.0f, 0.0f))));
+			m_gameObject_wall.SetMaxVelocity(2.0f);
+			m_gameObject_wall.SetMaterial(mat);
+
+
+	// Initialize Lights
+	// ---------------------
+	eae6320::Graphics::sDirectionalLight directionalLight = eae6320::Graphics::sDirectionalLight(eae6320::Math::sVector4(0.6f, 0.6f, 0.6f, 1.0f), //ambient
+		                                                      eae6320::Math::sVector4(0.8f, 0.8f, 0.8f, 1.0f),                                      //diffuse
+		                                                      eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),                                      //specular
+		                                                      eae6320::Math::sVector(-0.5f, -0.5f, 0.0f),                                           //direction
+		                                                      eae6320::Math::sVector(100.0f, 100.0f, 0.0f));                                         //position
+
+	eae6320::Graphics::sPointLight pointLight = eae6320::Graphics::sPointLight(eae6320::Math::sVector4(0.0f, 0.1f, 0.0f, 1.0f),             //ambient
+		                                          eae6320::Math::sVector4(0.0f, 100.0f, 0.0f, 1.0f),                                            //diffuse
+		                                          eae6320::Math::sVector4(0.0f, 1.0f, 0.0f, 1.0f),                                            //specular
+		                                          eae6320::Math::sVector(85.0f, 0.0f, 55.0f),                                                //position
+		                                          10000.0f,                                                                                   //range
+		                                          eae6320::Math::sVector(1.0f, 1.0f, 1.0f));                                                  //att
+
+	eae6320::Graphics::sSpotLight spotLight = eae6320::Graphics::sSpotLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),               //ambient
+		                                        eae6320::Math::sVector4(50.0f, 500.0f, 50.0f, 1.0f),                                         //diffuse
+		                                        eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),                                             //specular
+		                                        eae6320::Math::sVector(45.0f, 10.0f, 35.0f),                                                 //position
+		                                        300.0f,                                                                                      //range
+		                                        eae6320::Math::sVector(0.0f, -1.0f, 0.0f),                                                   //direction
+		                                        50.0f,                                                                                       //spot
+		                                        eae6320::Math::sVector(1.0f, 1.0f, 1.0f));                                                   //att
 	
-
+	m_directionalLights.push_back(directionalLight);
+	m_pointLights.push_back(pointLight);
+	m_spotLights.push_back(spotLight);
 
 
 	// Initialize Camera
 	// -----------------
 
-	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1.0f, 20.0f, 200.0f);
-	m_camera.SetPosition(eae6320::Math::sVector(0.0f, 0.0f, 2.0f));
-	m_camera.SetOrientation(eae6320::Math::cQuaternion());
+	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1280.0f/1024.0f, 1.0f, 2000.0f);
+	m_camera.SetPosition(eae6320::Math::sVector(100.0f, 0.0f, 100.0f));
+	m_camera.SetOrientation(eae6320::Math::cQuaternion::LookAt(eae6320::Math::sVector(1.0f, 0.0f, 1.0f), 
+		                                                      eae6320::Math::sVector(0.0f, 1.0f, 0.0f)));
 
 	return Results::Success;
 }
@@ -494,20 +632,55 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 		m_mesh_cube->DecrementReferenceCount();
 		m_mesh_cube = nullptr;
 	}
-	if (m_mesh_house)
+	if (m_mesh_tree)
 	{
-		m_mesh_house->DecrementReferenceCount();
-		m_mesh_house = nullptr;
+		m_mesh_tree->DecrementReferenceCount();
+		m_mesh_tree = nullptr;
 	}
-	if (m_effect_light)
+	if (m_mesh_table)
 	{
-		m_effect_light->DecrementReferenceCount();
-		m_effect_light = nullptr;
+		m_mesh_table->DecrementReferenceCount();
+		m_mesh_table = nullptr;
 	}
-	if (m_effect_light2)
+	if (m_mesh_marblebust)
 	{
-		m_effect_light2->DecrementReferenceCount();
-		m_effect_light2 = nullptr;
+		m_mesh_marblebust->DecrementReferenceCount();
+		m_mesh_marblebust = nullptr;
+	}
+	if (m_mesh_marblebust_big)
+	{
+		m_mesh_marblebust_big->DecrementReferenceCount();
+		m_mesh_marblebust_big = nullptr;
+	}
+	if (m_mesh_wall)
+	{
+		m_mesh_wall->DecrementReferenceCount();
+		m_mesh_wall = nullptr;
+	}
+	if (m_effect_tree)
+	{
+		m_effect_tree->DecrementReferenceCount();
+		m_effect_tree = nullptr;
+	}
+	if (m_effect_plane)
+	{
+		m_effect_plane->DecrementReferenceCount();
+		m_effect_plane = nullptr;
+	}
+	if (m_effect_table)
+	{
+		m_effect_table->DecrementReferenceCount();
+		m_effect_table = nullptr;
+	}
+	if (m_effect_marblebust)
+	{
+		m_effect_marblebust->DecrementReferenceCount();
+		m_effect_marblebust = nullptr;
+	}
+	if (m_effect_wall)
+	{
+		m_effect_wall->DecrementReferenceCount();
+		m_effect_wall = nullptr;
 	}
 	// SKYBOX
 	if (m_effect_skybox)
@@ -523,10 +696,16 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 
 	}
 	// POST PROCESSING
-	if (m_effect_postProcessing)
+	if (m_effect_postProcessing_Default)
 	{
-		m_effect_postProcessing->DecrementReferenceCount();
-		m_effect_postProcessing = nullptr;
+		m_effect_postProcessing_Default->DecrementReferenceCount();
+		m_effect_postProcessing_Default = nullptr;
+
+	}
+	if (m_effect_postProcessing_Distortion)
+	{
+		m_effect_postProcessing_Distortion->DecrementReferenceCount();
+		m_effect_postProcessing_Distortion = nullptr;
 
 	}
 	// FXAA

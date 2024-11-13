@@ -382,8 +382,8 @@ void main(
         posM.y += pixelOffsetSubpix * lengthSign;
 
     // debug output
-    o_color =  float4(1.0f - 2.0f * pixelOffsetSubpix, 2.0f * pixelOffsetSubpix, 0.0f, 1.0f);
+    // o_color =  float4(1.0f - 2.0f * pixelOffsetSubpix, 2.0f * pixelOffsetSubpix, 0.0f, 1.0f);
 
-    //o_color =  float4(g_TextureInput.SampleLevel(g_SamplerLinearClamp, posM, 0).xyz, lumaM);
+    o_color =  float4(g_TextureInput.SampleLevel(g_SamplerLinearClamp, posM, 0).xyz, lumaM);
 
 }

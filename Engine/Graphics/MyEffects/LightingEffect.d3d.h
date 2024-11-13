@@ -4,6 +4,8 @@
 #include "../Configuration.h"
 #include "../cRenderState.h"
 
+#include <string>
+
 #include <Engine/Results/Results.h>
 #include <Engine/Assets/ReferenceCountedAssets.h>
 // Forward Declarations

@@ -20,8 +20,8 @@ cbuffer g_constantBuffer_frame : register( b0 )
 	float2 g_padding1;
 	
     DirectionalLight g_DirLight;
-    PointLight g_PointLight;
-    SpotLight g_SpotLight;
+    PointLight g_PointLight[10];
+    SpotLight g_SpotLight[10];
 	
     float4x4 g_ShadowTransform; // ShadowView * ShadowProj * T
 	

@@ -32,13 +32,14 @@ namespace eae6320
 		void SetMaxVelocity(float i_maxV) { m_maxVelocity = i_maxV; }
 		void SetMaterial(Graphics::sMaterial i_material) { m_material = i_material;  }
 		void SetPosition(Math::sVector i_position) { m_rigidBodyState.position = i_position; }
+		void SetOrientation(Math::cQuaternion i_orientation) { m_rigidBodyState.orientation = i_orientation; }
 
 	private:
 		Graphics::cMesh* m_mesh;
 		Graphics::LightingEffect* m_lightEffect;
 		Physics::sRigidBodyState m_rigidBodyState;
 		Graphics::sMaterial m_material;
-		float m_maxVelocity;
+		float m_maxVelocity = 2.0f;
 	};
 }
 

@@ -99,15 +99,29 @@ eae6320::cResult eae6320::Graphics::LightingEffect::Initialize
 
 	// Load Texture
 	{
-		if (!(result = cTexture::CreateTextureDDS(m_texture0, texture0Path.c_str())))
+		if (!texture0Path.empty())
 		{
-			EAE6320_ASSERTF(false, "Can't initialize effect without texture");
-			return result;
+			if (!(result = cTexture::CreateTextureDDS(m_texture0, texture0Path.c_str())))
+			{
+				EAE6320_ASSERTF(false, "Can't initialize effect without texture");
+				return result;
+			}
 		}
-		if (!(result = cTexture::CreateTextureDDS(m_texture1, texture1Path.c_str())))
+		else
 		{
-			EAE6320_ASSERTF(false, "Can't initialize effect without texture");
-			return result;
+			m_texture0 = nullptr; // or handle accordingly if you want to set a default texture or skip this texture
+		}
+		if (!texture1Path.empty())
+		{
+			if (!(result = cTexture::CreateTextureDDS(m_texture1, texture1Path.c_str())))
+			{
+				EAE6320_ASSERTF(false, "Can't initialize effect without texture");
+				return result;
+			}
+		}
+		else
+		{
+			m_texture1 = nullptr; // or handle accordingly if you want to set a default texture or skip this texture
 		}
 	}
 
@@ -145,8 +159,12 @@ void eae6320::Graphics::LightingEffect::Bind() const
 	m_renderState.Bind();
 
 	// Bind Texture
-	m_texture0->Bind(0);
-	m_texture1->Bind(1);
+	if (m_texture0) {
+		m_texture0->Bind(0);
+	}
+	if (m_texture1) {
+		m_texture1->Bind(1);
+	}
 
 	// Bind Sampler
 	m_sampler_texture->Bind(0);

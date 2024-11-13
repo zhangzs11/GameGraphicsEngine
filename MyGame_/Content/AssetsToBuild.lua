@@ -22,30 +22,44 @@ return
 
         { path = "Shaders/Fragment/postProcess_PS.shader", arguments = { "fragment" } },
 
+		{ path = "Shaders/Fragment/postProcess_Distortion_PS.shader", arguments = { "fragment" } },
+
 		{ path = "Shaders/Fragment/FXAA_post_PS.shader", arguments = { "fragment" } },
 	},
 
 	meshes = 
 	{
-	    { path = "Meshes/helix_gl.mesh" },
-        { path = "Meshes/helix_complex.mesh" },
-	    { path = "Meshes/pipe_gl.mesh" },
-	    { path = "Meshes/plane_gl.mesh" },
-        { path = "Meshes/torus_gl.mesh" },
-        { path = "Meshes/Alien.mesh" },
+	    { path = "Meshes/plane.mesh" },
         { path = "Meshes/cube.mesh" },
-	    { path = "Meshes/house_debug.mesh" },
+		{ path = "Meshes/quiver_tree.mesh" },
+		{ path = "Meshes/table.mesh" },
+		{ path = "Meshes/marble_bust.mesh" },
+		{ path = "Meshes/marble_bust_big.mesh" },
+		{ path = "Meshes/wall.mesh" },
 	},
 
 	textures = 
 	{
 		{ path = "Textures/bricks.dds" },
-		{ path = "Textures/flare.dds" },
+		{ path = "Textures/bricks_nmap.dds" },
+		{ path = "Textures/stones.dds" },
+		{ path = "Textures/stones_nmap.dds" },
 		{ path = "Textures/grass.dds" },
 		{ path = "Textures/stone.dds" },
 		{ path = "Textures/water1.dds" },
 		{ path = "Textures/water2.dds" },
         { path = "Textures/desertcube1024.dds" },
 		{ path = "Textures/house.dds" },
+		{ path = "Textures/ganges_diff_4k.dds" },
+		{ path = "Textures/ganges_dx_nmap_4k.dds" },
+		{ path = "Textures/quiver_tree_diffuse.dds" },
+		{ path = "Textures/quiver_tree_normal_dx.dds" },
+
+		{ path = "Textures/marble_bust_diff.dds" },
+		{ path = "Textures/marble_bust_nmap.dds" },
+		{ path = "Textures/wooden_table_diff.dds" },
+		{ path = "Textures/wooden_table_nmap.dds" },
+
+		{ path = "Textures/grasscube1024.dds" },
 	},
 }

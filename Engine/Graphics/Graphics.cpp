@@ -134,15 +134,32 @@ void eae6320::Graphics::SubmitCameraData(const Math::cMatrix_transformation& i_t
 	constantData_frame.g_EyePosW = i_eyePosW;
 }
 
-void eae6320::Graphics::SubmitLightData(const eae6320::Graphics::sDirectionalLight& i_directionalLight,
-	                 const eae6320::Graphics::sPointLight& i_pointLight,
-	                 const eae6320::Graphics::sSpotLight& i_spotLight)
+void eae6320::Graphics::SubmitLightData(
+	const std::vector<eae6320::Graphics::sDirectionalLight>& i_directionalLights,
+	const std::vector<eae6320::Graphics::sPointLight>& i_pointLights,
+	const std::vector<eae6320::Graphics::sSpotLight>& i_spotLights)
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
 	auto& constantData_frame = s_dataBeingSubmittedByApplicationThread->constantData_frame;
-	constantData_frame.g_DirLight = i_directionalLight;
-	constantData_frame.g_PointLight = i_pointLight;
-	constantData_frame.g_SpotLight = i_spotLight;
+	constantData_frame.g_DirLight = i_directionalLights[0];
+	
+	for (size_t i = 0; i < i_pointLights.size() && i < 10; ++i)
+	{
+		constantData_frame.g_PointLight[i] = i_pointLights[i];
+	}
+	for (size_t i = i_pointLights.size(); i < 10; ++i)
+	{
+		constantData_frame.g_PointLight[i] = {};
+	}
+
+	for (size_t i = 0; i < i_spotLights.size() && i < 10; ++i)
+	{
+		constantData_frame.g_SpotLight[i] = i_spotLights[i];
+	}
+	for (size_t i = i_spotLights.size(); i < 10; ++i)
+	{
+		constantData_frame.g_SpotLight[i] = {};
+	}
 }
 
 void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, eae6320::Graphics::LightingEffect* i_effect)

@@ -17,6 +17,7 @@
 #include "MyEffects/SkyboxEffect.d3d.h"
 
 #include <cstdint>
+#include <vector>
 #include <Engine/Results/Results.h>
 #include <Engine/Math/cMatrix_transformation.h>
 
@@ -52,9 +53,9 @@ namespace eae6320
 			                  const eae6320::Math::cMatrix_transformation& i_transform_cameraToProjected, 
 			                  const Math::sVector& i_eyePosW);
 
-		void SubmitLightData(const sDirectionalLight& i_directionalLight,
-			                 const sPointLight& i_pointLight,
-			                 const sSpotLight& i_spotLight);
+		void SubmitLightData(const std::vector<eae6320::Graphics::sDirectionalLight>& i_directionalLights,
+			                 const std::vector<eae6320::Graphics::sPointLight>& i_pointLights,
+			                 const std::vector<eae6320::Graphics::sSpotLight>& i_spotLights);
 
 		void SubmitMaterial(const sMaterial& i_material);
 		void SubmitShadowData(ShadowEffect* i_Shadoweffect,

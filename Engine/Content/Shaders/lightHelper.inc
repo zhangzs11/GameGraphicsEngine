@@ -188,4 +188,19 @@ float CalcShadowFactor(SamplerComparisonState samShadow,
     return percentLit /= 9.0f;
 }
 
+float3 NormalSampleToWorldSpace(float3 normalMapSample, float3 uintNormalW, float4 tangentW)
+{
+    float3 normalT = 2.0f * normalMapSample - 1.0f;
+
+    float3 N = uintNormalW;
+    float3 T = normalize(tangentW.xyz - dot(tangentW.xyz, N) * N);
+    float3 B = cross(N, T);
+
+    float3x3 TBN = float3x3(T, B, N);
+    
+    float3 bumpedNormalW = mul(TBN, normalT);
+
+    return bumpedNormalW;
+}
+
 #endif // LIGHTHELPER_INC_H

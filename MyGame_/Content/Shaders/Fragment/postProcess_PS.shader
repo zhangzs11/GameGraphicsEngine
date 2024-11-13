@@ -1,5 +1,6 @@
 /*
-	This is the one of post process fragment shader
+	This is the default post process fragment shader
+    No special post process effect
 */
 
 #include <Shaders/light.inc>

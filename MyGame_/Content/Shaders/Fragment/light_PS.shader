@@ -46,6 +46,9 @@ void main(
 )
 
 {
+	float4 texColor = g_texture0.Sample(g_sampler, i_fragmentUV);
+	clip(texColor.a - 0.1f);
+
 	// Calculate light
 	// ---------------
 	i_fragmentNormal_world = normalize(i_fragmentNormal_world);
@@ -67,17 +70,24 @@ void main(
     diffuse += shadow * D;
     spec += shadow * S;
 
-	ComputePointLight(g_Material, g_PointLight, i_fragmentPosition_world, i_fragmentNormal_world, hitToEyeW, A, D, S);
-    ambient += A;
-    diffuse += D;
-    spec += S;
+	[unroll]
+    for (int i = 0; i < 10; ++i)
+    {
+		ComputePointLight(g_Material, g_PointLight[i], i_fragmentPosition_world, i_fragmentNormal_world, hitToEyeW, A, D, S);
+		ambient += A;
+		diffuse += D;
+		spec += S;
+	}
 
-	ComputeSpotLight(g_Material, g_SpotLight, i_fragmentPosition_world, i_fragmentNormal_world, hitToEyeW, A, D, S);
-    ambient += A;
-    diffuse += D;
-    spec += S;
+	[unroll]
+    for (int j = 0; j < 10; ++j)
+    {
+		ComputeSpotLight(g_Material, g_SpotLight[j], i_fragmentPosition_world, i_fragmentNormal_world, hitToEyeW, A, D, S);
+		ambient += A;
+		diffuse += D;
+		spec += S;
+	}
 
-	float4 texColor = g_texture0.Sample(g_sampler, i_fragmentUV);
 	float4 litColor = texColor * (ambient + diffuse) + spec;
     litColor.a = texColor.a * g_Material.diffuse.a;
 

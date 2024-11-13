@@ -7,6 +7,7 @@
 
 // Includes
 //=========
+#include <vector>
 
 #include <Engine/Application/iApplication.h>
 #include <Engine/Results/Results.h>
@@ -73,7 +74,7 @@ namespace eae6320
 		void GetDefaultInitialResolution(uint16_t& o_width, uint16_t& o_height) const final
 		{
 			o_width = 1024;
-			o_height = 1024;
+			o_height = 768;
 		}
 #endif
 
@@ -85,11 +86,13 @@ namespace eae6320
 		void UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate) final;
 		void SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate) final;
 
-		void SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
-		void SubmitCameraToGraphics(cCamera& i_camera, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
-		void SubmitLightDataToGraphics(eae6320::Graphics::sDirectionalLight& i_dirL,
-			                           eae6320::Graphics::sPointLight& i_pointL,
-			                           eae6320::Graphics::sSpotLight& i_spotL);
+		void SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
+		void SubmitCameraToGraphics(cCamera& i_camera, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
+		void SubmitLightDataToGraphics(
+									   std::vector<eae6320::Graphics::sDirectionalLight>& i_directionalLights,
+									   std::vector<eae6320::Graphics::sPointLight>& i_pointLights,
+									   std::vector<eae6320::Graphics::sSpotLight>& i_spotLights,
+			                           const float i_elapsedSecondCount_systemTime);
 
 		void SubmitShadowDataToGraphics(eae6320::Graphics::ShadowEffect* i_Shadoweffect,
 			eae6320::Graphics::sDirectionalLight& i_dirL);
@@ -113,19 +116,25 @@ namespace eae6320
 		// Mesh / Effect
 		//----------------------
 
-		// Graphics::cMesh* m_mesh_gear = nullptr;
-		// Graphics::cMesh* m_mesh_helix = nullptr;
-		// Graphics::cMesh* m_mesh_Alien = nullptr;
-
 		Graphics::cMesh* m_mesh_plane = nullptr;
-		Graphics::cMesh* m_mesh_house = nullptr;
+		Graphics::cMesh* m_mesh_tree = nullptr;
 		Graphics::cMesh* m_mesh_cube = nullptr;
+		Graphics::cMesh* m_mesh_table = nullptr;
+		Graphics::cMesh* m_mesh_marblebust = nullptr;
+		Graphics::cMesh* m_mesh_marblebust_big = nullptr;
+		Graphics::cMesh* m_mesh_wall = nullptr;
 
-		Graphics::LightingEffect* m_effect_light = nullptr;
-		Graphics::LightingEffect* m_effect_light2 = nullptr;
+		Graphics::LightingEffect* m_effect_tree = nullptr;
+		Graphics::LightingEffect* m_effect_plane = nullptr;
+		Graphics::LightingEffect* m_effect_table = nullptr;
+		Graphics::LightingEffect* m_effect_marblebust = nullptr;
+		Graphics::LightingEffect* m_effect_wall = nullptr;
+
 		Graphics::SkyboxEffect* m_effect_skybox = nullptr;
 		Graphics::ShadowEffect* m_effect_shadowMap = nullptr;
-		Graphics::PostProcessingEffect* m_effect_postProcessing = nullptr;
+
+		Graphics::PostProcessingEffect* m_effect_postProcessing_Default = nullptr;
+		Graphics::PostProcessingEffect* m_effect_postProcessing_Distortion = nullptr;
 		Graphics::PostProcessingEffect* m_effect_FXAA = nullptr;
 
 		// FXAA
@@ -134,23 +143,21 @@ namespace eae6320
 		float m_FXAA_QualityEdgeThresholdMin;
 
 
-		Graphics::sDirectionalLight m_directionalLight;
-		Graphics::sPointLight m_pointLight;
-		Graphics::sSpotLight m_spotLight;
+		std::vector<eae6320::Graphics::sDirectionalLight> m_directionalLights;
+		std::vector<eae6320::Graphics::sPointLight> m_pointLights;
+		std::vector<eae6320::Graphics::sSpotLight> m_spotLights;
 
-		// Texture
-		// ---------------------
-		
 
 		// Game Objects
 		//----------------------
-		// cGameObject m_gameObject_plane;
-		// cGameObject m_gameObject_gear;
-		// cGameObject m_gameObject_helix;
-		// cGameObject m_gameObject_pipe;
+		cGameObject m_gameObject_plane[60];
+		cGameObject m_gameObject_tree;
+		cGameObject m_gameObject_tree2;
+		cGameObject m_gameObject_table;
+		cGameObject m_gameObject_marblebust;
+		cGameObject m_gameObject_marblebust_big;
+		cGameObject m_gameObject_wall;
 
-		cGameObject m_gameObject_plane;
-		cGameObject m_gameObject_house;
 		cGameObject m_gameObject_skybox;
 
 		cCamera m_camera;
@@ -162,6 +169,7 @@ namespace eae6320
 		bool ifDownPressed = false;
 		bool ifLeftPressed = false;
 		bool ifRightPressed = false;
+		Graphics::PostProcessingEffect* m_current_postprocess_effect = nullptr;
 
 	};
 }

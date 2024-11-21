@@ -40,31 +40,6 @@ struct ID3D11Texture2D;
 // Class Declaration
 //==================
 
-//namespace eae6320
-//{
-//	namespace Graphics
-//	{
-//		class cView
-//		{
-//		public:
-//			cResult Initialize(const sInitializationParameters& i_initializationParameters, eViewType i_viewType);
-//			void Clear(const float i_clearColor[4]);
-//			void Bind();
-//			cResult CleanUp();
-//
-//			ID3D11ShaderResourceView* GetshaderResourceView() { return m_shaderResourceView; }
-//		private:
-//			eViewType m_viewType = eViewType::Screen;
-//
-//#if defined( EAE6320_PLATFORM_D3D )
-//			D3D11_VIEWPORT* m_viewPort = nullptr;
-//
-//			ID3D11RenderTargetView* m_renderTargetView = nullptr;     // For Screen
-//			ID3D11DepthStencilView* m_depthStencilView = nullptr;     // For Screen and shadow map
-//			ID3D11ShaderResourceView* m_shaderResourceView = nullptr; // For shadow map
-//#endif
-//		};
-
 namespace eae6320
 {
 	namespace Graphics

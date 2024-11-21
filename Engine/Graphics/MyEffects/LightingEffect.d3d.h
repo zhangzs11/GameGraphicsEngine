@@ -53,7 +53,6 @@ namespace eae6320
                 );
 
             void SetShadowMapSRV(cView_SRV* i_shadowMap) { m_shadowMap = i_shadowMap; }
-                // const ID3D11ShaderResourceView* shadowMap_SRV,
 
         private:
             // This prevents the class or struct from using illegal functions

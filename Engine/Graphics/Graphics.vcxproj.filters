@@ -203,9 +203,6 @@
     <ClInclude Include="MyEffects\ShadowEffect.d3d.h">
       <Filter>MyEffects</Filter>
     </ClInclude>
-    <ClInclude Include="IEffect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MyEffects\PostProcessingEffect.d3d.h">
       <Filter>MyEffects</Filter>
     </ClInclude>

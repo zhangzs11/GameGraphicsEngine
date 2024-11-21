@@ -133,7 +133,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Graphics.h" />
-    <ClInclude Include="IEffect.h" />
     <ClInclude Include="MyEffects\LightingEffect.d3d.h" />
     <ClInclude Include="MyEffects\PostProcessingEffect.d3d.h" />
     <ClInclude Include="MyEffects\ShadowEffect.d3d.h" />

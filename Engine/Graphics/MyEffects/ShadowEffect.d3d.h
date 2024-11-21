@@ -46,8 +46,6 @@ namespace eae6320
                 const uint8_t i_renderStateBits
             );
 
-            // cView_SRV* GetShadowMapSRV() const { return m_shadowMap_SRV; }
-
         private:
             // This prevents the class or struct from using illegal functions
             EAE6320_ASSETS_DECLAREDELETEDREFERENCECOUNTEDFUNCTIONS(ShadowEffect)
@@ -63,12 +61,6 @@ namespace eae6320
 
             // Render State
             eae6320::Graphics::cRenderState m_renderState;
-
-            // Shader Resource View (Create)
-            // cView_SRV* m_shadowMap_SRV = nullptr;
-
-            // Depth Stencil View (Create)
-            // cView_DSV* m_depthStencilView = nullptr;
 
             // Initialize the effect
             cResult Initialize(

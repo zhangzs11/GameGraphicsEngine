@@ -300,7 +300,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
-	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_tree, "data/Meshes/quiver_tree.binmesh");
+	result = eae6320::Graphics::cMesh::CreateMesh(m_mesh_tree, "data/Meshes/quiver_tree_all_change.binmesh");
 	if (!result)
 	{
 		EAE6320_ASSERTF(false, "Failed to initialize mesh");
@@ -347,7 +347,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
 		                                              m_effect_tree, 
 		                                              "data/Shaders/Vertex/light_VS.binshader", 
-		                                              "data/Shaders/Fragment/light_PS.binshader",
+		                                              "data/Shaders/Fragment/light_NormalMap_PS.binshader",
 		                                              renderStateBits, 
 		                                              "data/Textures/quiver_tree_diffuse.bintexture", 
 		                                              "data/Textures/quiver_tree_normal_dx.bintexture",
@@ -363,10 +363,10 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
 		                                              m_effect_plane,
 		                                              "data/Shaders/Vertex/light_VS.binshader",
-		                                              "data/Shaders/Fragment/light_PS.binshader",
+		                                              "data/Shaders/Fragment/light_NormalMap_PS.binshader",
 		                                              renderStateBits, 
-		                                              "data/Textures/grass.bintexture",
-		                                              "",
+		                                              "data/Textures/ganges_diff_4k.bintexture",
+		                                              "data/Textures/ganges_dx_nmap_4k.bintexture",
 		                                              eae6320::Graphics::eSamplerType::Linear,
 		                                              eae6320::Graphics::eSamplerType::Comparison_less_equal);
 
@@ -580,10 +580,10 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	// Initialize Lights
 	// ---------------------
-	eae6320::Graphics::sDirectionalLight directionalLight = eae6320::Graphics::sDirectionalLight(eae6320::Math::sVector4(0.6f, 0.6f, 0.6f, 1.0f), //ambient
-		                                                      eae6320::Math::sVector4(0.8f, 0.8f, 0.8f, 1.0f),                                      //diffuse
-		                                                      eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),                                      //specular
-		                                                      eae6320::Math::sVector(-0.5f, -0.5f, 0.0f),                                           //direction
+	eae6320::Graphics::sDirectionalLight directionalLight = eae6320::Graphics::sDirectionalLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f), //ambient
+		                                                      eae6320::Math::sVector4(1.8f, 1.8f, 1.8f, 1.0f),                                      //diffuse
+		                                                      eae6320::Math::sVector4(1.0f, 1.0f, 1.0f, 1.0f),                                      //specular
+		                                                      eae6320::Math::sVector(0.5f, -0.5f, 0.0f),                                           //direction
 		                                                      eae6320::Math::sVector(100.0f, 100.0f, 0.0f));                                         //position
 
 	eae6320::Graphics::sPointLight pointLight = eae6320::Graphics::sPointLight(eae6320::Math::sVector4(0.0f, 0.1f, 0.0f, 1.0f),             //ambient
@@ -597,7 +597,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		                                        eae6320::Math::sVector4(50.0f, 500.0f, 50.0f, 1.0f),                                         //diffuse
 		                                        eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),                                             //specular
 		                                        eae6320::Math::sVector(45.0f, 10.0f, 35.0f),                                                 //position
-		                                        300.0f,                                                                                      //range
+		                                        30000.0f,                                                                                      //range
 		                                        eae6320::Math::sVector(0.0f, -1.0f, 0.0f),                                                   //direction
 		                                        50.0f,                                                                                       //spot
 		                                        eae6320::Math::sVector(1.0f, 1.0f, 1.0f));                                                   //att

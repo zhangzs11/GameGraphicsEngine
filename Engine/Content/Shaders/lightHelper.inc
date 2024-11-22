@@ -197,8 +197,10 @@ float3 NormalSampleToWorldSpace(float3 normalMapSample, float3 uintNormalW, floa
     float3 B = cross(N, T);
 
     float3x3 TBN = float3x3(T, B, N);
-    
-    float3 bumpedNormalW = mul(TBN, normalT);
+    float3x3 TBN_Transpose = transpose(TBN);
+
+    float3 bumpedNormalW = mul(TBN_Transpose, normalT);
+    // float3 bumpedNormalW = mul(normalT, TBN);
 
     return bumpedNormalW;
 }

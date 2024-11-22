@@ -46,8 +46,8 @@ void main(
 )
 
 {
-	// float4 texColor = g_texture0.Sample(g_sampler, i_fragmentUV);
-	float4 texColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
+	float4 texColor = g_texture0.Sample(g_sampler, i_fragmentUV);
+	// float4 texColor = float4(1.0f, 0.0f, 0.0f, 1.0f);
 
 	clip(texColor.a - 0.1f);
 

@@ -802,18 +802,18 @@ namespace
 				{
 					fout << "\t\t" "{ position = { x = " << vertex.vertex.x
 						<< ", y = " << vertex.vertex.y
-						<< ", z = " << vertex.vertex.z  // Invert z for Direct3D
+						<< ", z = " << -vertex.vertex.z  // Invert z for Direct3D
 						<< " },""\n"
 						<< " normal = { nx = " << vertex.vertex.nx
 						<< ", ny = " << vertex.vertex.ny
-						<< ", nz = " << vertex.vertex.nz  // Invert z for Direct3D
+						<< ", nz = " << -vertex.vertex.nz  // Invert z for Direct3D
 						<< " },""\n"
 						<< " tangent = { tx = " << vertex.vertex.tx
 						<< ", ty = " << vertex.vertex.ty
-						<< ", tz = " << vertex.vertex.tz  // Invert z for Direct3D
+						<< ", tz = " << -vertex.vertex.tz  // Invert z for Direct3D
 						<< " },""\n"
-						<< " bitangent = { btx = " << vertex.vertex.btx  // Invert x and y for Direct3D
-						<< ", bty = " << vertex.vertex.bty
+						<< " bitangent = { btx = " << -vertex.vertex.btx  // Invert x and y for Direct3D
+						<< ", bty = " << -vertex.vertex.bty
 						<< ", btz = " << vertex.vertex.btz
 						<< " },""\n"
 						<< " texcoord = { u = " << vertex.vertex.u
@@ -834,8 +834,8 @@ namespace
 				for (size_t i = 0; i < i_indexArray.size(); i += 3)
 				{
 					fout << "\t\t" << i_indexArray[i] << ", "
-						<< i_indexArray[i + 1] << ", "
-						<< i_indexArray[i + 2] << "," "\n";
+						<< i_indexArray[i + 2] << ", "
+						<< i_indexArray[i + 1] << "," "\n";
 				}
 				fout << "\t" "}," "\n";
 			}

@@ -10,17 +10,19 @@ return
 
 		{ path = "Shaders/Vertex/vertexInputLayout_mesh.shader", arguments = { "vertex" } },
 
-        { path = "Shaders/Fragment/light_PS.shader", arguments = { "fragment" } },
+        	{ path = "Shaders/Fragment/light_PS.shader", arguments = { "fragment" } },
 
-        { path = "Shaders/Vertex/skybox_VS.shader", arguments = { "vertex" } },
+        	{ path = "Shaders/Vertex/skybox_VS.shader", arguments = { "vertex" } },
 
-        { path = "Shaders/Vertex/shadow_VS.shader", arguments = { "vertex" } },
+			{ path = "Shaders/Fragment/light_NormalMap_PS.shader", arguments = { "fragment" } },
 
-        { path = "Shaders/Fragment/skybox_PS.shader", arguments = { "fragment" } },
+        	{ path = "Shaders/Vertex/shadow_VS.shader", arguments = { "vertex" } },
 
-        { path = "Shaders/Vertex/fullScreenTriangle.shader", arguments = { "vertex" } },
+        	{ path = "Shaders/Fragment/skybox_PS.shader", arguments = { "fragment" } },
+	
+        	{ path = "Shaders/Vertex/fullScreenTriangle.shader", arguments = { "vertex" } },
 
-        { path = "Shaders/Fragment/postProcess_PS.shader", arguments = { "fragment" } },
+        	{ path = "Shaders/Fragment/postProcess_PS.shader", arguments = { "fragment" } },
 
 		{ path = "Shaders/Fragment/postProcess_Distortion_PS.shader", arguments = { "fragment" } },
 
@@ -32,6 +34,7 @@ return
 	    { path = "Meshes/plane.mesh" },
         { path = "Meshes/cube.mesh" },
 		{ path = "Meshes/quiver_tree.mesh" },
+		{ path = "Meshes/quiver_tree_all_change.mesh" },
 		{ path = "Meshes/table.mesh" },
 		{ path = "Meshes/marble_bust.mesh" },
 		{ path = "Meshes/marble_bust_big.mesh" },

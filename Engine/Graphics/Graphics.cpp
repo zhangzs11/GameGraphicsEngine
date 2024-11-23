@@ -30,14 +30,8 @@
 namespace
 {
 	// Constant buffer object
-	eae6320::Graphics::cConstantBuffer s_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame,
-		eae6320::Graphics::eConstantBufferEffectType::Light);
-	eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall(eae6320::Graphics::ConstantBufferTypes::DrawCall,
-		eae6320::Graphics::eConstantBufferEffectType::Light);
-	eae6320::Graphics::cConstantBuffer s_shadow_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame,
-		eae6320::Graphics::eConstantBufferEffectType::Shadow);
-	eae6320::Graphics::cConstantBuffer s_FXAA_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame,
-		eae6320::Graphics::eConstantBufferEffectType::FXAA);
+	eae6320::Graphics::cConstantBuffer s_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame);
+	eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall(eae6320::Graphics::ConstantBufferTypes::DrawCall);
 	// Submission Data
 	//----------------
 
@@ -45,23 +39,21 @@ namespace
 	// it must cache whatever is necessary in order to render a frame
 	struct sDataRequiredToRenderAFrame
 	{
-		eae6320::Graphics::ConstantBufferFormats::sLight_Frame constantData_frame;
-		eae6320::Graphics::ConstantBufferFormats::sShadow_Frame shadow_constantData_frame;
-		eae6320::Graphics::ConstantBufferFormats::sFXAA_Frame FXAA_constantData_frame;
+		static constexpr size_t MAX_SUBMITTED_PAIRS = 100;
+
+		eae6320::Graphics::ConstantBufferFormats::sFrame constantData_frame;
+		eae6320::Graphics::ConstantBufferFormats::sDrawCall constantData_drawCall[MAX_SUBMITTED_PAIRS];
+
 		eae6320::Graphics::ShadowEffect* shadowEffect;
 		eae6320::Graphics::SkyboxEffect* skyboxEffect;
 		eae6320::Graphics::PostProcessingEffect* postProcessingEffect;
 		eae6320::Graphics::PostProcessingEffect* FXAAEffect;
 
 		float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-		static constexpr size_t MAX_SUBMITTED_PAIRS = 100;
 		size_t submittedPairCount = 0;  // Number of currently submitted pairs
 		std::pair<eae6320::Graphics::cMesh*, eae6320::Graphics::LightingEffect*> meshEffectPairs[MAX_SUBMITTED_PAIRS];
 
 		eae6320::Graphics::cMesh* skyboxCube;
-
-		eae6320::Graphics::ConstantBufferFormats::sDrawCall constantData_drawCall[MAX_SUBMITTED_PAIRS];
 	};
 	// In our class there will be two copies of the data required to render a frame:
 	//	* One of them will be in the process of being populated by the data currently being submitted by the application loop thread
@@ -240,8 +232,8 @@ void eae6320::Graphics::SubmitShadowData(ShadowEffect* i_Shadoweffect,
 
 	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
 	currentFrameData.shadowEffect = i_Shadoweffect;
-	currentFrameData.shadow_constantData_frame.g_transform_worldToCamera = i_transform_worldToLightCamera;
-	currentFrameData.shadow_constantData_frame.g_transform_cameraToProjected = i_transform_LightcameraToProjected;
+	currentFrameData.constantData_frame.g_transform_worldToShadowMapCamera = i_transform_worldToLightCamera;
+	currentFrameData.constantData_frame.g_transform_cameraToShadowMapProjected = i_transform_LightcameraToProjected;
 	currentFrameData.constantData_frame.g_ShadowTransform = i_ShadowTransform; // ShadowView * ShadowProj * T
 }
 void eae6320::Graphics::SubmitSkyboxData(eae6320::Graphics::SkyboxEffect* i_skyboxeffect,
@@ -272,11 +264,11 @@ void eae6320::Graphics::SubmitFXAAData(eae6320::Graphics::PostProcessingEffect* 
 
 	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
 	currentFrameData.FXAAEffect = i_FXAAEffect;
-	currentFrameData.FXAA_constantData_frame.g_TexelSize_x = g_TexelSize_x;
-	currentFrameData.FXAA_constantData_frame.g_TexelSize_y = g_TexelSize_y;
-	currentFrameData.FXAA_constantData_frame.g_QualitySubPix = g_QualitySubPix;
-	currentFrameData.FXAA_constantData_frame.g_QualityEdgeThreshold = g_QualityEdgeThreshold;
-	currentFrameData.FXAA_constantData_frame.g_QualityEdgeThresholdMin = g_QualityEdgeThresholdMin;
+	currentFrameData.constantData_frame.g_TexelSize_x = g_TexelSize_x;
+	currentFrameData.constantData_frame.g_TexelSize_y = g_TexelSize_y;
+	currentFrameData.constantData_frame.g_QualitySubPix = g_QualitySubPix;
+	currentFrameData.constantData_frame.g_QualityEdgeThreshold = g_QualityEdgeThreshold;
+	currentFrameData.constantData_frame.g_QualityEdgeThresholdMin = g_QualityEdgeThresholdMin;
 }
 
 eae6320::cResult eae6320::Graphics::WaitUntilDataForANewFrameCanBeSubmitted(const unsigned int i_timeToWait_inMilliseconds)
@@ -326,6 +318,7 @@ void eae6320::Graphics::RenderFrame()
 
 	auto* const direct3dImmediateContext = sContext::g_context.direct3dImmediateContext;
 	EAE6320_ASSERT(direct3dImmediateContext);
+
     // RenderShadow map
     // ----------------
 	//
@@ -333,13 +326,7 @@ void eae6320::Graphics::RenderFrame()
 	s_shadowMap_DSV.Clear(nullptr);
 	direct3dImmediateContext->RSSetViewports(1, s_shadowMap_DSV.m_viewPort);
 
-	// Update the frame constant in Shadow Effect buffer
-	{
-		auto& shadow_constantData_frame = dataRequiredToRenderFrame->shadow_constantData_frame;
-		s_shadow_constantBuffer_frame.Update(&shadow_constantData_frame);
-		s_shadow_constantBuffer_frame.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex));
-		dataRequiredToRenderFrame->shadowEffect->Bind();
-	}
+	dataRequiredToRenderFrame->shadowEffect->Bind();
 
 	// Draw submitted mesh in pairs
 	for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
@@ -443,16 +430,8 @@ void eae6320::Graphics::RenderFrame()
 	// --------------------------------
 	// 
 
-	// Update the frame constant buffer
-	{
-		// Copy the data from the system memory that the application owns to GPU memory
-		auto& FXAA_constantData_frame = dataRequiredToRenderFrame->FXAA_constantData_frame;
-		s_FXAA_constantBuffer_frame.Update(&FXAA_constantData_frame);
-		s_FXAA_constantBuffer_frame.Bind(
-			static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
-	}
-
 	auto& FXAAEffect = dataRequiredToRenderFrame->FXAAEffect;
+
 	direct3dImmediateContext->OMSetRenderTargets(1,
 		&(s_FXAA_RTV.m_renderTargetView),
 		nullptr);
@@ -527,35 +506,6 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 			return result;
 		}
 
-		// Shadow CBuffer
-		if (result = s_shadow_constantBuffer_frame.Initialize())
-		{
-			// There is only a single frame constant buffer that is reused
-			// and so it can be bound at initialization time and never unbound
-			//s_constantBuffer_frame.Bind(
-				// In our class both vertex and fragment shaders use per-frame constant data
-			//	static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
-		}
-		else
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without frame constant buffer");
-			return result;
-		}
-
-		// FXAA CBuffer
-		if (result = s_FXAA_constantBuffer_frame.Initialize())
-		{
-			// There is only a single frame constant buffer that is reused
-			// and so it can be bound at initialization time and never unbound
-			//s_constantBuffer_frame.Bind(
-				// In our class both vertex and fragment shaders use per-frame constant data
-			//	static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
-		}
-		else
-		{
-			EAE6320_ASSERTF(false, "Can't initialize Graphics without frame constant buffer");
-			return result;
-		}
 	}
 	// Initialize the events
 	{

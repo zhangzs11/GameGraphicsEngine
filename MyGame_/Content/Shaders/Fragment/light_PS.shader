@@ -4,7 +4,7 @@
 	A fragment shader is responsible for telling the GPU what color a specific fragment should be
 */
 
-#include <Shaders/light.inc>
+#include <Shaders/ConstantBuffers.inc>
 
 // Texture and Sampler
 //====================

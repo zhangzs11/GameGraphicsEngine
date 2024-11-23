@@ -26,15 +26,8 @@ eae6320::cResult eae6320::Graphics::cConstantBuffer::Initialize( const void* con
 			{
 			case ConstantBufferTypes::Frame:
 			{
-				switch (m_effectType)
-				{
-				case eConstantBufferEffectType::Light:
-					m_size = sizeof(ConstantBufferFormats::sLight_Frame); break;
-				case eConstantBufferEffectType::Shadow:
-					m_size = sizeof(ConstantBufferFormats::sShadow_Frame); break;
-				case eConstantBufferEffectType::FXAA:
-					m_size = sizeof(ConstantBufferFormats::sFXAA_Frame); break;
-				}
+				m_size = sizeof(ConstantBufferFormats::sFrame); break;
+
 				break;
 			}
 					
@@ -42,15 +35,8 @@ eae6320::cResult eae6320::Graphics::cConstantBuffer::Initialize( const void* con
 //				case ConstantBufferTypes::Material: m_size = sizeof( ConstantBufferFormats::sMaterial ); break;
 			case ConstantBufferTypes::DrawCall:
 			{
-				switch (m_effectType)
-				{
-				case eConstantBufferEffectType::Light:
-					m_size = sizeof(ConstantBufferFormats::sDrawCall); break;
-				case eConstantBufferEffectType::Shadow:
-					m_size = sizeof(ConstantBufferFormats::sDrawCall); break;
-				case eConstantBufferEffectType::FXAA:
-					m_size = sizeof(ConstantBufferFormats::sDrawCall); break;
-				}
+				m_size = sizeof(ConstantBufferFormats::sDrawCall); break;
+
 				break;
 			}
 
@@ -80,9 +66,9 @@ eae6320::cResult eae6320::Graphics::cConstantBuffer::Initialize( const void* con
 	return result;
 }
 
-eae6320::Graphics::cConstantBuffer::cConstantBuffer( const ConstantBufferTypes i_type, const eConstantBufferEffectType i_effectType)
+eae6320::Graphics::cConstantBuffer::cConstantBuffer( const ConstantBufferTypes i_type)
 	:
-	m_type( i_type ), m_effectType(i_effectType)
+	m_type( i_type )
 {
 
 }

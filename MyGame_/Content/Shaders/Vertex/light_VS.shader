@@ -8,7 +8,7 @@
 			* This data will be interpolated across the triangle and thus vary for each fragment of a triangle that gets shaded
 */
 
-#include <Shaders/light.inc>
+#include <Shaders/ConstantBuffers.inc>
 
 // Entry Point
 //============

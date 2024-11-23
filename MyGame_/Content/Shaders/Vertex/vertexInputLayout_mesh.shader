@@ -2,7 +2,7 @@
 	This vertex shader is used to create a Direct3D vertex input layout object
 */
 
-#include <Shaders/light.inc>
+#include <Shaders/ConstantBuffers.inc>
 
 // Entry Point
 //============

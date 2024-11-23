@@ -30,6 +30,8 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **************************************************************************/
 
+#include <Shaders/ConstantBuffers.inc>
+
 #ifndef FXAA_QUALITY__PRESET
 #define FXAA_QUALITY__PRESET 39
 #endif
@@ -122,34 +124,34 @@ static const float s_SampleDistances[FXAA_QUALITY__PS] = { 1.0, 1.5, 2.0, 2.0, 2
 static const float s_SampleDistances[FXAA_QUALITY__PS] = { 1.0, 1.0, 1.0, 1.0, 1.0, 1.5, 2.0, 2.0, 2.0, 2.0, 4.0, 8.0 };
 #endif
 
-cbuffer CB : register(b0)
-{
-    float2 g_TexelSize;
+// cbuffer CB : register(b0)
+// {
+//     float2 g_TexelSize;
     
-    // Controls sharpness level
-    // 1.00 - Soft
-    // 0.75 - Default filter value
-    // 0.50 - Sharper, removes less subpixel aliasing
-    // 0.25 - Almost off
-    // 0.00 - Completely off
-    float g_QualitySubPix;
+//     // Controls sharpness level
+//     // 1.00 - Soft
+//     // 0.75 - Default filter value
+//     // 0.50 - Sharper, removes less subpixel aliasing
+//     // 0.25 - Almost off
+//     // 0.00 - Completely off
+//     float g_QualitySubPix;
     
-    // Threshold control for required local contrast
-    // 0.333 - Very low (faster)
-    // 0.250 - Low quality
-    // 0.166 - Default
-    // 0.125 - High quality
-    // 0.063 - Very high (slower)
-    float g_QualityEdgeThreshold;
+//     // Threshold control for required local contrast
+//     // 0.333 - Very low (faster)
+//     // 0.250 - Low quality
+//     // 0.166 - Default
+//     // 0.125 - High quality
+//     // 0.063 - Very high (slower)
+//     float g_QualityEdgeThreshold;
     
-    // Threshold for ignoring dark areas
-    // 0.0833 - Default
-    // 0.0625 - Slightly faster
-    // 0.0312 - Slower
-    float g_QualityEdgeThresholdMin;
+//     // Threshold for ignoring dark areas
+//     // 0.0833 - Default
+//     // 0.0625 - Slightly faster
+//     // 0.0312 - Slower
+//     float g_QualityEdgeThresholdMin;
 
-    float3 g_padding;
-}
+//     float3 g_padding;
+// }
 
 SamplerState g_SamplerLinearClamp : register(s0);
 Texture2D<float4> g_TextureInput : register(t0);

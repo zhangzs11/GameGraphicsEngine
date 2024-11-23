@@ -27,8 +27,11 @@ namespace eae6320
 		namespace ConstantBufferFormats
 		{
 			// Data that is constant for every frame
-			struct sLight_Frame
+			struct sFrame
 			{
+				// Main Rendering
+				// --------------------------------------
+
 				Math::cMatrix_transformation g_transform_worldToCamera;
 				Math::cMatrix_transformation g_transform_cameraToProjected;
 
@@ -46,28 +49,16 @@ namespace eae6320
 				// For float4 alignment
 				Math::sVector g_EyePosW;
 				float g_padding2;
-			};
-
-			// Data that is constant for a single draw call
-			struct sDrawCall
-			{
-				Math::cMatrix_transformation g_transform_localToWorld;
-				Math::cMatrix_transformation g_transform_localToWorld_Inv_Transpose;
-
-				sMaterial g_Material;
-			};
 
 
-			// Data that is constant for every frame
-			struct sShadow_Frame
-			{
-				Math::cMatrix_transformation g_transform_worldToCamera;
-				Math::cMatrix_transformation g_transform_cameraToProjected;
-			};
+				// Shadow Map Rendering
+				// --------------------------------------
+				Math::cMatrix_transformation g_transform_worldToShadowMapCamera;
+				Math::cMatrix_transformation g_transform_cameraToShadowMapProjected;
+				
 
-			// Data that is constant for every frame
-			struct sFXAA_Frame
-			{
+				// FXAA
+				// --------------------------------------
 				float g_TexelSize_x;
 				float g_TexelSize_y;
 
@@ -94,6 +85,15 @@ namespace eae6320
 				float g_QualityEdgeThresholdMin;
 
 				float g_padding[3];
+			};
+
+			// Data that is constant for a single draw call
+			struct sDrawCall
+			{
+				Math::cMatrix_transformation g_transform_localToWorld;
+				Math::cMatrix_transformation g_transform_localToWorld_Inv_Transpose;
+
+				sMaterial g_Material;
 			};
 		}
 	}

@@ -58,7 +58,25 @@ void CalculateRightAndUpTexelDepthDeltas(float3 shadowTexDDX, float3 shadowTexDD
                                          out float upTextDepthWeight,
                                          out float rightTextDepthWeight)
 {
+    float2x2 matScreenToShadow = float2x2(shadowTexDDX.xy, shadowTexDDY.xy);
+    float det = determinant(matScreenToShadow);
+    float invDet = 1.0f / det;
+    float2x2 matShadowToScreen = float2x2(
+        matScreenToShadow._22 * invDet, matScreenToShadow._12 * -invDet,
+        matScreenToShadow._21 * -invDet, matScreenToShadow._11 * invDet);
     
+    float2 rightShadowTexelLocation = float2(g_TexelSize, 0.0f);
+    float2 upShadowTexelLocation = float2(0.0f, g_TexelSize);
+    
+    float2 rightTexelDepthRatio = mul(rightShadowTexelLocation, matShadowToScreen);
+    float2 upTexelDepthRatio = mul(upShadowTexelLocation, matShadowToScreen);
+    
+    upTextDepthWeight =
+        upTexelDepthRatio.x * shadowTexDDX.z 
+        + upTexelDepthRatio.y * shadowTexDDY.z;
+    rightTextDepthWeight =
+        rightTexelDepthRatio.x * shadowTexDDX.z 
+        + rightTexelDepthRatio.y * shadowTexDDY.z;
 }
 
 //--------------------------------------------------------------------------------------
@@ -72,7 +90,29 @@ float CalculatePCFPercentLit(int currentCascadeIndex,
 {
     float percentLit = 0.0f;
     
+    for (int x = g_PCFBlurForLoopStart; x < g_PCFBlurForLoopEnd; ++x)
+    {
+        for (int y = g_PCFBlurForLoopStart; y < g_PCFBlurForLoopEnd; ++y)
+        {
+            float depthCmp = shadowTexCoord.z;
+
+            depthCmp -= g_ShadowBias;
+            if (USE_DERIVATIVES_FOR_DEPTH_OFFSET_FLAG)
+            {
+                depthCmp += rightTexelDepthDelta * (float) x + upTexelDepthDelta * (float) y;
+            }
+
+            percentLit += g_ShadowMap.SampleCmpLevelZero(g_SamShadow,
+                float3(
+                    shadowTexCoord.x + (float) x * g_TexelSize,
+                    shadowTexCoord.y + (float) y * g_TexelSize,
+                    (float) currentCascadeIndex
+                ),
+                depthCmp);
+        }
+    }
     
+    percentLit /= blurSize;
     return percentLit;
 }
 
@@ -84,7 +124,18 @@ void CalculateBlendAmountForInterval(int currentCascadeIndex,
                                      inout float currentPixelsBlendBandLocation,
                                      out float blendBetweenCascadesAmount)
 {
+    float blendInterval = g_CascadeFrustumsEyeSpaceDepthsFloat4[currentCascadeIndex].x;
     
+    if (currentCascadeIndex > 0)
+    {
+        int blendIntervalbelowIndex = currentCascadeIndex - 1;
+        pixelDepth -= g_CascadeFrustumsEyeSpaceDepthsFloat4[blendIntervalbelowIndex].x;
+        blendInterval -= g_CascadeFrustumsEyeSpaceDepthsFloat4[blendIntervalbelowIndex].x;
+    }
+    
+    currentPixelsBlendBandLocation = 1.0f - pixelDepth / blendInterval;
+
+    blendBetweenCascadesAmount = currentPixelsBlendBandLocation / g_CascadeBlendArea;
 }
 
 //--------------------------------------------------------------------------------------
@@ -94,7 +145,13 @@ void CalculateBlendAmountForMap(float4 shadowMapTexCoord,
                                 inout float currentPixelsBlendBandLocation,
                                 inout float blendBetweenCascadesAmount)
 {
+    float2 distanceToOne = float2(1.0f - shadowMapTexCoord.x, 1.0f - shadowMapTexCoord.y);
+    currentPixelsBlendBandLocation = min(shadowMapTexCoord.x, shadowMapTexCoord.y);
+    float currentPixelsBlendBandLocation2 = min(distanceToOne.x, distanceToOne.y);
+    currentPixelsBlendBandLocation =
+        min(currentPixelsBlendBandLocation, currentPixelsBlendBandLocation2);
     
+    blendBetweenCascadesAmount = currentPixelsBlendBandLocation / g_CascadeBlendArea;
 }
 
 //--------------------------------------------------------------------------------------
@@ -120,6 +177,161 @@ float CalculateCascadedShadow(float4 shadowMapTexCoordViewSpace,
                               out float blendBetweenCascadesAmount)
 {
     float percentLit = 0.0f;
+    float percentLit_blend = 0.0f;
+    
+    float4 shadowMapTexCoord = 0.0f;
+    float4 shadowMapTexCoord_blend = 0.0f;
+    
+    float4 visualizeCascadeColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    
+    float upTextDepthWeight = 0;
+    float rightTextDepthWeight = 0;
+    float upTextDepthWeight_blend = 0;
+    float rightTextDepthWeight_blend = 0;
+    
+    float blurSize = g_PCFBlurForLoopEnd - g_PCFBlurForLoopStart;
+    blurSize *= blurSize;
+    
+    int cascadeFound = 0;
+    nextCascadeIndex = 1;
+    
+    
+    //
+    // SELECT the cascade Index, and then transform the shadow map coordinate
+    //
+    
+    // Interval-Based Selection
+    if (SELECT_CASCADE_BY_INTERVAL_FLAG)
+    {
+        currentCascadeIndex = 0;
+        //                               Depth
+        // /-+-------/----------------/----+-------/----------/
+        // 0 N     F[0]     ...      F[i]        F[i+1] ...   F
+        // Depth > F[i] to F[0] => index = i+1
+        if (CASCADE_COUNT_FLAG > 1)
+        {
+            float4 currentPixelDepthVec = currentPixelDepth;
+            float4 cmpVec1 = (currentPixelDepthVec > g_CascadeFrustumsEyeSpaceDepthsFloat[0]);
+            float4 cmpVec2 = (currentPixelDepthVec > g_CascadeFrustumsEyeSpaceDepthsFloat[1]);
+            float index = dot(float4(CASCADE_COUNT_FLAG > 0,
+                                     CASCADE_COUNT_FLAG > 1,
+                                     CASCADE_COUNT_FLAG > 2,
+                                     CASCADE_COUNT_FLAG > 3),
+                              cmpVec1) +
+                          dot(float4(CASCADE_COUNT_FLAG > 4,
+                                     CASCADE_COUNT_FLAG > 5,
+                                     CASCADE_COUNT_FLAG > 6,
+                                     CASCADE_COUNT_FLAG > 7),
+                              cmpVec2);
+            index = min(index, CASCADE_COUNT_FLAG - 1);
+            currentCascadeIndex = (int) index;
+        }
+        
+        // Calculate the shadow map coordinate
+        shadowMapTexCoord = shadowMapTexCoordViewSpace * g_CascadeScale[currentCascadeIndex] + g_CascadeOffset[currentCascadeIndex];
+    }
+    
+    // Map-Based Selection
+    if (!SELECT_CASCADE_BY_INTERVAL_FLAG)
+    {
+        currentCascadeIndex = 0;
+        if (CASCADE_COUNT_FLAG == 1)
+        {
+            shadowMapTexCoord = shadowMapTexCoordViewSpace * g_CascadeScale[0] + g_CascadeOffset[0];
+        }
+        if (CASCADE_COUNT_FLAG > 1)
+        {
+            // research the nearset cascade, make the shadow Map texture coord in the boundary of coord
+            // minBorder < tx, ty < maxBorder
+            for (int cascadeIndex = 0; cascadeIndex < CASCADE_COUNT_FLAG && cascadeFound == 0; ++cascadeIndex)
+            {
+                shadowMapTexCoord = shadowMapTexCoordViewSpace * g_CascadeScale[cascadeIndex] + g_CascadeOffset[cascadeIndex];
+                if (min(shadowMapTexCoord.x, shadowMapTexCoord.y) > g_MinBorderPadding
+                    && max(shadowMapTexCoord.x, shadowMapTexCoord.y) < g_MaxBorderPadding)
+                {
+                    currentCascadeIndex = cascadeIndex;
+                    cascadeFound = 1;
+                }
+            }
+        }
+    }
+    
+    //
+    // Calcualte the PCF (Percentage Closer Filtering) of current Cascade
+    //
+    float3 shadowMapTexCoordDDX;
+    float3 shadowMapTexCoordDDY;
+    // These partial derivatives are used to calculate the depth variation in light space 
+    // caused by neighboring texels in the projected texture space along different directions.
+    if (USE_DERIVATIVES_FOR_DEPTH_OFFSET_FLAG)
+    {
+        // Calculate the rate of change in projected texture space for light space derivatives
+        shadowMapTexCoordDDX = ddx(shadowMapTexCoordViewSpace);
+        shadowMapTexCoordDDY = ddy(shadowMapTexCoordViewSpace);
+        
+        shadowMapTexCoordDDX *= g_CascadeScale[currentCascadeIndex];
+        shadowMapTexCoordDDY *= g_CascadeScale[currentCascadeIndex];
+        
+        CalculateRightAndUpTexelDepthDeltas(shadowMapTexCoordDDX, shadowMapTexCoordDDY,
+                                            upTextDepthWeight, rightTextDepthWeight);
+    }
+    
+    visualizeCascadeColor = s_CascadeColorsMultiplier[currentCascadeIndex];
+    
+    percentLit = CalculatePCFPercentLit(currentCascadeIndex, shadowMapTexCoord,
+                                        rightTextDepthWeight, upTextDepthWeight, blurSize);
+    
+    
+    //
+    // Blend between two Cascades
+    //
+    if (BLEND_BETWEEN_CASCADE_LAYERS_FLAG)
+    {
+        nextCascadeIndex = min(CASCADE_COUNT_FLAG - 1, currentCascadeIndex + 1);
+    }
+    
+    blendBetweenCascadesAmount = 1.0f;
+    float currentPixelsBlendBandLocation = 1.0f;
+    if (SELECT_CASCADE_BY_INTERVAL_FLAG)
+    {
+        if (BLEND_BETWEEN_CASCADE_LAYERS_FLAG && CASCADE_COUNT_FLAG > 1)
+        {
+            CalculateBlendAmountForInterval(currentCascadeIndex, currentPixelDepth,
+                currentPixelsBlendBandLocation, blendBetweenCascadesAmount);
+        }
+    }
+    else
+    {
+        if (BLEND_BETWEEN_CASCADE_LAYERS_FLAG)
+        {
+            CalculateBlendAmountForMap(shadowMapTexCoord,
+                currentPixelsBlendBandLocation, blendBetweenCascadesAmount);
+        }
+    }
+    
+    if (BLEND_BETWEEN_CASCADE_LAYERS_FLAG && CASCADE_COUNT_FLAG > 1)
+    {
+        if (currentPixelsBlendBandLocation < g_CascadeBlendArea)
+        {
+            // Calculate the projected texture coordinates for the next cascade
+            shadowMapTexCoord_blend = shadowMapTexCoordViewSpace * g_CascadeScale[nextCascadeIndex] + g_CascadeOffset[nextCascadeIndex];
+            
+            // When blending between cascades, also perform calculations for the next cascade
+            if (currentPixelsBlendBandLocation < g_CascadeBlendArea)
+            {
+                // The current pixel is within the blending region
+                if (USE_DERIVATIVES_FOR_DEPTH_OFFSET_FLAG)
+                {
+                    CalculateRightAndUpTexelDepthDeltas(shadowMapTexCoordDDX, shadowMapTexCoordDDY,
+                                                        upTextDepthWeight_blend, rightTextDepthWeight_blend);
+                }
+                percentLit_blend = CalculatePCFPercentLit(nextCascadeIndex, shadowMapTexCoord_blend,
+                                                          rightTextDepthWeight_blend, upTextDepthWeight_blend, blurSize);
+                // Blend the PCF results of the two cascades
+                percentLit = lerp(percentLit_blend, percentLit, blendBetweenCascadesAmount);
+            }
+        }
+    }
     
     return percentLit;
 }

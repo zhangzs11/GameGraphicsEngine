@@ -12,6 +12,7 @@
 #include "cMesh.h"
 #include "cEffect.h"
 #include "sLight.h"
+#include "cCamera.h"
 #include "MyEffects/LightingEffect.d3d.h"
 #include "MyEffects/ShadowEffect.d3d.h"
 #include "MyEffects/SkyboxEffect.d3d.h"

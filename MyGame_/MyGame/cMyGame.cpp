@@ -171,7 +171,7 @@ void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, con
 	}
 }
 
-void eae6320::cMyGame::SubmitCameraToGraphics(cCamera& i_camera, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
+void eae6320::cMyGame::SubmitCameraToGraphics(Graphics::cCamera& i_camera, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
 	auto worldToCameraTransform = i_camera.GetWorldToCameraTransform(i_elapsedSecondCount_sinceLastSimulationUpdate);
 	auto cameraToProjectedTransform = i_camera.GetCameraToProjectedTransform();

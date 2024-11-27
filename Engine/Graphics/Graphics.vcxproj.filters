@@ -132,6 +132,12 @@
     <ClCompile Include="MyEffects\PostProcessingEffect.d3d.cpp">
       <Filter>MyEffects</Filter>
     </ClCompile>
+    <ClCompile Include="Direct3D\cCascadedShadowManager.d3d.cpp">
+      <Filter>Direct3D</Filter>
+    </ClCompile>
+    <ClCompile Include="cCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cConstantBuffer.h">
@@ -205,6 +211,12 @@
     </ClInclude>
     <ClInclude Include="MyEffects\PostProcessingEffect.d3d.h">
       <Filter>MyEffects</Filter>
+    </ClInclude>
+    <ClInclude Include="cCascadedShadowManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cCamera.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

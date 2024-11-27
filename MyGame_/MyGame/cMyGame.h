@@ -14,7 +14,7 @@
 #include <Engine/Graphics/Graphics.h>
 
 #include "cGameObject.h"
-#include "cCamera.h"
+// #include "cCamera.h"
 
 #if defined( EAE6320_PLATFORM_WINDOWS )
 	#include "Resource Files/Resource.h"
@@ -87,7 +87,7 @@ namespace eae6320
 		void SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate) final;
 
 		void SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
-		void SubmitCameraToGraphics(cCamera& i_camera, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
+		void SubmitCameraToGraphics(eae6320::Graphics::cCamera& i_camera, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
 		void SubmitLightDataToGraphics(
 									   std::vector<eae6320::Graphics::sDirectionalLight>& i_directionalLights,
 									   std::vector<eae6320::Graphics::sPointLight>& i_pointLights,
@@ -160,7 +160,7 @@ namespace eae6320
 
 		cGameObject m_gameObject_skybox;
 
-		cCamera m_camera;
+		Graphics::cCamera m_camera;
 		float m_backgroundColor[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
 
 		// Game States

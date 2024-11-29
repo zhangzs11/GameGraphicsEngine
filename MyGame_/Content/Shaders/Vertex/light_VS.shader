@@ -38,7 +38,8 @@ void main(
 	out float2 o_vertexUV : TEXCOORD0,
 	out float3 o_vertexNormal_world : NORMAL,
 	out float4 o_vertexTangent_world : TANGENT,
-	out float4 o_vertexShadowPosH : TEXCOORD1
+	out float4 o_vertexShadowPosV : TEXCOORD1,
+	out float  o_vertexDepthV : TEXCOORD2
 )
 
 // Main Body
@@ -56,11 +57,8 @@ void main(
 	}
 	// Calculate the position of this vertex projected onto the display
 	{
-		// Transform the vertex from world space into camera space
 
 		float4 vertexPosition_camera = mul( g_transform_worldToCamera, vertexPosition_world );
-
-		// Project the vertex from camera space into projected space
 
 		o_vertexPosition_projected = mul( g_transform_cameraToProjected, vertexPosition_camera );
 
@@ -72,7 +70,9 @@ void main(
 
 		o_vertexTangent_world = float4(mul((float3x3) g_transform_localToWorld, i_vertexTangent), 1.0);
 
-		o_vertexShadowPosH = mul(g_ShadowTransform, vertexPosition_world);
+		o_vertexShadowPosV = mul(g_ShadowView, float4(o_vertexPosition_world, 1.0f));
+
+		o_vertexDepthV = mul(g_transform_worldToCamera, mul(g_transform_localToWorld, float4(i_vertexPosition_local, 1.0f))).z;
 
 		o_vertexUV = i_vertexUV;  
 	}

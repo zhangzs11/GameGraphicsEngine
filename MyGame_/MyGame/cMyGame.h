@@ -94,8 +94,9 @@ namespace eae6320
 									   std::vector<eae6320::Graphics::sSpotLight>& i_spotLights,
 			                           const float i_elapsedSecondCount_systemTime);
 
-		void SubmitShadowDataToGraphics(eae6320::Graphics::ShadowEffect* i_Shadoweffect,
-			eae6320::Graphics::sDirectionalLight& i_dirL);
+		void SubmitShadowDataToGraphics(
+			eae6320::Graphics::ShadowEffect* i_Shadoweffect,
+			const float i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 		void SubmitSkyboxDataToGraphics(eae6320::Graphics::SkyboxEffect* i_skuboxeffect,
 			eae6320::Graphics::cMesh* i_cubemesh);
@@ -106,6 +107,8 @@ namespace eae6320
 			float g_QualitySubPix,
 			float g_QualityEdgeThreshold,
 			float g_QualityEdgeThresholdMin);
+
+
 
 		// Initialize / Clean Up
 		//----------------------
@@ -171,6 +174,11 @@ namespace eae6320
 		bool ifRightPressed = false;
 		Graphics::PostProcessingEffect* m_current_postprocess_effect = nullptr;
 
+		//
+		//
+		Graphics::cCascadedShadowManager m_cascadedShadowManager;
+		Graphics::cCamera m_lightCamera;
+		DirectX::BoundingBox testBox;
 	};
 }
 

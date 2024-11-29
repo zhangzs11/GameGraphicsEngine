@@ -20,6 +20,7 @@ namespace eae6320
         class cSampler;
         class cRenderState;
         class cView_SRV;
+        class cView_SRV_Array;
         enum class eSamplerType;
     }
 }
@@ -52,7 +53,7 @@ namespace eae6320
                 const eSamplerType shadowmap_samplerType
                 );
 
-            void SetShadowMapSRV(cView_SRV* i_shadowMap) { m_shadowMap = i_shadowMap; }
+            void SetShadowMapSRV(cView_SRV_Array* i_shadowMap) { m_shadowMap = i_shadowMap; }
 
         private:
             // This prevents the class or struct from using illegal functions
@@ -76,7 +77,7 @@ namespace eae6320
             eae6320::Graphics::cTexture* m_texture1 = nullptr;                   // t1
 
             // Shader Resource View (Set)
-            cView_SRV* m_shadowMap = nullptr;                                    // t2
+            cView_SRV_Array* m_shadowMap = nullptr;                                    // t2
 
             // Sampler
             eae6320::Graphics::cSampler* m_sampler_texture = nullptr;            // s0

@@ -257,7 +257,7 @@ void main(
     //
     // Move the current pixel by half a texel along the gradient direction
     //
-    float lengthSign = horzSpan ? g_TexelSize.y : g_TexelSize.x;
+    float lengthSign = horzSpan ? g_TexelSize_Screen.y : g_TexelSize_Screen.x;
     lengthSign = is1Steepest ? -lengthSign : lengthSign;
 
     float2 posB = posM.xy;
@@ -286,8 +286,8 @@ void main(
     // <-  posB ->
     // 1    1    1
     float2 offset;
-    offset.x = (!horzSpan) ? 0.0 : g_TexelSize.x;
-    offset.y = (horzSpan) ? 0.0 : g_TexelSize.y;
+    offset.x = (!horzSpan) ? 0.0 : g_TexelSize_Screen.x;
+    offset.y = (horzSpan) ? 0.0 : g_TexelSize_Screen.y;
     // Offset in the negative direction
     float2 posN = posB - offset * s_SampleDistances[0];
     // Offset in the positive direction

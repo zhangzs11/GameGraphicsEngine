@@ -159,6 +159,7 @@ void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCo
 	m_gameObject_table.Update(i_elapsedSecondCount_sinceLastUpdate);
 	// m_gameObject_marblebust.Update(i_elapsedSecondCount_sinceLastUpdate);
 	m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
+	m_cascadedShadowManager.UpdateFrame(m_camera, m_lightCamera, testBox, i_elapsedSecondCount_sinceLastUpdate);
 }
 
 void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
@@ -167,6 +168,15 @@ void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, con
 	{
 		eae6320::Graphics::SubmitMatrixLocalToWorld(i_gameObject.GetRigidBodyState().PredictFutureTransform(i_elapsedSecondCount_sinceLastSimulationUpdate));
 		eae6320::Graphics::SubmitMaterial(i_gameObject.GetMaterial());
+
+		for (size_t cascadeIndex = 0; cascadeIndex < m_cascadedShadowManager.m_CascadeLevels; ++cascadeIndex)
+		{
+			eae6320::Graphics::SubmitMatrixLightSpaceLocalToProjected(cascadeIndex,
+				m_cascadedShadowManager.m_ShadowProj[cascadeIndex] *
+				m_lightCamera.GetWorldToCameraTransform(i_elapsedSecondCount_sinceLastSimulationUpdate) *
+				(i_gameObject.GetRigidBodyState().PredictFutureTransform(i_elapsedSecondCount_sinceLastSimulationUpdate)));
+		}
+
 		eae6320::Graphics::SubmitMeshEffectPair(i_gameObject.GetMesh(), i_gameObject.GetEffect());
 	}
 }
@@ -194,27 +204,53 @@ void eae6320::cMyGame::SubmitLightDataToGraphics(std::vector<eae6320::Graphics::
 	eae6320::Graphics::SubmitLightData(i_directionalLights, i_pointLights, i_spotLights);
 }
 
-void eae6320::cMyGame::SubmitShadowDataToGraphics(eae6320::Graphics::ShadowEffect* i_Shadoweffect,
-	eae6320::Graphics::sDirectionalLight& i_dirL)
+void eae6320::cMyGame::SubmitShadowDataToGraphics(
+	eae6320::Graphics::ShadowEffect* i_Shadoweffect,
+	const float i_elapsedSecondCount_sinceLastSimulationUpdate)
 {
-	Math::cMatrix_transformation WorldToLightCameraTransform = Math::cMatrix_transformation::CreateWorldToCameraTransform(
-		Math::cQuaternion::LookAt(i_dirL.direction, Math::sVector(1, 0, 0)), 
-		i_dirL.position);
-
-	Math::cMatrix_transformation CameraToProjectedTransform_orthographic = Math::cMatrix_transformation::CreateCameraToProjectedTransform_orthographic(
-		250.0f, -250.0f, 250.0f, -250.0f, 0.01f, 500.0f
-	);
-
 	Math::cMatrix_transformation T = Math::cMatrix_transformation(
 		0.5f, 0.0f, 0.0f, 0.0f,
 		0.0f, -0.5f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.5f, 0.5f, 0.0f, 1.0f);
 
-	eae6320::Graphics::SubmitShadowData(i_Shadoweffect, 
-		WorldToLightCameraTransform,
-		CameraToProjectedTransform_orthographic,
-		T * CameraToProjectedTransform_orthographic * WorldToLightCameraTransform);
+	Math::sVector4 scales[4];
+	Math::sVector4 offsets[4];
+
+	for (size_t cascadeIndex = 0; cascadeIndex < m_cascadedShadowManager.m_CascadeLevels; ++cascadeIndex)
+	{
+		Math::cMatrix_transformation ShadowTexture = T * m_cascadedShadowManager.m_ShadowProj[cascadeIndex];
+
+		scales[cascadeIndex] = Math::sVector4(
+			ShadowTexture.m_00,  
+			ShadowTexture.m_11,  
+			ShadowTexture.m_22,  
+			1.0f);               
+
+		offsets[cascadeIndex] = Math::sVector4(
+			ShadowTexture.m_03,  
+			ShadowTexture.m_13,  
+			ShadowTexture.m_23,  
+			1.0f);               
+	}
+
+	float cascadeFrustumsEyeSpaceDepths[8] = { 100.0f, 200.0f, 300.0f, 400.0f, 500.0f, 600.0f, 700.0f, 800.0f };
+
+	eae6320::Graphics::SubmitShadowData(
+		i_Shadoweffect,
+		m_lightCamera.GetWorldToCameraTransform(i_elapsedSecondCount_sinceLastSimulationUpdate),
+		offsets,
+		scales,
+		cascadeFrustumsEyeSpaceDepths,
+		1,         // Visualize cascades with different colors (1 to enable, 0 to disable)
+		-2,        // PCF kernel loop start value (-2 for a 5x5 PCF kernel)
+		3,         // PCF kernel loop end value (3 for a 5x5 PCF kernel)
+		0.01f,     // Minimum border padding (e.g., (kernelSize / 2) / shadowMapSize)
+		0.99f,     // Maximum border padding (e.g., 1.0f - (kernelSize / 2) / shadowMapSize)
+		0.005f,    // Shadow bias to reduce shadow artifacts
+		10.0f,     // Blend area between cascades
+		1.0f / 1024.0f // Texel size of the shadow map
+	);
 }
 
 void eae6320::cMyGame::SubmitSkyboxDataToGraphics(eae6320::Graphics::SkyboxEffect* i_skyboxeffect,
@@ -264,7 +300,7 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 	SubmitCameraToGraphics(m_camera, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 	SubmitShadowDataToGraphics(m_effect_shadowMap,
-		                       m_directionalLights[0]);
+		i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 	SubmitSkyboxDataToGraphics(m_effect_skybox, m_mesh_cube);
 
@@ -347,7 +383,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
 		                                              m_effect_tree, 
 		                                              "data/Shaders/Vertex/light_VS.binshader", 
-		                                              "data/Shaders/Fragment/light_NormalMap_PS.binshader",
+		                                              "data/Shaders/Fragment/light_NormalMap_CSM_PS.binshader",
 		                                              renderStateBits, 
 		                                              "data/Textures/quiver_tree_diffuse.bintexture", 
 		                                              "data/Textures/quiver_tree_normal_dx.bintexture",
@@ -363,12 +399,12 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
 		                                              m_effect_plane,
 		                                              "data/Shaders/Vertex/light_VS.binshader",
-		                                              "data/Shaders/Fragment/light_NormalMap_PS.binshader",
+		                                              "data/Shaders/Fragment/light_NormalMap_CSM_PS.binshader",
 		                                              renderStateBits, 
 		                                              "data/Textures/ganges_diff_4k.bintexture",
 		                                              "data/Textures/ganges_dx_nmap_4k.bintexture",
 		                                              eae6320::Graphics::eSamplerType::Linear,
-		                                              eae6320::Graphics::eSamplerType::Comparison_less_equal);
+		                                              eae6320::Graphics::eSamplerType::Linear);
 
 	if (!result)
 	{
@@ -380,7 +416,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
 		m_effect_table,
 		"data/Shaders/Vertex/light_VS.binshader",
-		"data/Shaders/Fragment/light_PS.binshader",
+		"data/Shaders/Fragment/light_NormalMap_CSM_PS.binshader",
 		renderStateBits,
 		"data/Textures/wooden_table_diff.bintexture",
 		"",
@@ -396,7 +432,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	result = eae6320::Graphics::LightingEffect::CreateLightingEffect(
 		m_effect_marblebust,
 		"data/Shaders/Vertex/light_VS.binshader",
-		"data/Shaders/Fragment/light_PS.binshader",
+		"data/Shaders/Fragment/light_NormalMap_CSM_PS.binshader",
 		renderStateBits,
 		"data/Textures/marble_bust_diff.bintexture",
 		"",
@@ -583,7 +619,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	eae6320::Graphics::sDirectionalLight directionalLight = eae6320::Graphics::sDirectionalLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f), //ambient
 		                                                      eae6320::Math::sVector4(1.8f, 1.8f, 1.8f, 1.0f),                                      //diffuse
 		                                                      eae6320::Math::sVector4(1.0f, 1.0f, 1.0f, 1.0f),                                      //specular
-		                                                      eae6320::Math::sVector(0.5f, -0.5f, 0.0f),                                           //direction
+		                                                      eae6320::Math::sVector(0.0f, -0.5f, 0.0f),                                           //direction
 		                                                      eae6320::Math::sVector(100.0f, 100.0f, 0.0f));                                         //position
 
 	eae6320::Graphics::sPointLight pointLight = eae6320::Graphics::sPointLight(eae6320::Math::sVector4(0.0f, 0.1f, 0.0f, 1.0f),             //ambient
@@ -614,6 +650,15 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_camera.SetPosition(eae6320::Math::sVector(100.0f, 0.0f, 100.0f));
 	m_camera.SetOrientation(eae6320::Math::cQuaternion::LookAt(eae6320::Math::sVector(1.0f, 0.0f, 1.0f), 
 		                                                      eae6320::Math::sVector(0.0f, 1.0f, 0.0f)));
+
+
+	m_lightCamera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1280.0f / 1024.0f, 1.0f, 2000.0f);
+	m_lightCamera.SetPosition(directionalLight.position);
+	m_lightCamera.SetOrientation(eae6320::Math::cQuaternion::LookAt(directionalLight.direction,
+		eae6320::Math::sVector(1.0f, 0.0f, 0.0f)));
+
+	testBox.Center = { 0.0f, 0.0f, 0.0f };
+	testBox.Extents = { 1000.0f, 1000.0f, 1000.0f };
 
 	return Results::Success;
 }

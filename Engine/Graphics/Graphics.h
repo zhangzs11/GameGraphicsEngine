@@ -16,6 +16,7 @@
 #include "MyEffects/LightingEffect.d3d.h"
 #include "MyEffects/ShadowEffect.d3d.h"
 #include "MyEffects/SkyboxEffect.d3d.h"
+#include "cCascadedShadowManager.h"
 
 #include <cstdint>
 #include <vector>
@@ -46,6 +47,9 @@ namespace eae6320
 
 		void SubmitMeshEffectPair(cMesh* i_mesh, LightingEffect* i_effect);
 
+		void SubmitMatrixLightSpaceLocalToProjected(size_t cascadeIndex,
+			const eae6320::Math::cMatrix_transformation& LightSpace_Local_Project);
+
 		void SubmitBackgroundColor(const float i_backgroundColor[4]);
 
 		void SubmitMatrixLocalToWorld(const eae6320::Math::cMatrix_transformation& i_transform_localToWorld);
@@ -59,10 +63,21 @@ namespace eae6320
 			                 const std::vector<eae6320::Graphics::sSpotLight>& i_spotLights);
 
 		void SubmitMaterial(const sMaterial& i_material);
-		void SubmitShadowData(ShadowEffect* i_Shadoweffect,
-			                  const eae6320::Math::cMatrix_transformation& i_transform_worldToLightCamera,
-			                  const eae6320::Math::cMatrix_transformation& i_transform_LightcameraToProjected, 
-			                  const eae6320::Math::cMatrix_transformation& i_ShadowTransform);
+		
+		void SubmitShadowData(
+			ShadowEffect* i_Shadoweffect,
+			const eae6320::Math::cMatrix_transformation& i_transform_shadowView,
+			const eae6320::Math::sVector4 i_cascadeOffsets[4],
+			const eae6320::Math::sVector4 i_cascadeScales[4],
+			const float i_cascadeFrustumsEyeSpaceDepths[4],
+			int i_visualizeCascades,
+			int i_pcfBlurForLoopStart,
+			int i_pcfBlurForLoopEnd,
+			float i_minBorderPadding,
+			float i_maxBorderPadding,
+			float i_shadowBias,
+			float i_cascadeBlendArea,
+			float i_texelSize);
 
 		void SubmitSkyboxData(SkyboxEffect* i_skuboxeffect,
 			                  cMesh* i_cubemesh);

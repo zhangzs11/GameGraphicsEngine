@@ -3,7 +3,11 @@
 */
 
 
-#include <Shaders/ConstantBuffers.inc>
+cbuffer g_constantBuffer_drawCall : register(b2)
+{
+    float4x4 g_WorldViewProj;
+}
+
 
 // Entry Point
 //============
@@ -31,10 +35,5 @@ void main(
 // Main Body
 //============
 {
-	float4 vertexPosition_world = mul(g_transform_localToWorld, float4(i_vertexPosition_local, 1.0f));
-
-	float4 vertexPosition_camera = mul(g_transform_worldToShadowMapCamera, vertexPosition_world);
-
-    o_vertexPosition_projected = mul( g_transform_cameraToShadowMapProjected, vertexPosition_camera );
-
+    o_vertexPosition_projected = mul( g_WorldViewProj, float4(i_vertexPosition_local, 1.0f) );
 }

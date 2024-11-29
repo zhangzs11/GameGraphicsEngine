@@ -37,25 +37,33 @@ namespace eae6320
 
 				float g_elapsedSecondCount_systemTime = 0.0f;
 				float g_elapsedSecondCount_simulationTime = 0.0f;
-				// For float4 alignment
 				float g_padding1[2];
 
 				sDirectionalLight g_DirLight;
 				sPointLight g_PointLight[10];
 				sSpotLight g_SpotLight[10];
 
-				Math::cMatrix_transformation g_ShadowTransform; // ShadowView * ShadowProj * T
-
-				// For float4 alignment
 				Math::sVector g_EyePosW;
 				float g_padding2;
 
+				Math::cMatrix_transformation g_ShadowView;
+				Math::sVector4 g_CascadeOffset[8];
+				Math::sVector4 g_CascadeScale[8];
+				int g_VisualizeCascades;
+				int g_PCFBlurForLoopStart;
+				int g_PCFBlurForLoopEnd;
+				int g_Pad;
 
-				// Shadow Map Rendering
-				// --------------------------------------
-				Math::cMatrix_transformation g_transform_worldToShadowMapCamera;
-				Math::cMatrix_transformation g_transform_cameraToShadowMapProjected;
-				
+				float g_MinBorderPadding;
+				float g_MaxBorderPadding;
+				float g_ShadowBias;
+				float g_CascadeBlendArea;
+
+				float g_TexelSize_shadowMap;
+				float g_padding3[3];
+
+				Math::sVector4 g_CascadeFrustumsEyeSpaceDepthsFloat;
+				Math::sVector4 g_CascadeFrustumsEyeSpaceDepthsFloat4[4];
 
 				// FXAA
 				// --------------------------------------
@@ -84,7 +92,7 @@ namespace eae6320
 				// 0.0312 - Slower
 				float g_QualityEdgeThresholdMin;
 
-				float g_padding[3];
+				float g_padding4[3];
 			};
 
 			// Data that is constant for a single draw call
@@ -94,6 +102,11 @@ namespace eae6320
 				Math::cMatrix_transformation g_transform_localToWorld_Inv_Transpose;
 
 				sMaterial g_Material;
+			};
+
+			struct sDrawCall_shadowMap
+			{
+				Math::cMatrix_transformation g_WorldViewProj;
 			};
 		}
 	}

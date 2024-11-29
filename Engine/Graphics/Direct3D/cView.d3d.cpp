@@ -475,11 +475,11 @@ eae6320::cResult eae6320::Graphics::cView_DSV_Array::CleanUp()
 	}
 	m_depthStencilViewArray.clear();
 
-	if (m_TextureArrayBuffer)
+	/*if (m_TextureArrayBuffer)
 	{
 		m_TextureArrayBuffer->Release();
 		m_TextureArrayBuffer = nullptr;
-	}
+	}*/
 
 	for (auto* viewport : m_viewports) {
 		if (viewport) {

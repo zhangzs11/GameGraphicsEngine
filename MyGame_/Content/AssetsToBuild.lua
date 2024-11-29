@@ -10,11 +10,7 @@ return
 
 		{ path = "Shaders/Vertex/vertexInputLayout_mesh.shader", arguments = { "vertex" } },
 
-        	{ path = "Shaders/Fragment/light_PS.shader", arguments = { "fragment" } },
-
         	{ path = "Shaders/Vertex/skybox_VS.shader", arguments = { "vertex" } },
-
-			{ path = "Shaders/Fragment/light_NormalMap_PS.shader", arguments = { "fragment" } },
 
         	{ path = "Shaders/Vertex/shadow_VS.shader", arguments = { "vertex" } },
 
@@ -27,6 +23,8 @@ return
 		{ path = "Shaders/Fragment/postProcess_Distortion_PS.shader", arguments = { "fragment" } },
 
 		{ path = "Shaders/Fragment/FXAA_post_PS.shader", arguments = { "fragment" } },
+
+		{ path = "Shaders/Fragment/light_NormalMap_CSM_PS.shader", arguments = { "fragment" } },
 	},
 
 	meshes = 

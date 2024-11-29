@@ -32,6 +32,7 @@ namespace
 	// Constant buffer object
 	eae6320::Graphics::cConstantBuffer s_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame);
 	eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall(eae6320::Graphics::ConstantBufferTypes::DrawCall);
+	eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall_shadowMap(eae6320::Graphics::ConstantBufferTypes::DrawCall);
 	// Submission Data
 	//----------------
 
@@ -40,9 +41,11 @@ namespace
 	struct sDataRequiredToRenderAFrame
 	{
 		static constexpr size_t MAX_SUBMITTED_PAIRS = 100;
+		static constexpr size_t MAX_CASCADE_COUNT = 4;
 
 		eae6320::Graphics::ConstantBufferFormats::sFrame constantData_frame;
 		eae6320::Graphics::ConstantBufferFormats::sDrawCall constantData_drawCall[MAX_SUBMITTED_PAIRS];
+		eae6320::Graphics::ConstantBufferFormats::sDrawCall_shadowMap constantData_drawCall_shadowMap[MAX_CASCADE_COUNT][MAX_SUBMITTED_PAIRS];
 
 		eae6320::Graphics::ShadowEffect* shadowEffect;
 		eae6320::Graphics::SkyboxEffect* skyboxEffect;
@@ -51,6 +54,7 @@ namespace
 
 		float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 		size_t submittedPairCount = 0;  // Number of currently submitted pairs
+		size_t cascadeCount = 4;
 		std::pair<eae6320::Graphics::cMesh*, eae6320::Graphics::LightingEffect*> meshEffectPairs[MAX_SUBMITTED_PAIRS];
 
 		eae6320::Graphics::cMesh* skyboxCube;
@@ -91,6 +95,9 @@ namespace
 
 	eae6320::Graphics::cView_RTV s_FXAA_RTV;
 
+
+	eae6320::Graphics::cView_DSV_Array s_shadowMapArray_DSV;
+	eae6320::Graphics::cView_SRV_Array s_shadowMapArray_SRV;
 }
 
 // Helper Declarations
@@ -176,6 +183,20 @@ void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, e
 	}
 }
 
+void eae6320::Graphics::SubmitMatrixLightSpaceLocalToProjected(
+	size_t cascadeIndex,
+	const eae6320::Math::cMatrix_transformation& LightSpace_Local_Project)
+{
+	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
+
+	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
+
+	if (currentFrameData.submittedPairCount < sDataRequiredToRenderAFrame::MAX_SUBMITTED_PAIRS)
+	{
+		currentFrameData.constantData_drawCall_shadowMap[cascadeIndex][currentFrameData.submittedPairCount].g_WorldViewProj = LightSpace_Local_Project;
+	}
+}
+
 void eae6320::Graphics::SubmitMatrixLocalToWorld(const eae6320::Math::cMatrix_transformation& i_transform_localToWorld)
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
@@ -223,18 +244,50 @@ void eae6320::Graphics::SubmitBackgroundColor(const float i_backgroundColor[4])
 	}
 }
 
-void eae6320::Graphics::SubmitShadowData(ShadowEffect* i_Shadoweffect,
-	const eae6320::Math::cMatrix_transformation& i_transform_worldToLightCamera,
-	const eae6320::Math::cMatrix_transformation& i_transform_LightcameraToProjected,
-	const eae6320::Math::cMatrix_transformation& i_ShadowTransform)
+void eae6320::Graphics::SubmitShadowData(
+	ShadowEffect* i_Shadoweffect,
+	const eae6320::Math::cMatrix_transformation& i_transform_shadowView,
+	const eae6320::Math::sVector4 i_cascadeOffsets[4],
+	const eae6320::Math::sVector4 i_cascadeScales[4],
+	const float i_cascadeFrustumsEyeSpaceDepths[4],
+	int i_visualizeCascades,
+	int i_pcfBlurForLoopStart,
+	int i_pcfBlurForLoopEnd,
+	float i_minBorderPadding,
+	float i_maxBorderPadding,
+	float i_shadowBias,
+	float i_cascadeBlendArea,
+	float i_texelSize)
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
-
 	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
+
 	currentFrameData.shadowEffect = i_Shadoweffect;
-	currentFrameData.constantData_frame.g_transform_worldToShadowMapCamera = i_transform_worldToLightCamera;
-	currentFrameData.constantData_frame.g_transform_cameraToShadowMapProjected = i_transform_LightcameraToProjected;
-	currentFrameData.constantData_frame.g_ShadowTransform = i_ShadowTransform; // ShadowView * ShadowProj * T
+	currentFrameData.constantData_frame.g_ShadowView = i_transform_shadowView;
+
+	for (size_t i = 0; i < 4; ++i)
+	{
+		currentFrameData.constantData_frame.g_CascadeOffset[i] = i_cascadeOffsets[i];
+		currentFrameData.constantData_frame.g_CascadeScale[i] = i_cascadeScales[i];
+		currentFrameData.constantData_frame.g_CascadeFrustumsEyeSpaceDepthsFloat4[i] = Math::sVector4(
+			i_cascadeFrustumsEyeSpaceDepths[i], 0.0f, 0.0f, 0.0f);
+	}
+
+	currentFrameData.constantData_frame.g_CascadeFrustumsEyeSpaceDepthsFloat = Math::sVector4(
+		i_cascadeFrustumsEyeSpaceDepths[0], i_cascadeFrustumsEyeSpaceDepths[1], 
+		i_cascadeFrustumsEyeSpaceDepths[2], i_cascadeFrustumsEyeSpaceDepths[3]);
+
+
+	currentFrameData.constantData_frame.g_VisualizeCascades = i_visualizeCascades;
+	currentFrameData.constantData_frame.g_PCFBlurForLoopStart = i_pcfBlurForLoopStart;
+	currentFrameData.constantData_frame.g_PCFBlurForLoopEnd = i_pcfBlurForLoopEnd;
+
+	currentFrameData.constantData_frame.g_MinBorderPadding = i_minBorderPadding;
+	currentFrameData.constantData_frame.g_MaxBorderPadding = i_maxBorderPadding;
+	currentFrameData.constantData_frame.g_ShadowBias = i_shadowBias;
+	currentFrameData.constantData_frame.g_CascadeBlendArea = i_cascadeBlendArea;
+
+	currentFrameData.constantData_frame.g_TexelSize_shadowMap = i_texelSize;
 }
 void eae6320::Graphics::SubmitSkyboxData(eae6320::Graphics::SkyboxEffect* i_skyboxeffect,
 	                                     eae6320::Graphics::cMesh* i_cubemesh)
@@ -319,24 +372,32 @@ void eae6320::Graphics::RenderFrame()
 	auto* const direct3dImmediateContext = sContext::g_context.direct3dImmediateContext;
 	EAE6320_ASSERT(direct3dImmediateContext);
 
-    // RenderShadow map
-    // ----------------
+	// Render Shadow Map for all cascades
+    // ----------------------------------
 	//
-	direct3dImmediateContext->OMSetRenderTargets(0, nullptr, s_shadowMap_DSV.m_depthStencilView);
-	s_shadowMap_DSV.Clear(nullptr);
-	direct3dImmediateContext->RSSetViewports(1, s_shadowMap_DSV.m_viewPort);
-
-	dataRequiredToRenderFrame->shadowEffect->Bind();
-
-	// Draw submitted mesh in pairs
-	for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
+	for (size_t cascadeIndex = 0; cascadeIndex < dataRequiredToRenderFrame->cascadeCount; ++cascadeIndex)
 	{
-		auto& pair = dataRequiredToRenderFrame->meshEffectPairs[i];
-		auto& constantData_drawCall = dataRequiredToRenderFrame->constantData_drawCall[i];
-		s_constantBuffer_drawCall.Update(&constantData_drawCall);
-		s_constantBuffer_drawCall.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex));
+		// Bind the corresponding DSV and Viewport for the current cascade
+		direct3dImmediateContext->OMSetRenderTargets(0, nullptr, s_shadowMapArray_DSV.m_depthStencilViewArray[cascadeIndex]);
+		s_shadowMapArray_DSV.Clear(nullptr); // Clear the DSV for the current cascade
+		direct3dImmediateContext->RSSetViewports(1, s_shadowMapArray_DSV.m_viewports[cascadeIndex]);
 
-		pair.first->Draw();
+		// Bind the shadow effect
+		dataRequiredToRenderFrame->shadowEffect->Bind();
+
+		// Draw submitted mesh-effect pairs for the current cascade
+		for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
+		{
+			auto& pair = dataRequiredToRenderFrame->meshEffectPairs[i];
+			auto& constantData_drawCall_shadowMap = dataRequiredToRenderFrame->constantData_drawCall_shadowMap[cascadeIndex][i];
+
+			// Update and bind the constant buffer for the current cascade and mesh
+			s_constantBuffer_drawCall_shadowMap.Update(&constantData_drawCall_shadowMap);
+			s_constantBuffer_drawCall_shadowMap.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex));
+
+			// Draw the mesh
+			pair.first->Draw();
+		}
 	}
 
 	// Render Forward Object
@@ -372,7 +433,7 @@ void eae6320::Graphics::RenderFrame()
 			s_constantBuffer_drawCall.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
 		}
 
-		pair.second->SetShadowMapSRV(&s_shadowMap_SRV);
+		pair.second->SetShadowMapSRV(&s_shadowMapArray_SRV);
 		pair.second->Bind();  // Bind effect
 		pair.first->Draw();   // Draw mesh
 	}
@@ -506,6 +567,12 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 			return result;
 		}
 
+		if (!(result = s_constantBuffer_drawCall_shadowMap.Initialize()))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without draw call constant buffer");
+			return result;
+		}
+
 	}
 	// Initialize the events
 	{
@@ -559,6 +626,14 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
 	if (!(result = s_shadowMap_SRV.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the View");
+	}
+	if (!(result = s_shadowMapArray_DSV.CleanUp()))
+	{
+		EAE6320_ASSERTF(false, "Failed to clean up the View");
+	}
+	if (!(result = s_shadowMapArray_SRV.CleanUp()))
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
@@ -623,6 +698,15 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 				result = result_constantBuffer_drawCall;
 			}
 		}
+		const auto result_constantBuffer_drawCall_shadowMap = s_constantBuffer_drawCall_shadowMap.CleanUp();
+		if (!result_constantBuffer_drawCall_shadowMap)
+		{
+			EAE6320_ASSERT(false);
+			if (result)
+			{
+				result = result_constantBuffer_drawCall_shadowMap;
+			}
+		}
 	}
 
 	{
@@ -680,9 +764,21 @@ namespace
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
 		}
-
+		if (!(result = s_shadowMapArray_DSV.Initialize(i_initializationParameters, 4)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
 		if (!(result = s_shadowMap_SRV.Initialize(i_initializationParameters, 
 			s_shadowMap_DSV.m_TextureBuffer,
+			eae6320::Graphics::BufferType::Depth)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+		if (!(result = s_shadowMapArray_SRV.Initialize(i_initializationParameters,
+			s_shadowMapArray_DSV.m_TextureArrayBuffer,
+			4,
 			eae6320::Graphics::BufferType::Depth)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");

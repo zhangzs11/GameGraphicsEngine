@@ -76,7 +76,8 @@ namespace eae6320
         public:
             cResult InitResource();
 
-            void UpdateFrame(const cCamera& viewerCamera,
+            void UpdateFrame(
+                const cCamera& viewerCamera,
                 const cCamera& lightCamera,
                 const DirectX::BoundingBox& sceneBouindingBox,
                 const float i_elapsedSecondCount_sinceLastUpdate);
@@ -95,15 +96,15 @@ namespace eae6320
             int		    m_PCFKernelSize = 5;                    
             float       m_PCFDepthOffset = 0.001f;              
             bool        m_DerivativeBasedOffset = false;        
-            bool        m_BlendBetweenCascades = true;         
+            bool        m_BlendBetweenCascades = false;
             float       m_BlendBetweenCascadesRange = 0.2f;     
 
-            bool        m_FixedSizeFrustumAABB = true;          
-            bool        m_MoveLightTexelSize = true;            
+            bool        m_FixedSizeFrustumAABB = false;
+            bool        m_MoveLightTexelSize = false;
 
             CameraSelection     m_SelectedCamera = CameraSelection::CameraSelection_Eye;
             FitProjection       m_SelectedCascadesFit = FitProjection::FitProjection_ToCascade;
-            FitNearFar          m_SelectedNearFarFit = FitNearFar::FitNearFar_SceneAABB_Intersection;
+            FitNearFar          m_SelectedNearFarFit = FitNearFar::FitNearFar_ZeroOne;
             CascadeSelection    m_SelectedCascadeSelection = CascadeSelection::CascadeSelection_Map;
 
         private:
@@ -112,7 +113,7 @@ namespace eae6320
                 Math::sVector4 lightCameraOrthographicMaxVec,
                 Math::sVector4 pointsInCameraView[]);
 
-        private:
+        public:
             float	                        m_CascadePartitionsFrustum[8]{};    
             Math::cMatrix_transformation    m_ShadowProj[8]{};                  
             DirectX::BoundingBox            m_ShadowProjBoundingBox[8]{};       

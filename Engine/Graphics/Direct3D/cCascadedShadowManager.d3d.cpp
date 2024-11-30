@@ -119,7 +119,7 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
         if (m_SelectedNearFarFit == FitNearFar::FitNearFar_ZeroOne)
         {
             nearPlane = 0.1f;
-            farPlane = 10000.0f;
+            farPlane = 1000.0f;
         }
 
         if (m_SelectedNearFarFit == FitNearFar::FitNearFar_CascadeAABB)
@@ -145,8 +145,8 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
             DirectX::XMVectorGetX(lightCameraOrthographicMaxVec),  // right
             DirectX::XMVectorGetY(lightCameraOrthographicMinVec),  // bottom
             DirectX::XMVectorGetY(lightCameraOrthographicMaxVec),  // top
-            nearPlane,                                             // nearPlane
-            farPlane                                               // farPlane
+            -nearPlane,                                             // nearPlane
+            -farPlane                                               // farPlane
         );
 
 

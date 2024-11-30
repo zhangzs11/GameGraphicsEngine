@@ -136,8 +136,11 @@ eae6320::Math::cMatrix_transformation eae6320::Math::cMatrix_transformation::Cre
 	return cMatrix_transformation(
 		xScale, 0.0f, 0.0f, 0.0f,
 		0.0f, yScale, 0.0f, 0.0f,
-		0.0f, 0.0f, zScale, 0.0f,
-		-(i_left + i_right) * xScale * 0.5f, -(i_top + i_bottom) * yScale * 0.5f, - i_z_nearPlane * zScale, 1.0f);
+		0.0f, 0.0f,  zScale, 0.0f,
+		-(i_left + i_right) * xScale * 0.5f, 
+		-(i_top + i_bottom) * yScale * 0.5f, 
+		-i_z_nearPlane * zScale, 
+		1.0f);
 #elif defined( EAE6320_PLATFORM_GL )
 	const auto zScale = 2.0f / (i_z_nearPlane - i_z_farPlane);
 	return cMatrix_transformation(

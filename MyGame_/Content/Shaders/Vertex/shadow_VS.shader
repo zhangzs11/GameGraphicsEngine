@@ -5,7 +5,9 @@
 
 cbuffer g_constantBuffer_drawCall : register(b2)
 {
-    float4x4 g_WorldViewProj;
+    float4x4 g_World;
+	float4x4 g_View;
+	float4x4 g_Proj;
 }
 
 
@@ -35,5 +37,5 @@ void main(
 // Main Body
 //============
 {
-    o_vertexPosition_projected = mul( g_WorldViewProj, float4(i_vertexPosition_local, 1.0f) );
+    o_vertexPosition_projected = mul( g_Proj, mul( g_View,  mul( g_World, float4(i_vertexPosition_local, 1.0f))));
 }

@@ -37,6 +37,7 @@ return
 		{ path = "Meshes/marble_bust.mesh" },
 		{ path = "Meshes/marble_bust_big.mesh" },
 		{ path = "Meshes/wall.mesh" },
+		{ path = "Meshes/garden_gnome.mesh" },
 	},
 
 	textures = 
@@ -60,6 +61,9 @@ return
 		{ path = "Textures/marble_bust_nmap.dds" },
 		{ path = "Textures/wooden_table_diff.dds" },
 		{ path = "Textures/wooden_table_nmap.dds" },
+
+		{ path = "Textures/garden_gnome_nor.dds" },
+		{ path = "Textures/garden_gnome_diff.dds" },
 
 		{ path = "Textures/grasscube1024.dds" },
 	},

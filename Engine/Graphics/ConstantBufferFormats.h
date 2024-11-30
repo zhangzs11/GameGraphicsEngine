@@ -106,7 +106,9 @@ namespace eae6320
 
 			struct sDrawCall_shadowMap
 			{
-				Math::cMatrix_transformation g_WorldViewProj;
+				Math::cMatrix_transformation g_World;
+				Math::cMatrix_transformation g_View;
+				Math::cMatrix_transformation g_Proj;
 			};
 		}
 	}

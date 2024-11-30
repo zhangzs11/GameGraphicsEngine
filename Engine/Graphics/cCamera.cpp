@@ -18,8 +18,28 @@ eae6320::Math::cMatrix_transformation eae6320::Graphics::cCamera::GetWorldToCame
 eae6320::Math::cMatrix_transformation eae6320::Graphics::cCamera::GetCameraToProjectedTransform() const
 {
     // Create the perspective projection matrix
-    return eae6320::Math::cMatrix_transformation::CreateCameraToProjectedTransform_perspective(
-        m_verticalFieldOfView_inRadians, m_aspectRatio, m_z_nearPlane, m_z_farPlane);
+    if (m_type == eCameraType::Perspective) {
+        return eae6320::Math::cMatrix_transformation::CreateCameraToProjectedTransform_perspective(
+            m_verticalFieldOfView_inRadians, m_aspectRatio, m_z_nearPlane, m_z_farPlane);
+    }
+    else {
+        // Calculate orthographic projection parameters
+        float width = m_orthographicWidth;
+        float height = width / m_aspectRatio;
+
+        float left = -width / 2.0f;
+        float right = width / 2.0f;
+        float bottom = -height / 2.0f;
+        float top = height / 2.0f;
+
+        // Create the orthographic projection matrix
+        return eae6320::Math::cMatrix_transformation::CreateCameraToProjectedTransform_orthographic(
+            left, right, bottom, top, m_z_nearPlane, m_z_farPlane);
+    }
+}
+void eae6320::Graphics::cCamera::SetType(const eae6320::Graphics::eCameraType i_type)
+{
+    m_type = i_type;
 }
 
 // Set the position of the camera

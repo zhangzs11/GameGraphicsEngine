@@ -90,8 +90,8 @@ namespace eae6320
             int         m_ShadowSize = 1024;
             int         m_CascadeLevels = 4;
 
-            float		m_CascadePartitionsPercentage[8]{      
-                0.04f, 0.10f, 0.25f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f
+            float		m_CascadePartitionsPercentage[4]{      
+                0.2f, 0.4f, 0.6f, 1.0f
             };
             int		    m_PCFKernelSize = 5;                    
             float       m_PCFDepthOffset = 0.001f;              
@@ -103,7 +103,7 @@ namespace eae6320
             bool        m_MoveLightTexelSize = false;
 
             CameraSelection     m_SelectedCamera = CameraSelection::CameraSelection_Eye;
-            FitProjection       m_SelectedCascadesFit = FitProjection::FitProjection_ToCascade;
+            FitProjection       m_SelectedCascadesFit = FitProjection::FitProjection_ToScene;
             FitNearFar          m_SelectedNearFarFit = FitNearFar::FitNearFar_ZeroOne;
             CascadeSelection    m_SelectedCascadeSelection = CascadeSelection::CascadeSelection_Map;
 

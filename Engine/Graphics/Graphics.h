@@ -47,8 +47,11 @@ namespace eae6320
 
 		void SubmitMeshEffectPair(cMesh* i_mesh, LightingEffect* i_effect);
 
-		void SubmitMatrixLightSpaceLocalToProjected(size_t cascadeIndex,
-			const eae6320::Math::cMatrix_transformation& LightSpace_Local_Project);
+		void SubmitMatrixLightSpaceLocalToProjected(
+			size_t cascadeIndex,
+			const eae6320::Math::cMatrix_transformation& shadowMap_world,
+			const eae6320::Math::cMatrix_transformation& shadowMap_view,
+			const eae6320::Math::cMatrix_transformation& shadowMap_proj);
 
 		void SubmitBackgroundColor(const float i_backgroundColor[4]);
 

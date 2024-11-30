@@ -245,8 +245,8 @@ cbuffer g_constantBuffer_frame : register( b0 )
     float g_TexelSize_shadowMap;
     float3 g_padding3;
     
-    float4 g_CascadeFrustumsEyeSpaceDepthsFloat[2];
-    float4 g_CascadeFrustumsEyeSpaceDepthsFloat4[8];
+    float4 g_CascadeFrustumsEyeSpaceDepthsFloat;
+    float4 g_CascadeFrustumsEyeSpaceDepthsFloat4[4];
 	
     
 	// FXAA

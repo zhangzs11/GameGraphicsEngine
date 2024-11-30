@@ -7,6 +7,21 @@
 #include <Engine/Math/cMatrix_transformation.h>
 #include <Engine/Physics/sRigidBodyState.h>
 
+// Enum Declaration
+//==================
+
+namespace eae6320
+{
+	namespace Graphics
+	{
+		enum class eCameraType
+		{
+			Perspective,
+			Orthographic,
+		};
+	}
+}
+
 // Class Declaration
 //==================
 
@@ -27,9 +42,11 @@ namespace eae6320
 			Math::cMatrix_transformation GetCameraToProjectedTransform() const;
 
 			// Setters for camera properties
+			void SetType(const eCameraType i_type);
 			void SetPosition(const Math::sVector& i_position);
 			void SetOrientation(const Math::cQuaternion& i_orientation);
-			void SetProjectionParameters(const float i_verticalFieldOfView_inRadians,
+			void SetProjectionParameters(
+				const float i_verticalFieldOfView_inRadians,
 				const float i_aspectRatio,
 				const float i_z_nearPlane,
 				const float i_z_farPlane);
@@ -55,12 +72,16 @@ namespace eae6320
 
 		public:
 			Physics::sRigidBodyState m_rigidBodyState;
+			eCameraType m_type = eCameraType::Perspective;
 
 			// Projection parameters
 			float m_verticalFieldOfView_inRadians;
 			float m_aspectRatio;
 			float m_z_nearPlane;
 			float m_z_farPlane;
+
+			// Orthographic parameters
+			float m_orthographicWidth = 5.0f;
 
 
 		};

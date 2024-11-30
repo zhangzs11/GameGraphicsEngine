@@ -73,8 +73,11 @@ namespace eae6320
 
 		void GetDefaultInitialResolution(uint16_t& o_width, uint16_t& o_height) const final
 		{
-			o_width = 1024;
-			o_height = 768;
+			// o_width = 1024;
+			// o_height = 768;
+
+			o_width = 1535;
+			o_height = 1152;
 		}
 #endif
 
@@ -129,9 +132,7 @@ namespace eae6320
 
 		Graphics::LightingEffect* m_effect_tree = nullptr;
 		Graphics::LightingEffect* m_effect_plane = nullptr;
-		Graphics::LightingEffect* m_effect_table = nullptr;
 		Graphics::LightingEffect* m_effect_marblebust = nullptr;
-		Graphics::LightingEffect* m_effect_wall = nullptr;
 
 		Graphics::SkyboxEffect* m_effect_skybox = nullptr;
 		Graphics::ShadowEffect* m_effect_shadowMap = nullptr;
@@ -156,10 +157,7 @@ namespace eae6320
 		cGameObject m_gameObject_plane[60];
 		cGameObject m_gameObject_tree;
 		cGameObject m_gameObject_tree2;
-		cGameObject m_gameObject_table;
-		cGameObject m_gameObject_marblebust;
 		cGameObject m_gameObject_marblebust_big;
-		cGameObject m_gameObject_wall;
 
 		cGameObject m_gameObject_skybox;
 

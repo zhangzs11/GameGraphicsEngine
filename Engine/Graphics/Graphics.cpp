@@ -185,7 +185,9 @@ void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, e
 
 void eae6320::Graphics::SubmitMatrixLightSpaceLocalToProjected(
 	size_t cascadeIndex,
-	const eae6320::Math::cMatrix_transformation& LightSpace_Local_Project)
+	const eae6320::Math::cMatrix_transformation& shadowMap_world, 
+	const eae6320::Math::cMatrix_transformation& shadowMap_view, 
+	const eae6320::Math::cMatrix_transformation& shadowMap_proj)
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
 
@@ -193,7 +195,9 @@ void eae6320::Graphics::SubmitMatrixLightSpaceLocalToProjected(
 
 	if (currentFrameData.submittedPairCount < sDataRequiredToRenderAFrame::MAX_SUBMITTED_PAIRS)
 	{
-		currentFrameData.constantData_drawCall_shadowMap[cascadeIndex][currentFrameData.submittedPairCount].g_WorldViewProj = LightSpace_Local_Project;
+		currentFrameData.constantData_drawCall_shadowMap[cascadeIndex][currentFrameData.submittedPairCount].g_World = shadowMap_world;
+		currentFrameData.constantData_drawCall_shadowMap[cascadeIndex][currentFrameData.submittedPairCount].g_View = shadowMap_view;
+		currentFrameData.constantData_drawCall_shadowMap[cascadeIndex][currentFrameData.submittedPairCount].g_Proj = shadowMap_proj;
 	}
 }
 

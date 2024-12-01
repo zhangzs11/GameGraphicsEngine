@@ -101,10 +101,10 @@ eae6320::cResult eae6320::Assets::cShaderBuilder::Build( const Graphics::eShader
 			switch ( i_shaderType )
 			{
 			case Graphics::eShaderType::Vertex:
-				return "vs_4_0";
+				return "vs_5_0";
 				break;
 			case Graphics::eShaderType::Fragment:
-				return "ps_4_0";
+				return "ps_5_0";
 				break;
 			default:
 				EAE6320_ASSERTF( false, "Invalid shader type" );

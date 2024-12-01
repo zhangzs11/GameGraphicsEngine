@@ -131,7 +131,7 @@ eae6320::cResult eae6320::Graphics::LightingEffect::Initialize
 		EAE6320_ASSERTF(false, "Can't initialize effect without sampler");
 		return result;
 	}
-	if (!(result = cSampler::CreateSampler(m_compare_sampler_shadowMap, texture_samplerType)))
+	if (!(result = cSampler::CreateSampler(m_compare_sampler_shadowMap, shadowmap_samplerType)))
 	{
 		EAE6320_ASSERTF(false, "Can't initialize effect without sampler");
 		return result;

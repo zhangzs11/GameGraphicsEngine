@@ -279,8 +279,8 @@ cbuffer g_constantBuffer_frame : register(b0)
     float g_TexelSize_shadowMap;
     float3 g_padding3;
     
-    float4 g_CascadeFrustumsEyeSpaceDepthsFloat[2];
-    float4 g_CascadeFrustumsEyeSpaceDepthsFloat4[8];
+    float4 g_CascadeFrustumsEyeSpaceDepthsFloat;
+    float4 g_CascadeFrustumsEyeSpaceDepthsFloat4[4];
     
 	//// Shadow Map Rendering
 	//// ---------------------------------------
@@ -325,9 +325,8 @@ cbuffer g_constantBuffer_drawCall : register(b2)
     Material g_Material;
 };
 
-Texture2DArray g_ShadowMap : register(t2); // Shadow map
+// Texture2DArray g_ShadowMap : register(t2); // Shadow map
 // SamplerComparisonState g_SamShadow : register(s1);
-SamplerState g_SamShadow : register(s1);
 
 static const float4 s_CascadeColorsMultiplier[8] =
 {
@@ -400,10 +399,16 @@ float CalculatePCFPercentLit(int currentCascadeIndex,
             //    ),
             //    depthCmp);
             
-            float sampledDepth = g_ShadowMap.SampleLevel(g_SamShadow,
-                float3(shadowTexCoord.xy, currentCascadeIndex), 0.0f).r;
 
-            percentLit += (depthCmp <= sampledDepth) ? 1.0f : 0.0f;
+            percentLit += g_ShadowMap.SampleCmpLevelZero(g_SamShadow,
+            float3(shadowTexCoord.xy, (float) currentCascadeIndex), depthCmp).r;
+
+
+            
+            //float sampledDepth = g_ShadowMap.SampleLevel(g_SamShadow,
+            //    float3(shadowTexCoord.xy, currentCascadeIndex), 0.0f).r;
+
+            //percentLit += (depthCmp <= sampledDepth) ? 1.0f : 0.0f;
 
         }
     }

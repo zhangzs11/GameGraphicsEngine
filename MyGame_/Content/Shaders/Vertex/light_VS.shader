@@ -72,7 +72,7 @@ void main(
 
 		o_vertexShadowPosV = mul(g_ShadowView, float4(o_vertexPosition_world, 1.0f));
 
-		o_vertexDepthV = mul(g_transform_worldToCamera, mul(g_transform_localToWorld, float4(i_vertexPosition_local, 1.0f))).z;
+		o_vertexDepthV = vertexPosition_camera.z;
 
 		o_vertexUV = i_vertexUV;  
 	}

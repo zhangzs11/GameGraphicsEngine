@@ -383,7 +383,7 @@ void eae6320::Graphics::RenderFrame()
 	{
 		// Bind the corresponding DSV and Viewport for the current cascade
 		direct3dImmediateContext->OMSetRenderTargets(0, nullptr, s_shadowMapArray_DSV.m_depthStencilViewArray[cascadeIndex]);
-		s_shadowMapArray_DSV.Clear(nullptr); // Clear the DSV for the current cascade
+		s_shadowMapArray_DSV.Clear(cascadeIndex); // Clear the DSV for the current cascade
 		direct3dImmediateContext->RSSetViewports(1, s_shadowMapArray_DSV.m_viewports[cascadeIndex]);
 
 		// Bind the shadow effect

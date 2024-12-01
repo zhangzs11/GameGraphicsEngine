@@ -103,7 +103,7 @@ namespace eae6320
 		public:
 			cResult Initialize(const sInitializationParameters& i_initializationParameters, 
 				               const uint32_t ArraySize);
-			void Clear(const float i_clearColor[4]);
+			void Clear(const size_t cascadeIndex);
 			cResult CleanUp();
 		public:
 			std::vector<ID3D11DepthStencilView*> m_depthStencilViewArray;

@@ -392,7 +392,7 @@ void eae6320::Graphics::cView_DSV::Clear(const float i_clearColor[4])
 	}
 }
 
-void eae6320::Graphics::cView_DSV_Array::Clear(const float i_clearColor[4])
+void eae6320::Graphics::cView_DSV_Array::Clear(const size_t cascadeIndex)
 {
 	auto* const direct3dImmediateContext = sContext::g_context.direct3dImmediateContext;
 	EAE6320_ASSERT(direct3dImmediateContext);
@@ -400,8 +400,12 @@ void eae6320::Graphics::cView_DSV_Array::Clear(const float i_clearColor[4])
 	constexpr float clearToFarDepth = 1.0f;
 	constexpr uint8_t stencilValue = 0;
 
-	for (auto* dsv : m_depthStencilViewArray) {
+	if (cascadeIndex < m_depthStencilViewArray.size()) {
+		auto* dsv = m_depthStencilViewArray[cascadeIndex];
 		direct3dImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, clearToFarDepth, stencilValue);
+	}
+	else {
+		EAE6320_ASSERTF(false, "Invalid cascadeIndex provided to Clear");
 	}
 }
 

@@ -252,7 +252,7 @@ void eae6320::cMyGame::SubmitShadowDataToGraphics(
 			1.0f);               
 	}
 
-	float cascadeFrustumsEyeSpaceDepths[4] = { 10.0f, 30.0f, 50.0f, 100.0f};
+	float cascadeFrustumsEyeSpaceDepths[4] = { -10.0f, -30.0f, -50.0f, -100.0f};
 
 	eae6320::Graphics::SubmitShadowData(
 		i_Shadoweffect,
@@ -419,7 +419,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		                                              "data/Textures/ganges_diff_4k.bintexture",
 		                                              "data/Textures/ganges_dx_nmap_4k.bintexture",
 		                                              eae6320::Graphics::eSamplerType::Linear,
-		                                              eae6320::Graphics::eSamplerType::Linear);
+		                                              eae6320::Graphics::eSamplerType::Comparison_less_equal);
 
 	if (!result)
 	{
@@ -435,7 +435,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		"data/Textures/garden_gnome_diff.bintexture",
 		"data/Textures/garden_gnome_nor.bintexture",
 		eae6320::Graphics::eSamplerType::Linear,
-		eae6320::Graphics::eSamplerType::Linear);
+		eae6320::Graphics::eSamplerType::Comparison_less_equal);
 
 	if (!result)
 	{

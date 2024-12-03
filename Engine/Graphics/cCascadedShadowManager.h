@@ -91,7 +91,7 @@ namespace eae6320
             int         m_CascadeLevels = 4;
 
             float		m_CascadePartitionsPercentage[4]{      
-                0.2f, 0.4f, 0.6f, 1.0f
+                0.2f, 0.4f, 1.0f, 1.0f
             };
             int		    m_PCFKernelSize = 5;                    
             float       m_PCFDepthOffset = 0.001f;              

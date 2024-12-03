@@ -61,7 +61,10 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
         viewerFrustum.Far = frustumIntervalEnd;
 
         // Make the frustum from LOCAL space to WORLD space, and then LIGHT space
-        viewerFrustum.Transform(viewerFrustum, ViewerInvView.ToXMMATRIX() * LightView.ToXMMATRIX());
+        viewerFrustum.Transform(viewerFrustum, ViewerInvView.ToXMMATRIX());
+        viewerFrustum.Transform(viewerFrustum, LightView.ToXMMATRIX());
+        // viewerFrustum.Transform(viewerFrustum, ViewerInvView.ToXMMATRIX() * LightView.ToXMMATRIX());
+        // viewerFrustum.Transform(viewerFrustum, LightView.ToXMMATRIX() * ViewerInvView.ToXMMATRIX());
         viewerFrustum.GetCorners(viewerFrustumPoints);
         // Calculate the AABB, vMax, vMin of frustum in LIGHT space
         DirectX::BoundingBox viewerFrustumBox;
@@ -91,8 +94,8 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
             borderOffsetVec = DirectX::XMVectorMultiply(borderOffsetVec, DirectX::g_XMOneHalf);
             borderOffsetVec = DirectX::XMVectorMultiply(borderOffsetVec, scaleDuetoBlurVec);
 
-            lightCameraOrthographicMaxVec = DirectX::XMVectorAdd(lightCameraOrthographicMaxVec, borderOffsetVec);
-            lightCameraOrthographicMinVec = DirectX::XMVectorSubtract(lightCameraOrthographicMinVec, borderOffsetVec);
+            // lightCameraOrthographicMaxVec = DirectX::XMVectorAdd(lightCameraOrthographicMaxVec, borderOffsetVec);
+            // lightCameraOrthographicMinVec = DirectX::XMVectorSubtract(lightCameraOrthographicMinVec, borderOffsetVec);
         }
 
         if (m_MoveLightTexelSize)
@@ -119,7 +122,7 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
         if (m_SelectedNearFarFit == FitNearFar::FitNearFar_ZeroOne)
         {
             nearPlane = 0.1f;
-            farPlane = 1000.0f;
+            farPlane = 500.0f;
         }
 
         if (m_SelectedNearFarFit == FitNearFar::FitNearFar_CascadeAABB)
@@ -141,10 +144,14 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
         // Orthographic project matrix
         //
         m_ShadowProj[cascadeIndex] = Math::cMatrix_transformation::CreateCameraToProjectedTransform_orthographic(
-            DirectX::XMVectorGetX(lightCameraOrthographicMinVec),  // left
-            DirectX::XMVectorGetX(lightCameraOrthographicMaxVec),  // right
-            DirectX::XMVectorGetY(lightCameraOrthographicMinVec),  // bottom
-            DirectX::XMVectorGetY(lightCameraOrthographicMaxVec),  // top
+            //DirectX::XMVectorGetX(lightCameraOrthographicMinVec),  // left
+            //DirectX::XMVectorGetX(lightCameraOrthographicMaxVec),  // right
+            //DirectX::XMVectorGetY(lightCameraOrthographicMinVec),  // bottom
+            //DirectX::XMVectorGetY(lightCameraOrthographicMaxVec),  // top
+            -100.0f, 
+            100.0f,
+            -100.0f,
+            100.0f,
             -nearPlane,                                             // nearPlane
             -farPlane                                               // farPlane
         );
@@ -152,8 +159,8 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
 
         // Orthographic AABB
         //
-        lightCameraOrthographicMinVec = DirectX::XMVectorSetZ(lightCameraOrthographicMinVec, nearPlane);
-        lightCameraOrthographicMaxVec = DirectX::XMVectorSetZ(lightCameraOrthographicMaxVec, farPlane);
+        lightCameraOrthographicMinVec = DirectX::XMVectorSetZ(lightCameraOrthographicMinVec, -nearPlane);
+        lightCameraOrthographicMaxVec = DirectX::XMVectorSetZ(lightCameraOrthographicMaxVec, -farPlane);
         DirectX::BoundingBox::CreateFromPoints(m_ShadowProjBoundingBox[cascadeIndex],
             lightCameraOrthographicMinVec, lightCameraOrthographicMaxVec);
 

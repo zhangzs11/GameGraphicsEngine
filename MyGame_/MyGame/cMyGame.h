@@ -12,6 +12,7 @@
 #include <Engine/Application/iApplication.h>
 #include <Engine/Results/Results.h>
 #include <Engine/Graphics/Graphics.h>
+#include <Engine/Audio/cAudioSystem.h>
 
 #include "cGameObject.h"
 // #include "cCamera.h"
@@ -89,7 +90,7 @@ namespace eae6320
 		void UpdateSimulationBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate) final;
 		void SubmitDataToBeRendered(const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate) final;
 
-		void SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
+		void SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
 		void SubmitCameraToGraphics(eae6320::Graphics::cCamera& i_camera, const float i_elapsedSecondCount_sinceLastSimulationUpdate);
 		void SubmitLightDataToGraphics(
 									   std::vector<eae6320::Graphics::sDirectionalLight>& i_directionalLights,
@@ -125,14 +126,17 @@ namespace eae6320
 		Graphics::cMesh* m_mesh_plane = nullptr;
 		Graphics::cMesh* m_mesh_tree = nullptr;
 		Graphics::cMesh* m_mesh_cube = nullptr;
-		Graphics::cMesh* m_mesh_table = nullptr;
-		Graphics::cMesh* m_mesh_marblebust = nullptr;
-		Graphics::cMesh* m_mesh_marblebust_big = nullptr;
-		Graphics::cMesh* m_mesh_wall = nullptr;
+		Graphics::cMesh* m_mesh_garden_gnome = nullptr;
+		Graphics::cMesh* m_mesh_rat = nullptr;
+		Graphics::cMesh* m_mesh_cat = nullptr;
+		Graphics::cMesh* m_mesh_horse = nullptr;
 
 		Graphics::LightingEffect* m_effect_tree = nullptr;
 		Graphics::LightingEffect* m_effect_plane = nullptr;
 		Graphics::LightingEffect* m_effect_marblebust = nullptr;
+		Graphics::LightingEffect* m_effect_rat = nullptr;
+		Graphics::LightingEffect* m_effect_cat = nullptr;
+		Graphics::LightingEffect* m_effect_horse = nullptr;
 
 		Graphics::SkyboxEffect* m_effect_skybox = nullptr;
 		Graphics::ShadowEffect* m_effect_shadowMap = nullptr;
@@ -155,9 +159,13 @@ namespace eae6320
 		// Game Objects
 		//----------------------
 		cGameObject m_gameObject_plane[60];
-		cGameObject m_gameObject_tree;
-		cGameObject m_gameObject_tree2;
-		cGameObject m_gameObject_marblebust_big;
+		cGameObject m_gameObject_tree[10];
+
+		cGameObject m_gameObject_rat[4];
+		cGameObject m_gameObject_cat;
+		cGameObject m_gameObject_horse;
+
+		cGameObject m_gameObject_monster;
 
 		cGameObject m_gameObject_skybox;
 
@@ -166,17 +174,37 @@ namespace eae6320
 
 		// Game States
 		//----------------------
-		bool ifUpPressed = false;
-		bool ifDownPressed = false;
-		bool ifLeftPressed = false;
-		bool ifRightPressed = false;
+		int m_inputState = 0; 
+		// 0 : R
+		// 1 : U
+		// 2 : N
+		// 3 : Running
+		float m_playerMoveTime = 0.0f;
+
+
+		int m_monsterState = 0;
+		// 0 : Back
+		// 1 : TurningToForward
+		// 2 : Forward
+		// 3 : TurningToBack
+		float m_monsterBackingTime = 0.0f;
+		float m_monsterTurningTime = 0.0f;
+		float m_monsterForwardingTime = 0.0f;
+
+		float m_rat_moveTime = 0.0f;
+
+
 		Graphics::PostProcessingEffect* m_current_postprocess_effect = nullptr;
 
-		//
+		// Cascaded Shadow Map
 		//
 		Graphics::cCascadedShadowManager m_cascadedShadowManager;
 		Graphics::cCamera m_lightCamera;
 		DirectX::BoundingBox testBox;
+
+		
+		// Audio
+		AudioSystem::cAudio testAudio;
 	};
 }
 

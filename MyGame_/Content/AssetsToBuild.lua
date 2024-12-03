@@ -32,39 +32,45 @@ return
 	    { path = "Meshes/plane.mesh" },
         { path = "Meshes/cube.mesh" },
 		{ path = "Meshes/quiver_tree.mesh" },
-		{ path = "Meshes/quiver_tree_all_change.mesh" },
-		{ path = "Meshes/table.mesh" },
-		{ path = "Meshes/marble_bust.mesh" },
-		{ path = "Meshes/marble_bust_big.mesh" },
-		{ path = "Meshes/wall.mesh" },
 		{ path = "Meshes/garden_gnome.mesh" },
+		{ path = "Meshes/rat.mesh" },
+		{ path = "Meshes/cat.mesh" },
+		{ path = "Meshes/horse.mesh" },
 	},
 
 	textures = 
 	{
-		{ path = "Textures/bricks.dds" },
-		{ path = "Textures/bricks_nmap.dds" },
-		{ path = "Textures/stones.dds" },
-		{ path = "Textures/stones_nmap.dds" },
-		{ path = "Textures/grass.dds" },
-		{ path = "Textures/stone.dds" },
-		{ path = "Textures/water1.dds" },
-		{ path = "Textures/water2.dds" },
-        { path = "Textures/desertcube1024.dds" },
-		{ path = "Textures/house.dds" },
 		{ path = "Textures/ganges_diff_4k.dds" },
 		{ path = "Textures/ganges_dx_nmap_4k.dds" },
+
 		{ path = "Textures/quiver_tree_diffuse.dds" },
 		{ path = "Textures/quiver_tree_normal_dx.dds" },
 
-		{ path = "Textures/marble_bust_diff.dds" },
-		{ path = "Textures/marble_bust_nmap.dds" },
-		{ path = "Textures/wooden_table_diff.dds" },
-		{ path = "Textures/wooden_table_nmap.dds" },
+		{ path = "Textures/horse_diff.dds" },
+		{ path = "Textures/horse_nor.dds" },
+
+		{ path = "Textures/cat_diff.dds" },
+		{ path = "Textures/cat_nor.dds" },
+
+		{ path = "Textures/rat_diff.dds" },
+		{ path = "Textures/rat_nor.dds" },
+
+		{ path = "Textures/elephant_diff.dds" },
+		{ path = "Textures/elephant_nor.dds" },
 
 		{ path = "Textures/garden_gnome_nor.dds" },
 		{ path = "Textures/garden_gnome_diff.dds" },
 
+		{ path = "Textures/ganges_diff_4k.dds" },
+		{ path = "Textures/ganges_dx_nmap_4k.dds" },
+
 		{ path = "Textures/grasscube1024.dds" },
+		{ path = "Textures/desertcube1024.dds" },
 	},
+
+	audio = 
+	{
+		{ path = "Audio/s.wav"},
+		{ path = "Audio/testAudio.mp3"},
+	}
 }

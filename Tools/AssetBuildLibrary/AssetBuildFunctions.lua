@@ -310,6 +310,17 @@ NewAssetTypeInfo( "meshes",
 	}
 )
 
+-- Audio Asset Type
+------------------
+
+NewAssetTypeInfo( "audio",
+	{
+		GetBuilderRelativePath = function()
+			return "AudioBuilder.exe"
+		end,
+	}
+)
+
 -- Local Function Definitions
 --===========================
 

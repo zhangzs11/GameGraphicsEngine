@@ -121,7 +121,7 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
 
         if (m_SelectedNearFarFit == FitNearFar::FitNearFar_ZeroOne)
         {
-            nearPlane = 0.1f;
+            nearPlane = 10.0f;
             farPlane = 500.0f;
         }
 
@@ -149,9 +149,9 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
             //DirectX::XMVectorGetY(lightCameraOrthographicMinVec),  // bottom
             //DirectX::XMVectorGetY(lightCameraOrthographicMaxVec),  // top
             -100.0f, 
-            100.0f,
+            0.0f,
             -100.0f,
-            100.0f,
+            250.0f,
             -nearPlane,                                             // nearPlane
             -farPlane                                               // farPlane
         );

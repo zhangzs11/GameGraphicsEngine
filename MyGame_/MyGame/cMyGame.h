@@ -74,11 +74,11 @@ namespace eae6320
 
 		void GetDefaultInitialResolution(uint16_t& o_width, uint16_t& o_height) const final
 		{
-			// o_width = 1024;
-			// o_height = 768;
+			o_width = 1024;
+			o_height = 768;
 
-			o_width = 1535;
-			o_height = 1152;
+			// o_width = 1535;
+			// o_height = 1152;
 		}
 #endif
 
@@ -142,7 +142,8 @@ namespace eae6320
 		Graphics::ShadowEffect* m_effect_shadowMap = nullptr;
 
 		Graphics::PostProcessingEffect* m_effect_postProcessing_Default = nullptr;
-		Graphics::PostProcessingEffect* m_effect_postProcessing_Distortion = nullptr;
+		Graphics::PostProcessingEffect* m_effect_postProcessing_Win = nullptr;
+		Graphics::PostProcessingEffect* m_effect_postProcessing_Lose = nullptr;
 		Graphics::PostProcessingEffect* m_effect_FXAA = nullptr;
 
 		// FXAA
@@ -174,13 +175,6 @@ namespace eae6320
 
 		// Game States
 		//----------------------
-		int m_inputState = 0; 
-		// 0 : R
-		// 1 : U
-		// 2 : N
-		// 3 : Running
-		float m_playerMoveTime = 0.0f;
-
 
 		int m_monsterState = 0;
 		// 0 : Back
@@ -190,8 +184,6 @@ namespace eae6320
 		float m_monsterBackingTime = 0.0f;
 		float m_monsterTurningTime = 0.0f;
 		float m_monsterForwardingTime = 0.0f;
-
-		float m_rat_moveTime = 0.0f;
 
 
 		Graphics::PostProcessingEffect* m_current_postprocess_effect = nullptr;
@@ -204,7 +196,9 @@ namespace eae6320
 
 		
 		// Audio
-		AudioSystem::cAudio testAudio;
+		AudioSystem::cAudio bgmAudio;
+		AudioSystem::cAudio winAudio;
+		AudioSystem::cAudio loseAudio;
 	};
 }
 

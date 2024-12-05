@@ -22,6 +22,10 @@ return
 
 		{ path = "Shaders/Fragment/postProcess_Distortion_PS.shader", arguments = { "fragment" } },
 
+		{ path = "Shaders/Fragment/postProcess_Lose_PS.shader", arguments = { "fragment" } },
+
+		{ path = "Shaders/Fragment/postProcess_Win_PS.shader", arguments = { "fragment" } },
+
 		{ path = "Shaders/Fragment/FXAA_post_PS.shader", arguments = { "fragment" } },
 
 		{ path = "Shaders/Fragment/light_NormalMap_CSM_PS.shader", arguments = { "fragment" } },
@@ -72,5 +76,11 @@ return
 	{
 		{ path = "Audio/s.wav"},
 		{ path = "Audio/testAudio.mp3"},
+
+		{ path = "Audio/bgm.wav"},
+		{ path = "Audio/lose.wav"},
+		{ path = "Audio/win.wav"},
+		{ path = "Audio/evilWin.mp3"},
+		{ path = "Audio/Promise.mp3"},
 	}
 }

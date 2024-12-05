@@ -31,15 +31,15 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	}
 
 	auto& cameraRigidBody = m_camera.GetRigidBodyState();
-	const float movementSpeed = 50.0f;  // Units per second
+	const float movementSpeed = 20.0f;  // Units per second
 	constexpr float rotationSpeed = eae6320::Math::ConvertDegreesToRadians(60.0f);  // Radians per second
 
 	// Movement: WASD for forward, backward, left, right
-	/*if (UserInput::IsKeyPressed('W'))
+	if (UserInput::IsKeyPressed('W'))
 	{
 		cameraRigidBody.velocity = m_camera.GetForwardDirection() * movementSpeed;
 	}
-	else if (UserInput::IsKeyPressed('S'))
+	/*else if (UserInput::IsKeyPressed('S'))
 	{
 		cameraRigidBody.velocity = m_camera.GetForwardDirection() * -movementSpeed;
 	}
@@ -50,32 +50,10 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	else if (UserInput::IsKeyPressed('D'))
 	{
 		cameraRigidBody.velocity = m_camera.GetRightDirection() * movementSpeed;
-	}
+	}*/
 	else
 	{
 		cameraRigidBody.velocity = Math::sVector(0.0f, 0.0f, 0.0f);
-	}*/
-
-
-	if (UserInput::IsKeyPressed('R'))
-	{
-		if (m_inputState == 0) {
-			m_inputState = 1;
-		}
-	}
-	if (UserInput::IsKeyPressed('U'))
-	{
-		if (m_inputState == 1) {
-			m_inputState = 2;
-		}
-	}
-	if (UserInput::IsKeyPressed('N'))
-	{
-		if (m_inputState == 2) {
-			m_inputState = 3;
-			cameraRigidBody.velocity = m_camera.GetForwardDirection() * movementSpeed;
-			m_playerMoveTime = 0.5f;
-		}
 	}
 
 
@@ -83,25 +61,6 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	if (UserInput::IsKeyPressed('1'))
 	{
 		m_current_postprocess_effect = m_effect_postProcessing_Default;
-	}
-
-	if (UserInput::IsKeyPressed('2'))
-	{
-		m_current_postprocess_effect = m_effect_postProcessing_Distortion;
-	}
-
-	if (UserInput::IsKeyPressed('4'))
-	{
-		m_FXAA_QualitySubPix = 0.00f;
-		m_FXAA_QualityEdgeThreshold = 0.333f;
-		m_FXAA_QualityEdgeThresholdMin = 0.0833f;
-	}
-
-	if (UserInput::IsKeyPressed('5'))
-	{
-		m_FXAA_QualitySubPix = 0.50f;
-		m_FXAA_QualityEdgeThreshold = 0.166f;
-		m_FXAA_QualityEdgeThresholdMin = 0.0625f;
 	}
 
 	if (UserInput::IsKeyPressed('6'))
@@ -134,19 +93,9 @@ void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCo
 {
 	// Player
 	// ---------------------------
-	testAudio.SubmitAudioToBePlayed();
-
-	if (m_inputState == 3) {
-		if (m_playerMoveTime > 0.0f) {
-			m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
-			m_playerMoveTime -= i_elapsedSecondCount_sinceLastUpdate;
-		}
-		else {
-			m_camera.GetRigidBodyState().velocity = Math::sVector(0.0f, 0.0f, 0.0f);
-			m_inputState = 0;
-		}
-	}
-
+	bgmAudio.SubmitAudioToBePlayed();
+	winAudio.SubmitAudioToBePlayed();
+	loseAudio.SubmitAudioToBePlayed();
 
 	// Monster
 	// ---------------------------
@@ -157,9 +106,9 @@ void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCo
 		}
 		else {
 			m_monsterState = 1;
-			m_gameObject_monster.GetRigidBodyState().angularSpeed = 0.5f;
+			m_gameObject_monster.GetRigidBodyState().angularSpeed = 1.5f;
 			m_monsterBackingTime = 0.0f;
-			m_monsterTurningTime = 6.3f;
+			m_monsterTurningTime = 2.1f;
 		}
 	}
 
@@ -173,7 +122,7 @@ void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCo
 				eae6320::Math::sVector(0.0f, 1.0f, 0.0f)));
 			m_gameObject_monster.GetRigidBodyState().angularSpeed = 0.0f;
 			m_monsterTurningTime = 0.0f;
-			m_monsterForwardingTime = 5.0f;
+			m_monsterForwardingTime = 2.0f;
 		}
 	}
 
@@ -183,9 +132,9 @@ void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCo
 		}
 		else {
 			m_monsterState = 3;
-			m_gameObject_monster.GetRigidBodyState().angularSpeed = 0.5f;
+			m_gameObject_monster.GetRigidBodyState().angularSpeed = 1.5f;
 			m_monsterForwardingTime = 0.0f;
-			m_monsterTurningTime = 6.3f;
+			m_monsterTurningTime = 2.1f;
 		}
 	}
 
@@ -199,25 +148,42 @@ void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCo
 				eae6320::Math::sVector(0.0f, 1.0f, 0.0f)));
 			m_gameObject_monster.GetRigidBodyState().angularSpeed = 0.0f;
 			m_monsterTurningTime = 0.0f;
-			m_monsterBackingTime = 5.0f;
+			m_monsterBackingTime = 0.8f;
 		}
 	}
 
-	if (m_inputState == 3 && m_monsterState == 2) {
-		// GameOver
-		m_current_postprocess_effect = m_effect_postProcessing_Distortion;
+	
+
+	if (m_monsterState == 2 && m_camera.GetRigidBodyState().velocity != eae6320::Math::sVector(0.0f, 0.0f, 0.0f)) {
+		// GAME OVER
+	    // -----------------------
+		m_current_postprocess_effect = m_effect_postProcessing_Lose;
+		SetSimulationRate(0.0f);
+		loseAudio.Play();
+
 	}
 
+	if (m_camera.GetRigidBodyState().position.z <= 50.0f) {
+		// GAME WIN
+		// -----------------------
+		m_current_postprocess_effect = m_effect_postProcessing_Win;
+		SetSimulationRate(0.0f);
+		winAudio.Play();
+		m_gameObject_monster.SetOrientation(eae6320::Math::cQuaternion::LookAt(eae6320::Math::sVector(0.0f, 0.0f, -1.0f),
+			eae6320::Math::sVector(0.0f, 1.0f, 0.0f)));
+		m_gameObject_monster.SetPosition(eae6320::Math::sVector(10.0f, -30.0f, 0.0f));
+
+	}
+
+
+
+	m_camera.Update(i_elapsedSecondCount_sinceLastUpdate);
 	m_gameObject_monster.Update(i_elapsedSecondCount_sinceLastUpdate);
 	m_lightCamera.Update(i_elapsedSecondCount_sinceLastUpdate);
 	m_cascadedShadowManager.UpdateFrame(m_camera, m_lightCamera, testBox, i_elapsedSecondCount_sinceLastUpdate);
 
 
-	testAudio.Play();
-	if (testAudio.IsPlaying())
-	{
-		eae6320::Logging::OutputMessage(std::string("Audio is playing.").c_str());
-	}
+	bgmAudio.Play();
 }
 
 void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
@@ -621,9 +587,21 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_current_postprocess_effect = m_effect_postProcessing_Default;
 
 	result = eae6320::Graphics::PostProcessingEffect::CreatePostProcessingEffect(
-		m_effect_postProcessing_Distortion,
+		m_effect_postProcessing_Win,
 		"data/Shaders/Vertex/fullScreenTriangle.binshader",
-		"data/Shaders/Fragment/postProcess_Distortion_PS.binshader",
+		"data/Shaders/Fragment/postProcess_Win_PS.binshader",
+		shadowRenderStateBits,
+		eae6320::Graphics::eSamplerType::Linear);
+	if (!result)
+	{
+		EAE6320_ASSERTF(false, "Failed to initialize shadow map effect");
+		return result;
+	}
+
+	result = eae6320::Graphics::PostProcessingEffect::CreatePostProcessingEffect(
+		m_effect_postProcessing_Lose,
+		"data/Shaders/Vertex/fullScreenTriangle.binshader",
+		"data/Shaders/Fragment/postProcess_Lose_PS.binshader",
 		shadowRenderStateBits,
 		eae6320::Graphics::eSamplerType::Linear);
 	if (!result)
@@ -769,8 +747,10 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	// Initialize Audio
 	// -----------------
-	testAudio.AudioConstructor("data/Audio/test.mp3", "testAudio", 500, true);
-	
+	bgmAudio.AudioConstructor("data/Audio/bgm.wav", "bgm", 300, true);
+	winAudio.AudioConstructor("data/Audio/evilWin.mp3", "win", 800, false);
+	loseAudio.AudioConstructor("data/Audio/lose.wav", "lose", 700, false);
+
 	return Results::Success;
 }
 
@@ -858,10 +838,15 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 		m_effect_postProcessing_Default = nullptr;
 
 	}
-	if (m_effect_postProcessing_Distortion)
+	if (m_effect_postProcessing_Win)
 	{
-		m_effect_postProcessing_Distortion->DecrementReferenceCount();
-		m_effect_postProcessing_Distortion = nullptr;
+		m_effect_postProcessing_Win->DecrementReferenceCount();
+		m_effect_postProcessing_Win = nullptr;
+	}
+	if (m_effect_postProcessing_Lose)
+	{
+		m_effect_postProcessing_Lose->DecrementReferenceCount();
+		m_effect_postProcessing_Lose = nullptr;
 
 	}
 	// FXAA

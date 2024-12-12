@@ -20,8 +20,6 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
     Math::cMatrix_transformation ViewerInvView = ViewerView.GetInverse();
 
     float frustumIntervalBegin, frustumIntervalEnd;
-    DirectX::XMVECTOR lightCameraOrthographicMinVec;     // AABB vMin in light space
-    DirectX::XMVECTOR lightCameraOrthographicMaxVec;     // AABB vMax in light space
     float cameraNearFarRange = viewerCamera.m_z_farPlane - viewerCamera.m_z_nearPlane;
 
     DirectX::XMVECTOR worldUnitsPerTexelVec = DirectX::g_XMZero;
@@ -55,28 +53,36 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
         frustumIntervalBegin = frustumIntervalBegin * cameraNearFarRange;
         frustumIntervalEnd = frustumIntervalEnd * cameraNearFarRange;
 
-        DirectX::XMFLOAT3 viewerFrustumPoints[8];
-        DirectX::BoundingFrustum viewerFrustum(ViewerProj.ToXMMATRIX());
-        viewerFrustum.Near = frustumIntervalBegin;
-        viewerFrustum.Far = frustumIntervalEnd;
-
+        auto frustumVertices = viewerCamera.CalculateFrustumVertices(frustumIntervalBegin, frustumIntervalEnd);
         // Make the frustum from LOCAL space to WORLD space, and then LIGHT space
-        viewerFrustum.Transform(viewerFrustum, ViewerInvView.ToXMMATRIX());
-        viewerFrustum.Transform(viewerFrustum, LightView.ToXMMATRIX());
-        // viewerFrustum.Transform(viewerFrustum, ViewerInvView.ToXMMATRIX() * LightView.ToXMMATRIX());
-        // viewerFrustum.Transform(viewerFrustum, LightView.ToXMMATRIX() * ViewerInvView.ToXMMATRIX());
-        viewerFrustum.GetCorners(viewerFrustumPoints);
+        std::vector<Math::sVector4> lightFrustumVertices;
+        for (const auto& vertex : frustumVertices)
+        {
+            Math::sVector4 vertex4(vertex.x, vertex.y, vertex.z, 1.0f);
+
+            Math::sVector4 worldSpaceVertex = ViewerInvView * vertex4;
+
+            Math::sVector4 lightSpaceVertex = LightView * worldSpaceVertex;
+
+            lightFrustumVertices.push_back(lightSpaceVertex);
+        }
+
+        DirectX::XMVECTOR lightCameraOrthographicMinVec = DirectX::XMVectorSet(FLT_MAX, FLT_MAX, FLT_MAX, 0.0f);
+        DirectX::XMVECTOR lightCameraOrthographicMaxVec = DirectX::XMVectorSet(-FLT_MAX, -FLT_MAX, -FLT_MAX, 0.0f);
+
+
         // Calculate the AABB, vMax, vMin of frustum in LIGHT space
-        DirectX::BoundingBox viewerFrustumBox;
-        DirectX::BoundingBox::CreateFromPoints(viewerFrustumBox, 8, viewerFrustumPoints, sizeof(DirectX::XMFLOAT3));
-        lightCameraOrthographicMaxVec = DirectX::XMVectorAdd(
-            DirectX::XMLoadFloat3(&viewerFrustumBox.Center),
-            DirectX::XMLoadFloat3(&viewerFrustumBox.Extents)
-        );
-        lightCameraOrthographicMinVec = DirectX::XMVectorSubtract(
-            DirectX::XMLoadFloat3(&viewerFrustumBox.Center),
-            DirectX::XMLoadFloat3(&viewerFrustumBox.Extents)
-        );
+        for (const auto& vertex : lightFrustumVertices)
+        {
+            DirectX::XMVECTOR v = DirectX::XMVectorSet(vertex.x, vertex.y, vertex.z, 1.0f);
+            lightCameraOrthographicMinVec = DirectX::XMVectorMin(lightCameraOrthographicMinVec, v);
+            lightCameraOrthographicMaxVec = DirectX::XMVectorMax(lightCameraOrthographicMaxVec, v);
+        }
+
+        float left = DirectX::XMVectorGetX(lightCameraOrthographicMinVec);
+        float right = DirectX::XMVectorGetX(lightCameraOrthographicMaxVec);
+        float bottom = DirectX::XMVectorGetY(lightCameraOrthographicMinVec);
+        float top = DirectX::XMVectorGetY(lightCameraOrthographicMaxVec);
 
         // This code can eliminate the flickering effect on shadow edges caused by changed in lighting or camera perspective
         if (m_FixedSizeFrustumAABB)
@@ -87,12 +93,12 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
         // Based on the size of the PCF kernel, we calculate a boundary expansion value to slightlu enlarge the bounding box.
         // The uniform scaling will not affect the previously fixed-size AABB
         {
-            float scaleDuetoBlur = m_PCFKernelSize / (float)m_ShadowSize;
+            /*float scaleDuetoBlur = m_PCFKernelSize / (float)m_ShadowSize;
             DirectX::XMVECTORF32 scaleDuetoBlurVec = { {scaleDuetoBlur, scaleDuetoBlur, 0.0f, 0.0f} };
 
             DirectX::XMVECTOR borderOffsetVec = DirectX::XMVectorSubtract(lightCameraOrthographicMaxVec, lightCameraOrthographicMinVec);
             borderOffsetVec = DirectX::XMVectorMultiply(borderOffsetVec, DirectX::g_XMOneHalf);
-            borderOffsetVec = DirectX::XMVectorMultiply(borderOffsetVec, scaleDuetoBlurVec);
+            borderOffsetVec = DirectX::XMVectorMultiply(borderOffsetVec, scaleDuetoBlurVec);*/
 
             // lightCameraOrthographicMaxVec = DirectX::XMVectorAdd(lightCameraOrthographicMaxVec, borderOffsetVec);
             // lightCameraOrthographicMinVec = DirectX::XMVectorSubtract(lightCameraOrthographicMinVec, borderOffsetVec);
@@ -127,8 +133,8 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
 
         if (m_SelectedNearFarFit == FitNearFar::FitNearFar_CascadeAABB)
         {
-            nearPlane = DirectX::XMVectorGetZ(lightCameraOrthographicMinVec);
-            farPlane = DirectX::XMVectorGetZ(lightCameraOrthographicMaxVec);
+            /*nearPlane = DirectX::XMVectorGetZ(lightCameraOrthographicMinVec);
+            farPlane = DirectX::XMVectorGetZ(lightCameraOrthographicMaxVec);*/
         }
         else if (m_SelectedNearFarFit == FitNearFar::FitNearFar_SceneAABB)
         {
@@ -143,26 +149,22 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
         // m_ShadowProj
         // Orthographic project matrix
         //
-        m_ShadowProj[cascadeIndex] = Math::cMatrix_transformation::CreateCameraToProjectedTransform_orthographic(
-            //DirectX::XMVectorGetX(lightCameraOrthographicMinVec),  // left
-            //DirectX::XMVectorGetX(lightCameraOrthographicMaxVec),  // right
-            //DirectX::XMVectorGetY(lightCameraOrthographicMinVec),  // bottom
-            //DirectX::XMVectorGetY(lightCameraOrthographicMaxVec),  // top
-            -100.0f, 
-            0.0f,
-            -100.0f,
-            250.0f,
-            -nearPlane,                                             // nearPlane
-            -farPlane                                               // farPlane
-        );
 
+        m_ShadowProj[cascadeIndex] = Math::cMatrix_transformation::CreateCameraToProjectedTransform_orthographic(
+            left,
+            right,
+            bottom,
+            top,
+            nearPlane,                                             // nearPlane
+            farPlane                                               // farPlane
+        );
 
         // Orthographic AABB
         //
-        lightCameraOrthographicMinVec = DirectX::XMVectorSetZ(lightCameraOrthographicMinVec, -nearPlane);
+        /*lightCameraOrthographicMinVec = DirectX::XMVectorSetZ(lightCameraOrthographicMinVec, -nearPlane);
         lightCameraOrthographicMaxVec = DirectX::XMVectorSetZ(lightCameraOrthographicMaxVec, -farPlane);
         DirectX::BoundingBox::CreateFromPoints(m_ShadowProjBoundingBox[cascadeIndex],
-            lightCameraOrthographicMinVec, lightCameraOrthographicMaxVec);
+            lightCameraOrthographicMinVec, lightCameraOrthographicMaxVec);*/
 
         // Partitions of Frustum every Cascade  
         m_CascadePartitionsFrustum[cascadeIndex] = frustumIntervalEnd;

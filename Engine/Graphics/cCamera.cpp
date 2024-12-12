@@ -1,5 +1,7 @@
 #include "cCamera.h"
-
+#include <cmath>
+#include <Engine/Asserts/Asserts.h>
+#include <Engine/Logging/Logging.h>
 void eae6320::Graphics::cCamera::Update(const float i_elapsedSecondCount_sinceLastUpdate)
 {
     // Update the camera's rigid body state
@@ -37,6 +39,37 @@ eae6320::Math::cMatrix_transformation eae6320::Graphics::cCamera::GetCameraToPro
             left, right, bottom, top, m_z_nearPlane, m_z_farPlane);
     }
 }
+
+std::vector<eae6320::Math::sVector> eae6320::Graphics::cCamera::CalculateFrustumVertices(float partial_z_near, float partial_z_far) const
+{
+    if (partial_z_near >= partial_z_far)
+    {
+        EAE6320_ASSERTF(false, "Invalid partial z range for frustum calculation.");
+    }
+
+    std::vector<Math::sVector> frustumVertices;
+
+    const float h_near = 2.0f * std::tan(m_verticalFieldOfView_inRadians * 0.5f) * partial_z_near;
+    const float w_near = h_near * m_aspectRatio;
+
+    const float h_far = 2.0f * std::tan(m_verticalFieldOfView_inRadians * 0.5f) * partial_z_far;
+    const float w_far = h_far * m_aspectRatio;
+
+    // near
+    frustumVertices.emplace_back(-w_near / 2, -h_near / 2, -partial_z_near);  // left down
+    frustumVertices.emplace_back( w_near / 2, -h_near / 2, -partial_z_near);  // right down
+    frustumVertices.emplace_back(-w_near / 2,  h_near / 2, -partial_z_near);  // left up
+    frustumVertices.emplace_back( w_near / 2,  h_near / 2, -partial_z_near);  // right up
+
+    // far 
+    frustumVertices.emplace_back(-w_far / 2, -h_far / 2, -partial_z_far);     // left down
+    frustumVertices.emplace_back( w_far / 2, -h_far / 2, -partial_z_far);     // right down
+    frustumVertices.emplace_back(-w_far / 2,  h_far / 2, -partial_z_far);     // left up
+    frustumVertices.emplace_back( w_far / 2,  h_far / 2, -partial_z_far);     // right up
+
+    return frustumVertices;
+}
+
 void eae6320::Graphics::cCamera::SetType(const eae6320::Graphics::eCameraType i_type)
 {
     m_type = i_type;

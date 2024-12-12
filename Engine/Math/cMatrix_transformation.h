@@ -31,6 +31,7 @@ namespace eae6320
 	{
 		class cQuaternion;
 		struct sVector;
+		struct sVector4;
 	}
 }
 namespace DirectX
@@ -59,6 +60,8 @@ namespace eae6320
 			//---------------
 
 			constexpr sVector operator *( const sVector& i_rhs ) const;
+			constexpr sVector4 operator *(const sVector4& i_rhs) const;
+
 			constexpr cMatrix_transformation operator *( const cMatrix_transformation& i_rhs ) const;
 			// If both transforms are known to be affine
 			// (in our class this should be true of everything except camera-to-projected transforms)

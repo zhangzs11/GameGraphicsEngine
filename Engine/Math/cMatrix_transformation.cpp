@@ -108,12 +108,12 @@ eae6320::Math::cMatrix_transformation eae6320::Math::cMatrix_transformation::Cre
 	const auto yScale = 1.0f / std::tan( i_verticalFieldOfView_inRadians * 0.5f );
 	const auto xScale = yScale / i_aspectRatio;
 #if defined( EAE6320_PLATFORM_D3D )
-	const auto zDistanceScale = i_z_farPlane / ( i_z_nearPlane - i_z_farPlane );
+	const auto zDistanceScale = i_z_farPlane / (i_z_nearPlane - i_z_farPlane);
 	return cMatrix_transformation(
-		xScale, 0.0f, 0.0f, 0.0f,
-		0.0f, yScale, 0.0f, 0.0f,
-		0.0f, 0.0f, zDistanceScale, -1.0f,
-		0.0f, 0.0f, i_z_nearPlane * zDistanceScale, 0.0f );
+		xScale,                              0.0f,                                 0.0f,                           0.0f,
+		0.0f,                                yScale,                               0.0f,                           0.0f,
+		0.0f,                                0.0f,                                 zDistanceScale,                 -1.0f,
+		0.0f,                                0.0f,                                 i_z_nearPlane * zDistanceScale, 0.0f);
 #elif defined( EAE6320_PLATFORM_GL )
 	const auto zDistanceScale = 1.0f / ( i_z_nearPlane - i_z_farPlane );
 	return cMatrix_transformation(
@@ -132,15 +132,12 @@ eae6320::Math::cMatrix_transformation eae6320::Math::cMatrix_transformation::Cre
 	const auto xScale = 2.0f / (i_right - i_left);
 	const auto yScale = 2.0f / (i_top - i_bottom);
 #if defined( EAE6320_PLATFORM_D3D )
-	const auto zScale = 1.0f / (i_z_farPlane - i_z_nearPlane);
+	const auto zScale = 1.0f / (i_z_nearPlane - i_z_farPlane);
 	return cMatrix_transformation(
-		xScale, 0.0f, 0.0f, 0.0f,
-		0.0f, yScale, 0.0f, 0.0f,
-		0.0f, 0.0f,  zScale, 0.0f,
-		-(i_left + i_right) * xScale * 0.5f, 
-		-(i_top + i_bottom) * yScale * 0.5f, 
-		-i_z_nearPlane * zScale, 
-		1.0f);
+		xScale,                                0.0f,                                  0.0f,                      0.0f,
+		0.0f,                                  yScale,                                0.0f,                      0.0f,
+		0.0f,							       0.0f,                                  zScale,                    0.0f,
+		-(i_left + i_right) * xScale * 0.5f,   -(i_top + i_bottom) * yScale * 0.5f,   i_z_nearPlane * zScale,    1.0f);
 #elif defined( EAE6320_PLATFORM_GL )
 	const auto zScale = 2.0f / (i_z_nearPlane - i_z_farPlane);
 	return cMatrix_transformation(

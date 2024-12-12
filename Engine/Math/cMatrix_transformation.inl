@@ -23,6 +23,16 @@ constexpr eae6320::Math::sVector eae6320::Math::cMatrix_transformation::operator
 	);
 }
 
+constexpr eae6320::Math::sVector4 eae6320::Math::cMatrix_transformation::operator *(const sVector4& i_rhs) const
+{
+	return sVector4(
+		(m_00 * i_rhs.x) + (m_01 * i_rhs.y) + (m_02 * i_rhs.z) + (m_03 * i_rhs.w),
+		(m_10 * i_rhs.x) + (m_11 * i_rhs.y) + (m_12 * i_rhs.z) + (m_13 * i_rhs.w),
+		(m_20 * i_rhs.x) + (m_21 * i_rhs.y) + (m_22 * i_rhs.z) + (m_23 * i_rhs.w),
+		(m_30 * i_rhs.x) + (m_31 * i_rhs.y) + (m_32 * i_rhs.z) + (m_33 * i_rhs.w)
+	);
+}
+
 constexpr eae6320::Math::cMatrix_transformation eae6320::Math::cMatrix_transformation::operator *( const cMatrix_transformation& i_rhs ) const
 {
 	return cMatrix_transformation(

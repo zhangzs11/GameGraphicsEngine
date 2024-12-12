@@ -154,14 +154,14 @@ void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCo
 
 	
 
-	if (m_monsterState == 2 && m_camera.GetRigidBodyState().velocity != eae6320::Math::sVector(0.0f, 0.0f, 0.0f)) {
-		// GAME OVER
-	    // -----------------------
-		m_current_postprocess_effect = m_effect_postProcessing_Lose;
-		SetSimulationRate(0.0f);
-		loseAudio.Play();
+	//if (m_monsterState == 2 && m_camera.GetRigidBodyState().velocity != eae6320::Math::sVector(0.0f, 0.0f, 0.0f)) {
+	//	// GAME OVER
+	//    // -----------------------
+	//	m_current_postprocess_effect = m_effect_postProcessing_Lose;
+	//	SetSimulationRate(0.0f);
+	//	loseAudio.Play();
 
-	}
+	//}
 
 	if (m_camera.GetRigidBodyState().position.z <= 50.0f) {
 		// GAME WIN
@@ -730,17 +730,17 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	// Initialize Camera
 	// -----------------
 	m_camera.SetType(eae6320::Graphics::eCameraType::Perspective);
-	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1280.0f/1024.0f, 1.0f, 2000.0f);
+	m_camera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(45.0f), 1280.0f/1024.0f, 1.0f, 330.0f);
 	m_camera.SetPosition(eae6320::Math::sVector(12.0f, 0.0f, 320.0f));
 	m_camera.SetOrientation(eae6320::Math::cQuaternion::LookAt(eae6320::Math::sVector(0.0f, 0.0f, 1.0f), 
 		                                                      eae6320::Math::sVector(0.0f, 1.0f, 0.0f)));
 
 
-	m_lightCamera.SetType(eae6320::Graphics::eCameraType::Orthographic);
+	m_lightCamera.SetType(eae6320::Graphics::eCameraType::Perspective);
 	m_lightCamera.SetProjectionParameters(eae6320::Math::ConvertDegreesToRadians(90.0f), 1280.0f / 1024.0f, 10.0f, 2000.0f);
 	m_lightCamera.SetPosition(directionalLight.position);
 	m_lightCamera.SetOrientation(eae6320::Math::cQuaternion::LookAt(-directionalLight.direction,
-		eae6320::Math::sVector(0.0f, 0.0f, 1.0f)));
+		eae6320::Math::sVector(0.0f, 1.0f, 0.0f)));
 
 	testBox.Center = { 50.0f, 0.0f, 30.0f };
 	testBox.Extents = { 1500.0f, 1500.0f, 1500.0f };

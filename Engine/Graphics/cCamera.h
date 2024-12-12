@@ -6,6 +6,7 @@
 
 #include <Engine/Math/cMatrix_transformation.h>
 #include <Engine/Physics/sRigidBodyState.h>
+#include <vector>
 
 // Enum Declaration
 //==================
@@ -40,6 +41,9 @@ namespace eae6320
 			// Get the transform matrix
 			Math::cMatrix_transformation GetWorldToCameraTransform(const float i_elapsedSecondCount_sinceLastUpdate) const;
 			Math::cMatrix_transformation GetCameraToProjectedTransform() const;
+
+			// Get the frustumVertices
+			std::vector<Math::sVector> CalculateFrustumVertices(float partial_z_near, float partial_z_far) const;
 
 			// Setters for camera properties
 			void SetType(const eCameraType i_type);

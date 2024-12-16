@@ -202,7 +202,7 @@ void eae6320::cMyGame::SubmitShadowDataToGraphics(eae6320::Graphics::ShadowEffec
 		i_dirL.position);
 
 	Math::cMatrix_transformation CameraToProjectedTransform_orthographic = Math::cMatrix_transformation::CreateCameraToProjectedTransform_orthographic(
-		250.0f, -250.0f, 250.0f, -250.0f, 0.01f, 500.0f
+		0.0f, -150.0f, 150.0f, -150.0f, 0.01f, 200.0f
 	);
 
 	Math::cMatrix_transformation T = Math::cMatrix_transformation(

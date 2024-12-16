@@ -74,11 +74,11 @@ namespace eae6320
 
 		void GetDefaultInitialResolution(uint16_t& o_width, uint16_t& o_height) const final
 		{
-			o_width = 1024;
-			o_height = 768;
+			// o_width = 1024;
+			// o_height = 768;
 
-			// o_width = 1535;
-			// o_height = 1152;
+			o_width = 1535;
+			o_height = 1152;
 		}
 #endif
 

@@ -99,8 +99,8 @@ namespace eae6320
             bool        m_BlendBetweenCascades = false;
             float       m_BlendBetweenCascadesRange = 0.2f;     
 
-            bool        m_FixedSizeFrustumAABB = false;
-            bool        m_MoveLightTexelSize = false;
+            bool        m_FixedSizeFrustumAABB = true;
+            bool        m_MoveLightTexelSize = true;
 
             CameraSelection     m_SelectedCamera = CameraSelection::CameraSelection_Eye;
             FitProjection       m_SelectedCascadesFit = FitProjection::FitProjection_ToScene;

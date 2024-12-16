@@ -350,11 +350,14 @@ static const float4 s_CascadeColorsMultiplier[8] =
 //--------------------------------------------------------------------------------------
 // Calculates the corresponding light-space texel deltas for texels in shadow space
 //--------------------------------------------------------------------------------------
-void CalculateRightAndUpTexelDepthDeltas(float3 shadowTexDDX, float3 shadowTexDDY,
+void CalculateRightAndUpTexelDepthDeltas(float3 shadowTexDDX, 
+                                         float3 shadowTexDDY,
                                          out float upTextDepthWeight,
                                          out float rightTextDepthWeight)
 {
     float2x2 matScreenToShadow = float2x2(shadowTexDDX.xy, shadowTexDDY.xy);
+
+    // Inverse Matrix
     float det = determinant(matScreenToShadow);
     float invDet = 1.0f / det;
     float2x2 matShadowToScreen = float2x2(
@@ -378,64 +381,37 @@ void CalculateRightAndUpTexelDepthDeltas(float3 shadowTexDDX, float3 shadowTexDD
 //--------------------------------------------------------------------------------------
 // Samples the depth map using PCF and returns the percentage of lit shading
 //--------------------------------------------------------------------------------------
-float CalculatePCFPercentLit(int cascadeIndex,
+float CalculatePCFPercentLit(int currentCascadeIndex,
                              float4 shadowTexCoord,
                              float rightTexelDepthDelta,
                              float upTexelDepthDelta,
                              float blurSize)
 {
     float percentLit = 0.0f;
-    
-    float depthCmp = shadowTexCoord.z;
 
-    depthCmp -= g_ShadowBias;
+    for (int x = g_PCFBlurForLoopStart; x < g_PCFBlurForLoopEnd; ++x)
+    {
+        for (int y = g_PCFBlurForLoopStart; y < g_PCFBlurForLoopEnd; ++y)
+        {
+            float depthCmp = shadowTexCoord.z;
 
-    const int currentCascadeIndex = cascadeIndex;
+            depthCmp -= g_ShadowBias;
+            if (USE_DERIVATIVES_FOR_DEPTH_OFFSET_FLAG)
+            {
+                depthCmp += rightTexelDepthDelta * (float) x + upTexelDepthDelta * (float) y;
+            }
 
-    percentLit = g_ShadowMap.SampleCmpLevelZero(
-            g_SamShadow,
-            float3(shadowTexCoord.xy, float(currentCascadeIndex)), 
-            depthCmp).r;
+            percentLit += g_ShadowMap.SampleCmpLevelZero(g_SamShadow,
+               float3(
+                   shadowTexCoord.x + (float) x * g_TexelSize_shadowMap,
+                   shadowTexCoord.y + (float) y * g_TexelSize_shadowMap,
+                   (float) currentCascadeIndex
+               ),
+               depthCmp);
 
-    // for (int x = g_PCFBlurForLoopStart; x < g_PCFBlurForLoopEnd; ++x)
-    // {
-    //     for (int y = g_PCFBlurForLoopStart; y < g_PCFBlurForLoopEnd; ++y)
-    //     {
-    //         float depthCmp = shadowTexCoord.z;
-
-    //         depthCmp -= g_ShadowBias;
-    //         if (USE_DERIVATIVES_FOR_DEPTH_OFFSET_FLAG)
-    //         {
-    //             depthCmp += rightTexelDepthDelta * (float) x + upTexelDepthDelta * (float) y;
-    //         }
-
-    //         //percentLit += g_ShadowMap.SampleCmpLevelZero(g_SamShadow,
-    //         //    float3(
-    //         //        shadowTexCoord.x + (float) x * g_TexelSize_shadowMap,
-    //         //        shadowTexCoord.y + (float) y * g_TexelSize_shadowMap,
-    //         //        (float) currentCascadeIndex
-    //         //    ),
-    //         //    depthCmp);
-            
-
-    //         const int currentCascadeIndex = cascadeIndex;
-
-    //         percentLit += g_ShadowMap.SampleCmpLevelZero(
-    //         g_SamShadow,
-    //         float3(shadowTexCoord.xy, float(currentCascadeIndex)), 
-    //         depthCmp).r;
-
-
-            
-    //         //float sampledDepth = g_ShadowMap.SampleLevel(g_SamShadow,
-    //         //    float3(shadowTexCoord.xy, currentCascadeIndex), 0.0f).r;
-
-    //         //percentLit += (depthCmp <= sampledDepth) ? 1.0f : 0.0f;
-
-    //     }
-    // }
-    
-    // percentLit /= blurSize;
+        }
+    }
+    percentLit /= blurSize;
     return percentLit;
 }
 

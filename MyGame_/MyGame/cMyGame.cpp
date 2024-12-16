@@ -32,7 +32,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 
 	auto& cameraRigidBody = m_camera.GetRigidBodyState();
 	const float movementSpeed = 20.0f;  // Units per second
-	constexpr float rotationSpeed = eae6320::Math::ConvertDegreesToRadians(60.0f);  // Radians per second
+	constexpr float rotationSpeed = eae6320::Math::ConvertDegreesToRadians(6.0f);  // Radians per second
 
 	// Movement: WASD for forward, backward, left, right
 	if (UserInput::IsKeyPressed('W'))
@@ -69,20 +69,20 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 		m_FXAA_QualityEdgeThreshold = 0.063f;
 		m_FXAA_QualityEdgeThresholdMin = 0.0312f;
 	}
-	//if (UserInput::IsKeyPressed('J'))
-	//{
-	//	cameraRigidBody.angularVelocity_axis_local = Math::sVector(0.0f, 1.0f, 0.0f);  // Yaw rotation axis
-	//	cameraRigidBody.angularSpeed = rotationSpeed;
-	//}
-	//else if (UserInput::IsKeyPressed('K'))
-	//{
-	//	cameraRigidBody.angularVelocity_axis_local = Math::sVector(0.0f, 1.0f, 0.0f);  // Yaw rotation axis
-	//	cameraRigidBody.angularSpeed = -rotationSpeed;
-	//}
-	//else
-	//{
-	//	cameraRigidBody.angularSpeed = 0.0f;
-	//}
+	if (UserInput::IsKeyPressed('J'))
+	{
+		cameraRigidBody.angularVelocity_axis_local = Math::sVector(0.0f, 1.0f, 0.0f);  // Yaw rotation axis
+		cameraRigidBody.angularSpeed = rotationSpeed;
+	}
+	else if (UserInput::IsKeyPressed('K'))
+	{
+		cameraRigidBody.angularVelocity_axis_local = Math::sVector(0.0f, 1.0f, 0.0f);  // Yaw rotation axis
+		cameraRigidBody.angularSpeed = -rotationSpeed;
+	}
+	else
+	{
+		cameraRigidBody.angularSpeed = 0.0f;
+	}
 }
 void eae6320::cMyGame::UpdateBasedOnTime(const float i_elapsedSecondCount_sinceLastUpdate)
 {
@@ -235,10 +235,10 @@ void eae6320::cMyGame::SubmitLightDataToGraphics(std::vector<eae6320::Graphics::
 	                                             std::vector<eae6320::Graphics::sSpotLight>& i_spotLights,
 	                                             const float i_elapsedSecondCount_systemTime)
 {
-	for (int i = 0; i < 10; i++) {
+	/*for (int i = 0; i < 10; i++) {
 		i_spotLights[i].position = (sinf(i_elapsedSecondCount_systemTime * 0.5f * i)) * eae6320::Math::sVector(8.0f, 0.0f, 0.0f) +
 			eae6320::Math::sVector(4.0f, -12.0f, 10.0f) + eae6320::Math::sVector(10.0f * (i % 2), 50.0f, 60.0f * (i / 2) + 30.0f * (i % 2));
-	}
+	}*/
 
 
 
@@ -290,8 +290,8 @@ void eae6320::cMyGame::SubmitShadowDataToGraphics(
 		scales,
 		cascadeFrustumsEyeSpaceDepths,
 		1,         // Visualize cascades with different colors (1 to enable, 0 to disable)
-		-2,        // PCF kernel loop start value (-2 for a 5x5 PCF kernel)
-		3,         // PCF kernel loop end value (3 for a 5x5 PCF kernel)
+		0,        // PCF kernel loop start value (-2 for a 5x5 PCF kernel)
+		1,         // PCF kernel loop end value (3 for a 5x5 PCF kernel)
 		0.01f,     // Minimum border padding (e.g., (kernelSize / 2) / shadowMapSize)
 		0.99f,     // Maximum border padding (e.g., 1.0f - (kernelSize / 2) / shadowMapSize)
 		0.005f,    // Shadow bias to reduce shadow artifacts
@@ -345,7 +345,7 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 	SubmitGameObjectToGraphics(m_gameObject_monster, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 	SubmitLightDataToGraphics(m_directionalLights, m_pointLights, m_spotLights,
-		i_elapsedSecondCount_systemTime);
+	  	i_elapsedSecondCount_systemTime);
 	SubmitCameraToGraphics(m_camera, i_elapsedSecondCount_sinceLastSimulationUpdate);
 
 	SubmitShadowDataToGraphics(m_effect_shadowMap,
@@ -712,18 +712,18 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	}
 
 
-	for (int i = 0; i < 10; i++) {
-		eae6320::Graphics::sSpotLight spotLight = eae6320::Graphics::sSpotLight(eae6320::Math::sVector4(i * 1.0f, i % 10 * 5.0f, 0.0f, 1.0f),               //ambient
-			eae6320::Math::sVector4(0.0f, 25.0f, 0.0f, 1.0f),                                         //diffuse
-			eae6320::Math::sVector4(0.0f, 10.0f, 0.0f, 1.0f),                                             //specular
-			eae6320::Math::sVector(-10.0f, -12.0f, 30.0f) + eae6320::Math::sVector(10.0f * (i % 2), 50.0f, 60.0f * (i / 2) + 10.0f * (i % 2)),                                                 //position
-			300.0f,                                                                                      //range
-			eae6320::Math::sVector(0.0f, -1.0f, 0.0f),                                                   //direction
-			500.0f,                                                                                       //spot
-			eae6320::Math::sVector(0.1f, 0.1f, 1.0f));                                                   //att
+	//for (int i = 0; i < 10; i++) {
+	//	eae6320::Graphics::sSpotLight spotLight = eae6320::Graphics::sSpotLight(eae6320::Math::sVector4(i * 1.0f, i % 10 * 5.0f, 0.0f, 1.0f),               //ambient
+	//		eae6320::Math::sVector4(0.0f, 25.0f, 0.0f, 1.0f),                                         //diffuse
+	//		eae6320::Math::sVector4(0.0f, 10.0f, 0.0f, 1.0f),                                             //specular
+	//		eae6320::Math::sVector(-10.0f, -12.0f, 30.0f) + eae6320::Math::sVector(10.0f * (i % 2), 50.0f, 60.0f * (i / 2) + 10.0f * (i % 2)),                                                 //position
+	//		300.0f,                                                                                      //range
+	//		eae6320::Math::sVector(0.0f, -1.0f, 0.0f),                                                   //direction
+	//		500.0f,                                                                                       //spot
+	//		eae6320::Math::sVector(0.1f, 0.1f, 1.0f));                                                   //att
 
-		m_spotLights.push_back(spotLight);
-	}
+	//	m_spotLights.push_back(spotLight);
+	//}
 	
 	m_directionalLights.push_back(directionalLight);
 

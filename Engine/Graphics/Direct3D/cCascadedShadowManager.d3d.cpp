@@ -79,36 +79,79 @@ void eae6320::Graphics::cCascadedShadowManager::UpdateFrame(const eae6320::Graph
             lightCameraOrthographicMaxVec = DirectX::XMVectorMax(lightCameraOrthographicMaxVec, v);
         }
 
-        float left = DirectX::XMVectorGetX(lightCameraOrthographicMinVec);
-        float right = DirectX::XMVectorGetX(lightCameraOrthographicMaxVec);
-        float bottom = DirectX::XMVectorGetY(lightCameraOrthographicMinVec);
-        float top = DirectX::XMVectorGetY(lightCameraOrthographicMaxVec);
-
         // This code can eliminate the flickering effect on shadow edges caused by changed in lighting or camera perspective
         if (m_FixedSizeFrustumAABB)
         {
+            //     Near    Far
+            //    0----1  4----5
+            //    |    |  |    |
+            //    |    |  |    |
+            //    3----2  7----6
 
+            // Near and Far
+            DirectX::XMVECTOR diagVec = DirectX::XMVectorSet(
+                frustumVertices[7].x - frustumVertices[0].x,
+                frustumVertices[7].y - frustumVertices[0].y,
+                frustumVertices[7].z - frustumVertices[0].z,
+                0.0f
+            );
+
+            // Far plane
+            DirectX::XMVECTOR diag2Vec = DirectX::XMVectorSet(
+                frustumVertices[7].x - frustumVertices[4].x,
+                frustumVertices[7].y - frustumVertices[4].y,
+                frustumVertices[7].z - frustumVertices[4].z,
+                0.0f
+            );
+
+            DirectX::XMVECTOR lengthVec = DirectX::XMVectorMax(DirectX::XMVector3Length(diagVec), DirectX::XMVector3Length(diag2Vec));
+            DirectX::XMVECTOR borderOffsetVec = DirectX::XMVectorMultiply(
+                DirectX::XMVectorSubtract(lengthVec, DirectX::XMVectorSubtract(lightCameraOrthographicMaxVec, lightCameraOrthographicMinVec)), 
+                DirectX::g_XMOneHalf.v);
+
+            static const DirectX::XMVECTORF32 xyzw1100Vec = { {1.0f, 1.0f, 0.0f, 0.0f} };
+            lightCameraOrthographicMaxVec = DirectX::XMVectorAdd(lightCameraOrthographicMaxVec, DirectX::XMVectorMultiply(borderOffsetVec, xyzw1100Vec.v));
+            lightCameraOrthographicMinVec = DirectX::XMVectorSubtract(lightCameraOrthographicMinVec, DirectX::XMVectorMultiply(borderOffsetVec, xyzw1100Vec.v));
         }
 
         // Based on the size of the PCF kernel, we calculate a boundary expansion value to slightlu enlarge the bounding box.
         // The uniform scaling will not affect the previously fixed-size AABB
         {
-            /*float scaleDuetoBlur = m_PCFKernelSize / (float)m_ShadowSize;
+            float scaleDuetoBlur = m_PCFKernelSize / (float)m_ShadowSize;
             DirectX::XMVECTORF32 scaleDuetoBlurVec = { {scaleDuetoBlur, scaleDuetoBlur, 0.0f, 0.0f} };
 
             DirectX::XMVECTOR borderOffsetVec = DirectX::XMVectorSubtract(lightCameraOrthographicMaxVec, lightCameraOrthographicMinVec);
             borderOffsetVec = DirectX::XMVectorMultiply(borderOffsetVec, DirectX::g_XMOneHalf);
-            borderOffsetVec = DirectX::XMVectorMultiply(borderOffsetVec, scaleDuetoBlurVec);*/
+            borderOffsetVec = DirectX::XMVectorMultiply(borderOffsetVec, scaleDuetoBlurVec);
 
-            // lightCameraOrthographicMaxVec = DirectX::XMVectorAdd(lightCameraOrthographicMaxVec, borderOffsetVec);
-            // lightCameraOrthographicMinVec = DirectX::XMVectorSubtract(lightCameraOrthographicMinVec, borderOffsetVec);
+            lightCameraOrthographicMaxVec = DirectX::XMVectorAdd(lightCameraOrthographicMaxVec, borderOffsetVec);
+            lightCameraOrthographicMinVec = DirectX::XMVectorSubtract(lightCameraOrthographicMinVec, borderOffsetVec);
         }
 
         if (m_MoveLightTexelSize)
         {
+            // o_width = 1535;
+            // o_height = 1152;
+            float normalizeByBufferSize = 1.0f / (float)m_ShadowSize;
+            // DirectX::XMVECTORF32 normalizeByBufferSizeVec = { {normalizeByBufferSize, normalizeByBufferSize, 0.0f, 0.0f} };
+            DirectX::XMVECTORF32 normalizeByBufferSizeVec = { {1.0f / 1535.0f, 1.0f / 1152.0f, 0.0f, 0.0f} };
+            worldUnitsPerTexelVec = DirectX::XMVectorSubtract(lightCameraOrthographicMaxVec, lightCameraOrthographicMinVec);
+            // worldUnitsPerTexelVec = DirectX::XMVectorScale(worldUnitsPerTexelVec, normalizeByBufferSize);
+            worldUnitsPerTexelVec = DirectX::XMVectorMultiply(worldUnitsPerTexelVec, normalizeByBufferSizeVec);
 
+            lightCameraOrthographicMinVec = DirectX::XMVectorDivide(lightCameraOrthographicMinVec, worldUnitsPerTexelVec);
+            lightCameraOrthographicMinVec = DirectX::XMVectorFloor(lightCameraOrthographicMinVec);
+            lightCameraOrthographicMinVec = DirectX::XMVectorMultiply(lightCameraOrthographicMinVec, worldUnitsPerTexelVec);
+
+            lightCameraOrthographicMaxVec = DirectX::XMVectorDivide(lightCameraOrthographicMaxVec, worldUnitsPerTexelVec);
+            lightCameraOrthographicMaxVec = DirectX::XMVectorFloor(lightCameraOrthographicMaxVec);
+            lightCameraOrthographicMaxVec = DirectX::XMVectorMultiply(lightCameraOrthographicMaxVec, worldUnitsPerTexelVec);
         }
 
+        float left = DirectX::XMVectorGetX(lightCameraOrthographicMinVec);
+        float right = DirectX::XMVectorGetX(lightCameraOrthographicMaxVec);
+        float bottom = DirectX::XMVectorGetY(lightCameraOrthographicMinVec);
+        float top = DirectX::XMVectorGetY(lightCameraOrthographicMaxVec);
 
         float nearPlane = 0.0f;
         float farPlane = 0.0f;

@@ -290,8 +290,8 @@ void eae6320::cMyGame::SubmitShadowDataToGraphics(
 		scales,
 		cascadeFrustumsEyeSpaceDepths,
 		1,         // Visualize cascades with different colors (1 to enable, 0 to disable)
-		0,        // PCF kernel loop start value (-2 for a 5x5 PCF kernel)
-		1,         // PCF kernel loop end value (3 for a 5x5 PCF kernel)
+		-2,        // PCF kernel loop start value (-2 for a 5x5 PCF kernel)
+		3,         // PCF kernel loop end value (3 for a 5x5 PCF kernel)
 		0.01f,     // Minimum border padding (e.g., (kernelSize / 2) / shadowMapSize)
 		0.99f,     // Maximum border padding (e.g., 1.0f - (kernelSize / 2) / shadowMapSize)
 		0.005f,    // Shadow bias to reduce shadow artifacts

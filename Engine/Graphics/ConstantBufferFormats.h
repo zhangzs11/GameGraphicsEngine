@@ -95,6 +95,18 @@ namespace eae6320
 				float g_padding4[3];
 			};
 
+			struct sFrame_Deferred
+			{
+				Math::cMatrix_transformation g_transform_worldToCamera;
+				Math::cMatrix_transformation g_transform_cameraToProjected;
+
+				float g_elapsedSecondCount_systemTime;
+				float g_elapsedSecondCount_simulationTime;
+				float g_padding1[2];
+
+				Math::sVector4 g_CameraNearFar;
+			};
+
 			// Data that is constant for a single draw call
 			struct sDrawCall
 			{

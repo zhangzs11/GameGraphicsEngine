@@ -138,6 +138,9 @@
     <ClCompile Include="cCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MyEffects\DeferredRenderingEffect.d3d.cpp">
+      <Filter>MyEffects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cConstantBuffer.h">
@@ -217,6 +220,9 @@
     </ClInclude>
     <ClInclude Include="cCamera.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyEffects\DeferredRenderingEffect.d3d.h">
+      <Filter>MyEffects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

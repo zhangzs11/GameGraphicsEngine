@@ -72,6 +72,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="MyEffects\DeferredRenderingEffect.d3d.cpp" />
     <ClCompile Include="MyEffects\LightingEffect.d3d.cpp" />
     <ClCompile Include="MyEffects\PostProcessingEffect.d3d.cpp" />
     <ClCompile Include="MyEffects\ShadowEffect.d3d.cpp" />
@@ -137,6 +138,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="MyEffects\DeferredRenderingEffect.d3d.h" />
     <ClInclude Include="MyEffects\LightingEffect.d3d.h" />
     <ClInclude Include="MyEffects\PostProcessingEffect.d3d.h" />
     <ClInclude Include="MyEffects\ShadowEffect.d3d.h" />

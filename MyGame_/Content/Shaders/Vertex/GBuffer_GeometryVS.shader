@@ -1,45 +1,65 @@
-/*
-	This is the lgiht vertex shader
+struct Material
+{
+    float4 ambient;
+    float4 diffuse;
+    float4 specular; // w = SpecPower
+    float4 reflect;
+};
 
-	A vertex shader is responsible for two things:
-		* Telling the GPU where the vertex (one of the three in a triangle) should be drawn on screen in a given window
-			* The GPU will use this to decide which fragments (i.e. pixels) need to be shaded for a given triangle
-		* Providing any data that a corresponding fragment shader will need
-			* This data will be interpolated across the triangle and thus vary for each fragment of a triangle that gets shaded
-*/
+// Constant Buffers
+//=================
+cbuffer g_constantBuffer_frame : register( b0 )
+{
+	// Main Rendering
+	// --------------------------------------
+	float4x4 g_transform_worldToCamera;
+	float4x4 g_transform_cameraToProjected;
 
-#include <Shaders/ConstantBuffers.inc>
+	float g_elapsedSecondCount_systemTime;
+	float g_elapsedSecondCount_simulationTime;
+	float2 g_padding1;
 
-// Entry Point
-//============
+	float4 g_CameraNearFar;
+};
+cbuffer g_constantBuffer_drawCall : register( b2 )
+{
+    float4x4 g_transform_localToWorld;
+	float4x4 g_transform_localToWorld_Inv_Transpose;
+	
+    Material g_Material;
+};
 
 void main(
 
 	// Input
 	//======
-
-	// The "semantics" (the keywords in all caps after the colon) are arbitrary,
-	// but must match the C call to CreateInputLayout()
-
-	// These values come from one of the VertexFormats::sVertex_mesh that the vertex buffer was filled with in C code
 	in const float3 i_vertexPosition_local : POSITION,
 	in const float4 i_vertexColor : COLOR,
 	in const float2 i_vertexUV : TEXCOORD0,
 	in const float3 i_vertexNormal : NORMAL,
 	in const float3 i_vertexTangent : TANGENT,
+
+
 	// Output
 	//=======
-
-	// An SV_POSITION value must always be output from every vertex shader
-	// so that the GPU can figure out which fragments need to be shaded
 	out float4 o_vertexPosition_projected : SV_POSITION,
-	out float3 o_vertexPosition_world : POSITION,
-	out float4 o_vertexColor : COLOR,
+	// out float3 o_vertexPosition_world : POSITION,
+
+	//
+	out float3 o_vertexPosition_view : POSITION,
+	//
+
+	// out float4 o_vertexColor : COLOR,
 	out float2 o_vertexUV : TEXCOORD0,
-	out float3 o_vertexNormal_world : NORMAL,
-	out float4 o_vertexTangent_world : TANGENT,
-	out float4 o_vertexShadowPosV : TEXCOORD1,
-	out float  o_vertexDepthV : TEXCOORD2
+	// out float3 o_vertexNormal_world : NORMAL,
+
+	//
+	out float3 o_vertexNormal_view : NORMAL
+	//
+
+	// out float4 o_vertexTangent_world : TANGENT,
+	// out float4 o_vertexShadowPosV : TEXCOORD1,
+	// out float  o_vertexDepthV : TEXCOORD2
 )
 
 // Main Body
@@ -60,19 +80,23 @@ void main(
 
 		float4 vertexPosition_camera = mul( g_transform_worldToCamera, vertexPosition_world );
 
+		o_vertexPosition_view = vertexPosition_camera.xyz;
+
 		o_vertexPosition_projected = mul( g_transform_cameraToProjected, vertexPosition_camera );
 
 		// Assign the color
-		o_vertexPosition_world = vertexPosition_world.xyz;
-		o_vertexColor = i_vertexColor;
+		// o_vertexPosition_world = vertexPosition_world.xyz;
+		// o_vertexColor = i_vertexColor;
 
-		o_vertexNormal_world = mul( (float3x3) g_transform_localToWorld_Inv_Transpose, i_vertexNormal );
+		float3 vertexNormal_world = mul( (float3x3) g_transform_localToWorld_Inv_Transpose, i_vertexNormal );
 
-		o_vertexTangent_world = float4(mul((float3x3) g_transform_localToWorld, i_vertexTangent), 1.0);
+		o_vertexNormal_view = mul( (float3x3) g_transform_worldToCamera, vertexNormal_world ); // if there is scale , should use inverse maybe
 
-		o_vertexShadowPosV = mul(g_ShadowView, float4(o_vertexPosition_world, 1.0f));
+		// o_vertexTangent_world = float4(mul((float3x3) g_transform_localToWorld, i_vertexTangent), 1.0);
 
-		o_vertexDepthV = vertexPosition_camera.z;
+		// o_vertexShadowPosV = mul(g_ShadowView, float4(o_vertexPosition_world, 1.0f));
+
+		// o_vertexDepthV = vertexPosition_camera.z;
 
 		o_vertexUV = i_vertexUV;  
 	}

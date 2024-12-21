@@ -106,6 +106,7 @@ namespace eae6320
 			eae6320::Graphics::cMesh* i_cubemesh);
 
 		void SubmitPostProcessingDataToGraphics(eae6320::Graphics::PostProcessingEffect* i_postProcessingeffect);
+		void SubmitDeferredLightingEffectToGraphics(eae6320::Graphics::DeferredRenderingEffect_Lighting* i_deferredLightingEffect);
 		void SubmitFXAADataToGraphics(eae6320::Graphics::PostProcessingEffect* i_FXAAffect,
 			float g_TexelSize_x, float g_TexelSize_y,
 			float g_QualitySubPix,
@@ -156,6 +157,15 @@ namespace eae6320
 		std::vector<eae6320::Graphics::sPointLight> m_pointLights;
 		std::vector<eae6320::Graphics::sSpotLight> m_spotLights;
 
+
+		Graphics::DeferredRenderingEffect_Geometry* m_effect_tree_d = nullptr;
+		Graphics::DeferredRenderingEffect_Geometry* m_effect_plane_d = nullptr;
+		Graphics::DeferredRenderingEffect_Geometry* m_effect_marblebust_d = nullptr;
+		Graphics::DeferredRenderingEffect_Geometry* m_effect_rat_d = nullptr;
+		Graphics::DeferredRenderingEffect_Geometry* m_effect_cat_d = nullptr;
+		Graphics::DeferredRenderingEffect_Geometry* m_effect_horse_d = nullptr;
+
+		Graphics::DeferredRenderingEffect_Lighting* m_effect_deferred_lighting = nullptr;
 
 		// Game Objects
 		//----------------------

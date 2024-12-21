@@ -219,7 +219,7 @@ void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, con
 				(i_gameObject.GetRigidBodyState().PredictFutureTransform(i_elapsedSecondCount_sinceLastSimulationUpdate)));*/
 		}
 
-		eae6320::Graphics::SubmitMeshEffectPair(i_gameObject.GetMesh(), i_gameObject.GetEffect());
+		eae6320::Graphics::SubmitMeshEffectPair(i_gameObject.GetMesh(), i_gameObject.GetEffect(), i_gameObject.GetDeferredEffect());
 	}
 }
 
@@ -311,6 +311,11 @@ void eae6320::cMyGame::SubmitPostProcessingDataToGraphics(eae6320::Graphics::Pos
 	eae6320::Graphics::SubmitPostProcessingData(i_postProcessingeffect);
 }
 
+void eae6320::cMyGame::SubmitDeferredLightingEffectToGraphics(eae6320::Graphics::DeferredRenderingEffect_Lighting* i_deferredLightingEffect)
+{
+	eae6320::Graphics::SubmitDeferredLightingData(i_deferredLightingEffect);
+}
+
 void eae6320::cMyGame::SubmitFXAADataToGraphics(eae6320::Graphics::PostProcessingEffect* i_FXAAffect,
 	float g_TexelSize_x, float g_TexelSize_y,
 	float g_QualitySubPix,
@@ -354,6 +359,8 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 	SubmitSkyboxDataToGraphics(m_effect_skybox, m_mesh_cube);
 
 	SubmitPostProcessingDataToGraphics(m_current_postprocess_effect);
+
+	SubmitDeferredLightingEffectToGraphics(m_effect_deferred_lighting);
 
 	SubmitFXAADataToGraphics(m_effect_FXAA, 1.0f / 1024.0f, 1.0f / 1024.0f, 
 		                     m_FXAA_QualitySubPix, 
@@ -627,6 +634,78 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		return result;
 	}
 
+	// Deferred Rendering Effect
+	result = eae6320::Graphics::DeferredRenderingEffect_Geometry::CreateDeferredRenderingEffect_Geometry
+	(
+		m_effect_tree_d,
+		"data/Shaders/Vertex/GBuffer_GeometryVS.binshader",
+		"data/Shaders/Fragment/GBuffer_PS.binshader",
+		renderStateBits,
+		"data/Textures/quiver_tree_diffuse.bintexture",
+		eae6320::Graphics::eSamplerType::Linear
+	);
+
+	result = eae6320::Graphics::DeferredRenderingEffect_Geometry::CreateDeferredRenderingEffect_Geometry
+	(
+		m_effect_plane_d,
+		"data/Shaders/Vertex/GBuffer_GeometryVS.binshader",
+		"data/Shaders/Fragment/GBuffer_PS.binshader",
+		renderStateBits,
+		"data/Textures/ganges_diff_4k.bintexture",
+		eae6320::Graphics::eSamplerType::Linear
+	);
+
+	result = eae6320::Graphics::DeferredRenderingEffect_Geometry::CreateDeferredRenderingEffect_Geometry
+	(
+		m_effect_marblebust_d,
+		"data/Shaders/Vertex/GBuffer_GeometryVS.binshader",
+		"data/Shaders/Fragment/GBuffer_PS.binshader",
+		renderStateBits,
+		"data/Textures/garden_gnome_diff.bintexture",
+		eae6320::Graphics::eSamplerType::Linear
+	);
+
+	result = eae6320::Graphics::DeferredRenderingEffect_Geometry::CreateDeferredRenderingEffect_Geometry
+	(
+		m_effect_rat_d,
+		"data/Shaders/Vertex/GBuffer_GeometryVS.binshader",
+		"data/Shaders/Fragment/GBuffer_PS.binshader",
+		renderStateBits,
+		"data/Textures/quiver_tree_diffuse.bintexture",
+		eae6320::Graphics::eSamplerType::Linear
+	);
+
+	result = eae6320::Graphics::DeferredRenderingEffect_Geometry::CreateDeferredRenderingEffect_Geometry
+	(
+		m_effect_cat_d,
+		"data/Shaders/Vertex/GBuffer_GeometryVS.binshader",
+		"data/Shaders/Fragment/GBuffer_PS.binshader",
+		renderStateBits,
+		"data/Textures/rat_diff.bintexture",
+		eae6320::Graphics::eSamplerType::Linear
+	);
+
+	result = eae6320::Graphics::DeferredRenderingEffect_Geometry::CreateDeferredRenderingEffect_Geometry
+	(
+		m_effect_horse_d,
+		"data/Shaders/Vertex/GBuffer_GeometryVS.binshader",
+		"data/Shaders/Fragment/GBuffer_PS.binshader",
+		renderStateBits,
+		"data/Textures/horse_diff.bintexture",
+		eae6320::Graphics::eSamplerType::Linear
+	);
+
+	result = eae6320::Graphics::DeferredRenderingEffect_Lighting::CreateDeferredRenderingEffect_Lighting
+	(
+		m_effect_deferred_lighting,
+		"data/Shaders/Vertex/fullScreenTriangle.binshader",
+		"data/Shaders/Fragment/BasicDeferred_PS.binshader",
+		shadowRenderStateBits
+	);
+
+
+
+
 
 	// Initialize GameObjects
 	// ----------------------
@@ -639,6 +718,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	for (int i = 0; i < 30; i++) {
 		m_gameObject_plane[i].SetMesh(m_mesh_plane);
 		m_gameObject_plane[i].SetEffect(m_effect_plane);
+		m_gameObject_plane[i].SetDeferredRenderingEffect(m_effect_plane_d);
 		m_gameObject_plane[i].SetPosition(eae6320::Math::sVector(0.0f, -12.0f, 0.0f) + 
 			                              eae6320::Math::sVector(20.0f * (i % 2), 0.0f, 20.0f * (i / 2)));
 		m_gameObject_plane[i].SetMaterial(mat);
@@ -646,9 +726,11 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	for (int i = 0; i < 4; i++) {
 		m_gameObject_rat[i].SetMesh(m_mesh_rat);
-		m_gameObject_rat[i].SetEffect(m_effect_cat);
+		m_gameObject_rat[i].SetEffect(m_effect_rat);
+		m_gameObject_rat[i].SetDeferredRenderingEffect(m_effect_rat_d);
 		m_gameObject_rat[i].SetMaterial(mat);
 	}
+
 	m_gameObject_rat[0].SetPosition(eae6320::Math::sVector(10.0f, -12.0f, 40.0f + 0 * 50.0f));
 	m_gameObject_rat[1].SetPosition(eae6320::Math::sVector(15.0f, -12.0f, 40.0f + 1 * 50.0f));
 	m_gameObject_rat[2].SetPosition(eae6320::Math::sVector(-8.0f, -12.0f, 40.0f + 2 * 50.0f));
@@ -665,6 +747,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	for (int i = 2; i < 10; i++) {
 		m_gameObject_tree[i].SetMesh(m_mesh_tree);
 		m_gameObject_tree[i].SetEffect(m_effect_tree);
+		m_gameObject_tree[i].SetDeferredRenderingEffect(m_effect_tree_d);
 		m_gameObject_tree[i].SetPosition(eae6320::Math::sVector(-10.0f, -12.0f, 30.0f) +
 			eae6320::Math::sVector(40.0f * (i % 2), 0.0f, 60.0f * (i / 2)));
 		m_gameObject_tree[i].SetMaterial(mat);
@@ -672,6 +755,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	m_gameObject_cat.SetMesh(m_mesh_cat);
 	m_gameObject_cat.SetEffect(m_effect_cat);
+	m_gameObject_cat.SetDeferredRenderingEffect(m_effect_cat_d);
 	m_gameObject_cat.SetPosition(eae6320::Math::sVector(-10.0f, -12.0f, 0.0f));
 	m_gameObject_cat.SetOrientation(eae6320::Math::cQuaternion::LookAt(eae6320::Math::sVector(0.0f, 0.0f, -1.0f),
 		eae6320::Math::sVector(0.0f, 1.0f, 0.0f)));
@@ -679,6 +763,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	m_gameObject_horse.SetMesh(m_mesh_horse);
 	m_gameObject_horse.SetEffect(m_effect_horse);
+	m_gameObject_horse.SetDeferredRenderingEffect(m_effect_horse_d);
 	m_gameObject_horse.SetPosition(eae6320::Math::sVector(40.0f, -12.0f, 0.0f));
 	m_gameObject_horse.SetOrientation(eae6320::Math::cQuaternion::LookAt(eae6320::Math::sVector(0.0f, 0.0f, -1.0f),
 		eae6320::Math::sVector(0.0f, 1.0f, 0.0f)));
@@ -686,6 +771,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 
 	m_gameObject_monster.SetMesh(m_mesh_garden_gnome);
 	m_gameObject_monster.SetEffect(m_effect_marblebust);
+	m_gameObject_monster.SetDeferredRenderingEffect(m_effect_marblebust_d);
 	m_gameObject_monster.SetPosition(eae6320::Math::sVector(10.0f, -12.0f, 0.0f));
 	m_gameObject_monster.SetOrientation(eae6320::Math::cQuaternion::LookAt(eae6320::Math::sVector(0.0f, 0.0f, 1.0f),
 		eae6320::Math::sVector(0.0f, 1.0f, 0.0f)));
@@ -818,20 +904,17 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 		m_effect_horse->DecrementReferenceCount();
 		m_effect_horse = nullptr;
 	}
-	// SKYBOX
 	if (m_effect_skybox)
 	{
 		m_effect_skybox->DecrementReferenceCount();
 		m_effect_skybox = nullptr;
 	}
-	// SHADOW MAP
 	if (m_effect_shadowMap)
 	{
 		m_effect_shadowMap->DecrementReferenceCount();
 		m_effect_shadowMap = nullptr;
 
 	}
-	// POST PROCESSING
 	if (m_effect_postProcessing_Default)
 	{
 		m_effect_postProcessing_Default->DecrementReferenceCount();
@@ -847,14 +930,46 @@ eae6320::cResult eae6320::cMyGame::CleanUp()
 	{
 		m_effect_postProcessing_Lose->DecrementReferenceCount();
 		m_effect_postProcessing_Lose = nullptr;
-
 	}
-	// FXAA
 	if (m_effect_FXAA)
 	{
 		m_effect_FXAA->DecrementReferenceCount();
 		m_effect_FXAA = nullptr;
-
+	}
+	if (m_effect_tree_d)
+	{
+		m_effect_tree_d->DecrementReferenceCount();
+		m_effect_tree_d = nullptr;
+	}
+	if (m_effect_plane_d)
+	{
+		m_effect_plane_d->DecrementReferenceCount();
+		m_effect_plane_d = nullptr;
+	}
+	if (m_effect_marblebust_d)
+	{
+		m_effect_marblebust_d->DecrementReferenceCount();
+		m_effect_marblebust_d = nullptr;
+	}
+	if (m_effect_rat_d)
+	{
+		m_effect_rat_d->DecrementReferenceCount();
+		m_effect_rat_d = nullptr;
+	}
+	if (m_effect_cat_d)
+	{
+		m_effect_cat_d->DecrementReferenceCount();
+		m_effect_cat_d = nullptr;
+	}
+	if (m_effect_horse_d)
+	{
+		m_effect_horse_d->DecrementReferenceCount();
+		m_effect_horse_d = nullptr;
+	}
+	if (m_effect_deferred_lighting)
+	{
+		m_effect_deferred_lighting->DecrementReferenceCount();
+		m_effect_deferred_lighting = nullptr;
 	}
 	return Results::Success;
 }

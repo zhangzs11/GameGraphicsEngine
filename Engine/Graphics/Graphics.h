@@ -16,6 +16,7 @@
 #include "MyEffects/LightingEffect.d3d.h"
 #include "MyEffects/ShadowEffect.d3d.h"
 #include "MyEffects/SkyboxEffect.d3d.h"
+#include "MyEffects/DeferredRenderingEffect.d3d.h"
 #include "cCascadedShadowManager.h"
 
 #include <cstdint>
@@ -45,7 +46,7 @@ namespace eae6320
 		// for the frame currently being submitted
 		void SubmitElapsedTime( const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_simulationTime );
 
-		void SubmitMeshEffectPair(cMesh* i_mesh, LightingEffect* i_effect);
+		void SubmitMeshEffectPair(cMesh* i_mesh, LightingEffect* i_forward_effect, DeferredRenderingEffect_Geometry* i_deferred_effect);
 
 		void SubmitMatrixLightSpaceLocalToProjected(
 			size_t cascadeIndex,
@@ -86,6 +87,8 @@ namespace eae6320
 			                  cMesh* i_cubemesh);
 
 		void SubmitPostProcessingData(PostProcessingEffect* i_postprocessEffect);
+
+		void SubmitDeferredLightingData(DeferredRenderingEffect_Lighting* i_deferredLightingEffect);
 
 		void SubmitFXAAData(PostProcessingEffect* i_FXAAEffect,
 			                float g_TexelSize_x, float g_TexelSize_y,

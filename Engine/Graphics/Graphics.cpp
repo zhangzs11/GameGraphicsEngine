@@ -27,10 +27,22 @@
 // Static Data
 //============
 
+struct MeshRenderData
+{
+	eae6320::Graphics::cMesh* mesh = nullptr;
+	eae6320::Graphics::LightingEffect* forwardEffect = nullptr;                    // Forward Rendering Effect
+	eae6320::Graphics::DeferredRenderingEffect_Geometry* deferredEffect = nullptr; // Deferred Rendering Effect
+};
+enum class RenderMode
+{
+	Forward,
+	Deferred
+};
 namespace
 {
 	// Constant buffer object
 	eae6320::Graphics::cConstantBuffer s_constantBuffer_frame(eae6320::Graphics::ConstantBufferTypes::Frame);
+	eae6320::Graphics::cConstantBuffer s_constantBuffer_frame_deferred(eae6320::Graphics::ConstantBufferTypes::Frame);
 	eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall(eae6320::Graphics::ConstantBufferTypes::DrawCall);
 	eae6320::Graphics::cConstantBuffer s_constantBuffer_drawCall_shadowMap(eae6320::Graphics::ConstantBufferTypes::DrawCall);
 	// Submission Data
@@ -40,10 +52,13 @@ namespace
 	// it must cache whatever is necessary in order to render a frame
 	struct sDataRequiredToRenderAFrame
 	{
+		RenderMode renderMode = RenderMode::Deferred;
+
 		static constexpr size_t MAX_SUBMITTED_PAIRS = 100;
 		static constexpr size_t MAX_CASCADE_COUNT = 4;
 
 		eae6320::Graphics::ConstantBufferFormats::sFrame constantData_frame;
+		eae6320::Graphics::ConstantBufferFormats::sFrame_Deferred constantData_frame_deferred;
 		eae6320::Graphics::ConstantBufferFormats::sDrawCall constantData_drawCall[MAX_SUBMITTED_PAIRS];
 		eae6320::Graphics::ConstantBufferFormats::sDrawCall_shadowMap constantData_drawCall_shadowMap[MAX_CASCADE_COUNT][MAX_SUBMITTED_PAIRS];
 
@@ -51,11 +66,14 @@ namespace
 		eae6320::Graphics::SkyboxEffect* skyboxEffect;
 		eae6320::Graphics::PostProcessingEffect* postProcessingEffect;
 		eae6320::Graphics::PostProcessingEffect* FXAAEffect;
+		eae6320::Graphics::DeferredRenderingEffect_Lighting* deferredLightingEffect;
 
 		float backgroundColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 		size_t submittedPairCount = 0;  // Number of currently submitted pairs
 		size_t cascadeCount = 4;
-		std::pair<eae6320::Graphics::cMesh*, eae6320::Graphics::LightingEffect*> meshEffectPairs[MAX_SUBMITTED_PAIRS];
+
+		// std::pair<eae6320::Graphics::cMesh*, eae6320::Graphics::LightingEffect*> meshEffectPairs[MAX_SUBMITTED_PAIRS];
+		MeshRenderData meshRenderData[MAX_SUBMITTED_PAIRS];
 
 		eae6320::Graphics::cMesh* skyboxCube;
 	};
@@ -98,6 +116,17 @@ namespace
 
 	eae6320::Graphics::cView_DSV_Array s_shadowMapArray_DSV;
 	eae6320::Graphics::cView_SRV_Array s_shadowMapArray_SRV;
+
+	// GBuffer
+	// ---------------
+	eae6320::Graphics::cView_RTV s_GBuffer_RTVs[3];
+	eae6320::Graphics::cView_DSV s_GBuffer_DSV;
+	eae6320::Graphics::cView_SRV s_GBuffer_SRV[4];
+	eae6320::Graphics::cView_RTV s_Deferred_RTV;
+
+	// Structed Buffer
+	// ---------------
+	eae6320::Graphics::cView_StructuredBuffer s_light_buffer;
 }
 
 // Helper Declarations
@@ -118,19 +147,26 @@ void eae6320::Graphics::SubmitElapsedTime(const float i_elapsedSecondCount_syste
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
 	auto& constantData_frame = s_dataBeingSubmittedByApplicationThread->constantData_frame;
+	auto& constantData_frame_deferred = s_dataBeingSubmittedByApplicationThread->constantData_frame_deferred;
 	constantData_frame.g_elapsedSecondCount_systemTime = i_elapsedSecondCount_systemTime;
 	constantData_frame.g_elapsedSecondCount_simulationTime = i_elapsedSecondCount_simulationTime;
+	constantData_frame_deferred.g_elapsedSecondCount_systemTime = i_elapsedSecondCount_systemTime;
+	constantData_frame_deferred.g_elapsedSecondCount_simulationTime = i_elapsedSecondCount_simulationTime;
 }
 
 void eae6320::Graphics::SubmitCameraData(const Math::cMatrix_transformation& i_transform_worldToCamera, const Math::cMatrix_transformation& i_transform_cameraToProjected, const Math::sVector& i_eyePosW)
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
 	auto& constantData_frame = s_dataBeingSubmittedByApplicationThread->constantData_frame;
+	auto& constantData_frame_deferred = s_dataBeingSubmittedByApplicationThread->constantData_frame_deferred;
 
 	// Set the camera transformation matrices
 	constantData_frame.g_transform_worldToCamera = i_transform_worldToCamera;
 	constantData_frame.g_transform_cameraToProjected = i_transform_cameraToProjected;
 	constantData_frame.g_EyePosW = i_eyePosW;
+
+	constantData_frame_deferred.g_transform_worldToCamera = i_transform_worldToCamera;
+	constantData_frame_deferred.g_transform_cameraToProjected = i_transform_cameraToProjected;
 }
 
 void eae6320::Graphics::SubmitLightData(
@@ -161,7 +197,9 @@ void eae6320::Graphics::SubmitLightData(
 	}
 }
 
-void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, eae6320::Graphics::LightingEffect* i_effect)
+void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, 
+	                                         eae6320::Graphics::LightingEffect* i_forward_effect, 
+	                                         eae6320::Graphics::DeferredRenderingEffect_Geometry* i_deferred_effect)
 {
 	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
 
@@ -169,12 +207,17 @@ void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh, e
 	if (currentFrameData.submittedPairCount < sDataRequiredToRenderAFrame::MAX_SUBMITTED_PAIRS)
 	{
 		// Store the mesh-effect pair
-		currentFrameData.meshEffectPairs[currentFrameData.submittedPairCount] = std::make_pair(i_mesh, i_effect);
+		auto& data = currentFrameData.meshRenderData[currentFrameData.submittedPairCount];
+		data.mesh = i_mesh;
+		data.forwardEffect = i_forward_effect;
+		data.deferredEffect = i_deferred_effect;
+
 		++currentFrameData.submittedPairCount;
 
 		// Increment the reference count for both the mesh and the effect
 		i_mesh->IncrementReferenceCount();
-		i_effect->IncrementReferenceCount();
+		if (i_forward_effect) i_forward_effect->IncrementReferenceCount();
+		if (i_deferred_effect) i_deferred_effect->IncrementReferenceCount();
 	}
 	else
 	{
@@ -311,6 +354,14 @@ void eae6320::Graphics::SubmitPostProcessingData(eae6320::Graphics::PostProcessi
 	currentFrameData.postProcessingEffect = i_postprocessEffect;
 }
 
+void eae6320::Graphics::SubmitDeferredLightingData(eae6320::Graphics::DeferredRenderingEffect_Lighting* i_deferredLightingEffect)
+{
+	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
+
+	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
+	currentFrameData.deferredLightingEffect = i_deferredLightingEffect;
+}
+
 void eae6320::Graphics::SubmitFXAAData(eae6320::Graphics::PostProcessingEffect* i_FXAAEffect,
 	float g_TexelSize_x, float g_TexelSize_y,
 	float g_QualitySubPix,
@@ -376,136 +427,220 @@ void eae6320::Graphics::RenderFrame()
 	auto* const direct3dImmediateContext = sContext::g_context.direct3dImmediateContext;
 	EAE6320_ASSERT(direct3dImmediateContext);
 
-	// Render Shadow Map for all cascades
-    // ----------------------------------
-	//
-	for (size_t cascadeIndex = 0; cascadeIndex < dataRequiredToRenderFrame->cascadeCount; ++cascadeIndex)
+
+	if (dataRequiredToRenderFrame->renderMode == RenderMode::Forward)
 	{
-		// Bind the corresponding DSV and Viewport for the current cascade
-		direct3dImmediateContext->OMSetRenderTargets(0, nullptr, s_shadowMapArray_DSV.m_depthStencilViewArray[cascadeIndex]);
-		s_shadowMapArray_DSV.Clear(cascadeIndex); // Clear the DSV for the current cascade
-		direct3dImmediateContext->RSSetViewports(1, s_shadowMapArray_DSV.m_viewports[cascadeIndex]);
+		// Render Shadow Map for all cascades
+	    // ----------------------------------
+	    //
+		for (size_t cascadeIndex = 0; cascadeIndex < dataRequiredToRenderFrame->cascadeCount; ++cascadeIndex)
+		{
+			// Bind the corresponding DSV and Viewport for the current cascade
+			direct3dImmediateContext->OMSetRenderTargets(0, nullptr, s_shadowMapArray_DSV.m_depthStencilViewArray[cascadeIndex]);
+			s_shadowMapArray_DSV.Clear(cascadeIndex); // Clear the DSV for the current cascade
+			direct3dImmediateContext->RSSetViewports(1, s_shadowMapArray_DSV.m_viewports[cascadeIndex]);
 
-		// Bind the shadow effect
-		dataRequiredToRenderFrame->shadowEffect->Bind();
+			// Bind the shadow effect
+			dataRequiredToRenderFrame->shadowEffect->Bind();
 
-		// Draw submitted mesh-effect pairs for the current cascade
+			// Draw submitted mesh-effect pairs for the current cascade
+			for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
+			{
+				auto& pair = dataRequiredToRenderFrame->meshRenderData[i];
+				auto& constantData_drawCall_shadowMap = dataRequiredToRenderFrame->constantData_drawCall_shadowMap[cascadeIndex][i];
+
+				// Update and bind the constant buffer for the current cascade and mesh
+				s_constantBuffer_drawCall_shadowMap.Update(&constantData_drawCall_shadowMap);
+				s_constantBuffer_drawCall_shadowMap.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex));
+
+				// Draw the mesh
+				pair.mesh->Draw();
+			}
+		}
+
+		// Render Forward Object
+		// --------------------------------
+		// 
+		// Update the frame constant buffer
+		{
+			// Copy the data from the system memory that the application owns to GPU memory
+			auto& constantData_frame = dataRequiredToRenderFrame->constantData_frame;
+			s_constantBuffer_frame.Update(&constantData_frame);
+			s_constantBuffer_frame.Bind(
+				static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
+		}
+
+		// Clear render buffer with the submitted background color
+		constexpr unsigned int renderTargetCount = 1;
+		direct3dImmediateContext->OMSetRenderTargets(renderTargetCount,
+			&(s_Scene_RTV.m_renderTargetView),
+			s_Scene_DSV.m_depthStencilView);
+		s_Scene_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+		s_Scene_DSV.Clear(nullptr);
+		direct3dImmediateContext->RSSetViewports(1, s_Scene_RTV.m_viewPort);
+
+		// Draw submitted mesh-effect pairs
 		for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
 		{
-			auto& pair = dataRequiredToRenderFrame->meshEffectPairs[i];
-			auto& constantData_drawCall_shadowMap = dataRequiredToRenderFrame->constantData_drawCall_shadowMap[cascadeIndex][i];
+			auto& pair = dataRequiredToRenderFrame->meshRenderData[i];
 
-			// Update and bind the constant buffer for the current cascade and mesh
-			s_constantBuffer_drawCall_shadowMap.Update(&constantData_drawCall_shadowMap);
-			s_constantBuffer_drawCall_shadowMap.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex));
+			// Update and Rebind the draw call constant buffer
+			{
+				auto& constantData_drawCall = dataRequiredToRenderFrame->constantData_drawCall[i];
+				s_constantBuffer_drawCall.Update(&constantData_drawCall);
+				s_constantBuffer_drawCall.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
+			}
 
-			// Draw the mesh
-			pair.first->Draw();
+			pair.forwardEffect->SetShadowMapSRV(&s_shadowMapArray_SRV);
+			pair.forwardEffect->Bind();  // Bind effect
+			pair.mesh->Draw();           // Draw mesh
 		}
+
+		ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+		direct3dImmediateContext->PSSetShaderResources(2, 1, nullSRV);
+
+		// Render SKYBOX
+		// --------------------------------
+		// 
+		// constexpr unsigned int renderTargetCount = 1;
+
+		auto& skyboxEffect = dataRequiredToRenderFrame->skyboxEffect;
+
+		direct3dImmediateContext->OMSetRenderTargets(1,
+			&(s_Skybox_RTV.m_renderTargetView),
+			nullptr);
+
+		s_Skybox_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+		direct3dImmediateContext->RSSetViewports(1, s_Skybox_RTV.m_viewPort);
+
+		skyboxEffect->SetDepthSRV(&s_SceneDepth_SRV);
+
+		skyboxEffect->SetLitSRV(&s_Lit_SRV);
+
+		skyboxEffect->Bind();
+
+		auto& skyboxCube = dataRequiredToRenderFrame->skyboxCube;
+		skyboxCube->Draw();
+
+
+		// Post Processing Effect
+		// --------------------------------
+		// 
+		auto& postProcessingEffect = dataRequiredToRenderFrame->postProcessingEffect;
+
+		direct3dImmediateContext->OMSetRenderTargets(1,
+			&(s_PostProcess_RTV.m_renderTargetView),
+			nullptr);
+
+		s_PostProcess_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+		direct3dImmediateContext->RSSetViewports(1, s_PostProcess_RTV.m_viewPort);
+
+		postProcessingEffect->SetDepthSRV(&s_SceneDepth_SRV);
+		postProcessingEffect->SetLitSRV(&s_Skybox_SRV);
+
+		postProcessingEffect->Bind();
+		// Draw VertexID : 0, 1, 2
+		direct3dImmediateContext->Draw(3, 0);
+
+
+		// FXAA
+		// --------------------------------
+		// 
+
+		auto& FXAAEffect = dataRequiredToRenderFrame->FXAAEffect;
+
+		direct3dImmediateContext->OMSetRenderTargets(1,
+			&(s_FXAA_RTV.m_renderTargetView),
+			nullptr);
+		s_FXAA_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+		direct3dImmediateContext->RSSetViewports(1, s_FXAA_RTV.m_viewPort);
+
+		FXAAEffect->SetLitSRV(&s_PostProcess_SRV);
+		FXAAEffect->Bind();
+		direct3dImmediateContext->Draw(3, 0);
 	}
-
-	// Render Forward Object
-	// --------------------------------
-	// 
-	// Update the frame constant buffer
+	else if(dataRequiredToRenderFrame->renderMode == RenderMode::Deferred)
 	{
-		// Copy the data from the system memory that the application owns to GPU memory
-		auto& constantData_frame = dataRequiredToRenderFrame->constantData_frame;
-		s_constantBuffer_frame.Update(&constantData_frame);
-		s_constantBuffer_frame.Bind(
-			static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
-	}
-
-	// Clear render buffer with the submitted background color
-	constexpr unsigned int renderTargetCount = 1;
-	direct3dImmediateContext->OMSetRenderTargets(renderTargetCount, 
-		                                         &(s_Scene_RTV.m_renderTargetView),
-		                                         s_Scene_DSV.m_depthStencilView);
-	s_Scene_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
-	s_Scene_DSV.Clear(nullptr);
-	direct3dImmediateContext->RSSetViewports(1, s_Scene_RTV.m_viewPort);
-
-	// Draw submitted mesh-effect pairs
-	for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
-	{
-		auto& pair = dataRequiredToRenderFrame->meshEffectPairs[i];
-
-		// Update and Rebind the draw call constant buffer
+		// Update the frame constant buffer
 		{
-			auto& constantData_drawCall = dataRequiredToRenderFrame->constantData_drawCall[i];
-			s_constantBuffer_drawCall.Update(&constantData_drawCall);
-			s_constantBuffer_drawCall.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
+			// Copy the data from the system memory that the application owns to GPU memory
+			auto& constantData_frame_deferred = dataRequiredToRenderFrame->constantData_frame_deferred;
+			s_constantBuffer_frame_deferred.Update(&constantData_frame_deferred);
+			s_constantBuffer_frame_deferred.Bind(
+				static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
 		}
 
-		pair.second->SetShadowMapSRV(&s_shadowMapArray_SRV);
-		pair.second->Bind();  // Bind effect
-		pair.first->Draw();   // Draw mesh
+		// Geometry
+		// Render the GBuffer
+		// ----------------------------------
+		//
+		ID3D11ShaderResourceView* nullSRVs[4] = { nullptr, nullptr, nullptr, nullptr };
+		direct3dImmediateContext->PSSetShaderResources(1, 4, nullSRVs);
+
+		ID3D11RenderTargetView* renderTargets[3] = {
+			s_GBuffer_RTVs[0].m_renderTargetView, // normal_specular
+			s_GBuffer_RTVs[1].m_renderTargetView, // albedo
+			s_GBuffer_RTVs[2].m_renderTargetView  // posZGrad
+		};
+
+		constexpr unsigned int renderTargetCount = 3;
+		direct3dImmediateContext->OMSetRenderTargets(
+			renderTargetCount,
+			renderTargets,
+			s_GBuffer_DSV.m_depthStencilView
+		);
+
+		s_GBuffer_RTVs[0].Clear(dataRequiredToRenderFrame->backgroundColor);
+		s_GBuffer_RTVs[1].Clear(dataRequiredToRenderFrame->backgroundColor);
+		s_GBuffer_RTVs[2].Clear(dataRequiredToRenderFrame->backgroundColor);
+		s_GBuffer_DSV.Clear(nullptr);
+		direct3dImmediateContext->RSSetViewports(1, s_GBuffer_RTVs[0].m_viewPort);
+
+		// Draw submitted mesh-effect pairs
+		for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
+		{
+			auto& pair = dataRequiredToRenderFrame->meshRenderData[i];
+
+			// Update and Rebind the draw call constant buffer
+			{
+				auto& constantData_drawCall = dataRequiredToRenderFrame->constantData_drawCall[i];
+				s_constantBuffer_drawCall.Update(&constantData_drawCall);
+				s_constantBuffer_drawCall.Bind(static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
+			}
+
+			pair.deferredEffect->Bind();  // Bind effect
+			pair.mesh->Draw();            // Draw mesh
+		}
+
+		direct3dImmediateContext->OMSetRenderTargets(0, nullptr, nullptr);
+
+		// Lighting
+		// Using the GBuffer to Render the Screen
+		// ----------------------------------
+		//
+		auto& deferredLightingEffect = dataRequiredToRenderFrame->deferredLightingEffect;
+
+		direct3dImmediateContext->OMSetRenderTargets(1,
+			&(s_Deferred_RTV.m_renderTargetView),
+			nullptr);
+
+		s_Deferred_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+		direct3dImmediateContext->RSSetViewports(1, s_Deferred_RTV.m_viewPort);
+
+		deferredLightingEffect->SetGBufferSRV(
+			&s_GBuffer_SRV[0],
+			&s_GBuffer_SRV[1],
+			&s_GBuffer_SRV[2],
+			&s_GBuffer_SRV[3]);
+
+		deferredLightingEffect->SetStructedBuffer(&s_light_buffer);
+
+		deferredLightingEffect->Bind();
+		// Draw VertexID : 0, 1, 2
+		direct3dImmediateContext->Draw(3, 0);
 	}
 
-	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-	direct3dImmediateContext->PSSetShaderResources(2, 1, nullSRV);
-
-	// Render SKYBOX
-	// --------------------------------
-	// 
-	// constexpr unsigned int renderTargetCount = 1;
-
-	auto& skyboxEffect = dataRequiredToRenderFrame->skyboxEffect;
-
-
-	direct3dImmediateContext->OMSetRenderTargets(1,
-		&(s_Skybox_RTV.m_renderTargetView),
-		nullptr);
-
-	s_Skybox_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
-	direct3dImmediateContext->RSSetViewports(1, s_Skybox_RTV.m_viewPort);
-
-	skyboxEffect->SetDepthSRV(&s_SceneDepth_SRV);
-
-	skyboxEffect->SetLitSRV(&s_Lit_SRV);
-
-	skyboxEffect->Bind();
-
-	auto& skyboxCube = dataRequiredToRenderFrame->skyboxCube;
-	skyboxCube->Draw();
-
-
-	// Post Processing Effect
-	// --------------------------------
-	// 
-	auto& postProcessingEffect = dataRequiredToRenderFrame->postProcessingEffect;
-
-	direct3dImmediateContext->OMSetRenderTargets(1,
-		&(s_PostProcess_RTV.m_renderTargetView),
-		nullptr);
-
-	s_PostProcess_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
-	direct3dImmediateContext->RSSetViewports(1, s_PostProcess_RTV.m_viewPort);
-
-	postProcessingEffect->SetDepthSRV(&s_SceneDepth_SRV);
-	postProcessingEffect->SetLitSRV(&s_Skybox_SRV);
-
-	postProcessingEffect->Bind();
-	// Draw VertexID : 0, 1, 2
-	direct3dImmediateContext->Draw(3, 0);
-
-
-
-	// FXAA
-	// --------------------------------
-	// 
-
-	auto& FXAAEffect = dataRequiredToRenderFrame->FXAAEffect;
-
-	direct3dImmediateContext->OMSetRenderTargets(1,
-		&(s_FXAA_RTV.m_renderTargetView),
-		nullptr);
-	s_FXAA_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
-	direct3dImmediateContext->RSSetViewports(1, s_FXAA_RTV.m_viewPort);
-
-	FXAAEffect->SetLitSRV(&s_PostProcess_SRV);
-	FXAAEffect->Bind();
-	direct3dImmediateContext->Draw(3, 0);
+	
 	
 
 	// Everything has been drawn to the "back buffer", which is just an image in memory.
@@ -522,12 +657,14 @@ void eae6320::Graphics::RenderFrame()
 		// (At this point in the class there isn't anything that needs to be cleaned up)
 		for (size_t i = 0; i < dataRequiredToRenderFrame->submittedPairCount; ++i)
 		{
-			auto& pair = dataRequiredToRenderFrame->meshEffectPairs[i];
-			pair.first->DecrementReferenceCount();
-			pair.second->DecrementReferenceCount();
+			auto& pair = dataRequiredToRenderFrame->meshRenderData[i];
+			pair.mesh->DecrementReferenceCount();
+			pair.forwardEffect->DecrementReferenceCount();
+			pair.deferredEffect->DecrementReferenceCount();
 
-			pair.first = nullptr;
-			pair.second = nullptr;
+			pair.mesh = nullptr;
+			pair.forwardEffect = nullptr;
+			pair.deferredEffect = nullptr;
 		}
 		dataRequiredToRenderFrame->submittedPairCount = 0;
 	}
@@ -553,11 +690,25 @@ eae6320::cResult eae6320::Graphics::Initialize(const sInitializationParameters& 
 	{
 		if (result = s_constantBuffer_frame.Initialize())
 		{
-			// There is only a single frame constant buffer that is reused
-			// and so it can be bound at initialization time and never unbound
-			s_constantBuffer_frame.Bind(
-				// In our class both vertex and fragment shaders use per-frame constant data
-				static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
+			//// There is only a single frame constant buffer that is reused
+			//// and so it can be bound at initialization time and never unbound
+			//s_constantBuffer_frame.Bind(
+			//	// In our class both vertex and fragment shaders use per-frame constant data
+			//	static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
+		}
+		else
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without frame constant buffer");
+			return result;
+		}
+
+		if (result = s_constantBuffer_frame_deferred.Initialize())
+		{
+			//// There is only a single frame constant buffer that is reused
+			//// and so it can be bound at initialization time and never unbound
+			//s_constantBuffer_frame_deferred.Bind(
+			//	// In our class both vertex and fragment shaders use per-frame constant data
+			//	static_cast<uint_fast8_t>(eShaderType::Vertex) | static_cast<uint_fast8_t>(eShaderType::Fragment));
 		}
 		else
 		{
@@ -661,21 +812,36 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	{
 		EAE6320_ASSERTF(false, "Failed to clean up the View");
 	}
+
+	for (size_t i = 0; i < 3; ++i)
+	{
+		s_GBuffer_RTVs[i].CleanUp();
+		s_GBuffer_SRV[i].CleanUp();
+	}
+	s_GBuffer_DSV.CleanUp();
+	s_GBuffer_SRV[3].CleanUp();
+	s_Deferred_RTV.CleanUp();
+
 	// Clean up submitted mesh/effect pairs from both frames
 	for (auto& frameData : s_dataRequiredToRenderAFrame)
 	{
 		for (size_t i = 0; i < frameData.submittedPairCount; ++i)
 		{
-			auto& pair = frameData.meshEffectPairs[i];
-			if (pair.first)
+			auto& pair = frameData.meshRenderData[i];
+			if (pair.mesh)
 			{
-				pair.first->DecrementReferenceCount();
-				pair.first = nullptr;
+				pair.mesh->DecrementReferenceCount();
+				pair.mesh = nullptr;
 			}
-			if (pair.second)
+			if (pair.forwardEffect)
 			{
-				pair.second->DecrementReferenceCount();
-				pair.second = nullptr;
+				pair.forwardEffect->DecrementReferenceCount();
+				pair.forwardEffect = nullptr;
+			}
+			if (pair.deferredEffect)
+			{
+				pair.deferredEffect->DecrementReferenceCount();
+				pair.deferredEffect = nullptr;
 			}
 		}
 		frameData.submittedPairCount = 0;  // Reset submitted pair count for future safety
@@ -820,6 +986,58 @@ namespace
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
 		}
+
+		// GBuffer
+		// Initialize GBuffer RTVs
+		for (size_t i = 0; i < 3; ++i)
+		{
+			if (!(result = s_GBuffer_RTVs[i].Initialize(i_initializationParameters,
+				eae6320::Graphics::eRenderTargetType::Texture)))
+			{
+				EAE6320_ASSERTF(false, "Can't initialize GBuffer RTV %zu", i);
+				return result;
+			}
+		}
+
+		// Initialize GBuffer DSV
+		if (!(result = s_GBuffer_DSV.Initialize(i_initializationParameters)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize GBuffer DSV");
+			return result;
+		}
+
+		// Initialize GBuffer SRVs
+		for (size_t i = 0; i < 3; ++i)
+		{
+			if (!(result = s_GBuffer_SRV[i].Initialize(i_initializationParameters,
+				s_GBuffer_RTVs[i].m_TextureBuffer,
+				eae6320::Graphics::BufferType::RenderTarget)))
+			{
+				EAE6320_ASSERTF(false, "Can't initialize GBuffer SRV %zu", i);
+				return result;
+			}
+		}
+		
+		// Initialize Depth SRV for GBuffer
+		if (!(result = s_GBuffer_SRV[3].Initialize(i_initializationParameters,
+			s_GBuffer_DSV.m_TextureBuffer,
+			eae6320::Graphics::BufferType::Depth)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize GBuffer Depth SRV");
+			return result;
+		}
+
+		if (!(result = s_Deferred_RTV.Initialize(i_initializationParameters,
+			eae6320::Graphics::eRenderTargetType::Screen)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+
+		// TODO:
+		// Initialize Structed Buffer
+		//
+
 		return result;
 	}
 }

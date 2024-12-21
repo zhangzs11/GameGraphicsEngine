@@ -10,15 +10,15 @@ return
 
 		{ path = "Shaders/Vertex/vertexInputLayout_mesh.shader", arguments = { "vertex" } },
 
-        	{ path = "Shaders/Vertex/skybox_VS.shader", arguments = { "vertex" } },
+        { path = "Shaders/Vertex/skybox_VS.shader", arguments = { "vertex" } },
 
-        	{ path = "Shaders/Vertex/shadow_VS.shader", arguments = { "vertex" } },
+        { path = "Shaders/Vertex/shadow_VS.shader", arguments = { "vertex" } },
 
-        	{ path = "Shaders/Fragment/skybox_PS.shader", arguments = { "fragment" } },
+        { path = "Shaders/Fragment/skybox_PS.shader", arguments = { "fragment" } },
 	
-        	{ path = "Shaders/Vertex/fullScreenTriangle.shader", arguments = { "vertex" } },
+        { path = "Shaders/Vertex/fullScreenTriangle.shader", arguments = { "vertex" } },
 
-        	{ path = "Shaders/Fragment/postProcess_PS.shader", arguments = { "fragment" } },
+        { path = "Shaders/Fragment/postProcess_PS.shader", arguments = { "fragment" } },
 
 		{ path = "Shaders/Fragment/postProcess_Distortion_PS.shader", arguments = { "fragment" } },
 
@@ -29,6 +29,12 @@ return
 		{ path = "Shaders/Fragment/FXAA_post_PS.shader", arguments = { "fragment" } },
 
 		{ path = "Shaders/Fragment/light_NormalMap_CSM_PS.shader", arguments = { "fragment" } },
+
+		{ path = "Shaders/Vertex/GBuffer_GeometryVS.shader", arguments = { "vertex" } },
+
+		{ path = "Shaders/Fragment/GBuffer_PS.shader", arguments = { "fragment" } },
+
+		{ path = "Shaders/Fragment/BasicDeferred_PS.shader", arguments = { "fragment" } },
 	},
 
 	meshes = 

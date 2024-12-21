@@ -1,95 +1,143 @@
-/*
-	This is the basic light fragment shader
+struct Material
+{
+    float4 ambient;
+    float4 diffuse;
+    float4 specular; // w = SpecPower
+    float4 reflect;
+};
 
-	A fragment shader is responsible for telling the GPU what color a specific fragment should be
-*/
+// Constant Buffers
+//=================
+cbuffer g_constantBuffer_frame : register( b0 )
+{
+	// Main Rendering
+	// --------------------------------------
+	float4x4 g_transform_worldToCamera;
+	float4x4 g_transform_cameraToProjected;
 
-#include <Shaders/ConstantBuffers.inc>
+	float g_elapsedSecondCount_systemTime;
+	float g_elapsedSecondCount_simulationTime;
+	float2 g_padding1;
 
-// Texture and Sampler
-//====================
-Texture2D g_texture0 : register(t0);    // Texture bound to slot t0
-Texture2D g_texture1 : register(t1);    // Texture bound to slot t1
-Texture2D g_ShadowMap : register(t2);   // Shadow map
-SamplerState g_sampler : register(s0); // Sampler bound to slot s0
+    float4 g_CameraNearFar;
+};
+cbuffer g_constantBuffer_drawCall : register( b2 )
+{
+    float4x4 g_transform_localToWorld;
+	float4x4 g_transform_localToWorld_Inv_Transpose;
+	
+    Material g_Material;
+};
 
-// TODO:
-// Add this sampler in CPU side
-SamplerComparisonState g_SamShadow : register(s1);
+Texture2D g_DiffuseMap : register(t0);
+SamplerState g_Sam : register(s0);
 
+//--------------------------------------------------------------------------------------
+// SurfaceData
+struct SurfaceData
+{
+    float3 posV;
+    float3 posV_DX;
+    float3 posV_DY;
+    float3 normalV;
+    float4 albedo;
+    float specularAmount;
+    float specularPower;
+};
+
+struct VertexPosHVNormalVTex
+{
+    float4 posH;
+    float3 posV;
+    float3 normalV;
+    float2 texCoord;
+};
+
+float3 ComputeFaceNormal(float3 pos)
+{
+    return cross(ddx_coarse(pos), ddy_coarse(pos));
+}
+
+SurfaceData ComputeSurfaceDataFromGeometry(VertexPosHVNormalVTex input)
+{
+    SurfaceData surface;
+    surface.posV = input.posV;
+    
+    // right/down pixel position distance to current pixel
+    surface.posV_DX = ddx_coarse(surface.posV);
+    surface.posV_DY = ddy_coarse(surface.posV);
+    
+    // facr normal replace normal in mesh provide
+    float3 faceNormal = ComputeFaceNormal(input.posV);
+    // surface.normalV = normalize(g_FaceNormals ? faceNormal : input.normalV);
+    surface.normalV = faceNormal;
+
+    surface.albedo = g_DiffuseMap.Sample(g_Sam, input.texCoord);
+    // surface.albedo.rgb = g_LightingOnly ? float3(1.0f, 1.0f, 1.0f) : surface.albedo.rgb;
+    surface.albedo.rgb = surface.albedo.rgb;
+
+    // Hard code set up
+    surface.specularAmount = 0.9f;
+    surface.specularPower = 25.0f;
+    
+    return surface;
+}
+
+//--------------------------------------------------------------------------------------
+// GBuffer
+struct GBuffer
+{
+    float4 normal_specular : SV_Target0;  // R16G16B16A16_FLOAT
+    float4 albedo : SV_Target1;           // R8G8B8A8_UNORM
+    float2 posZGrad : SV_Target2;         // R16G16_FLOAT // ( d(x+1,y)-d(x,y), d(x,y+1)-d(x,y) )
+};
+
+float2 EncodeSphereMap(float3 normal)
+{
+    return normalize(normal.xy) * (sqrt(-normal.z * 0.5f + 0.5f));
+}
+
+//--------------------------------------------------------------------------------------
 // Entry Point
-//============
-
 void main(
 
 	// Input
 	//======
 
 	in const float4 i_fragmentPosition : SV_POSITION,
-	in const float3 i_fragmentPosition_world : POSITION,
-	in const float4 i_fragmentColor : COLOR,
-	in const float2 i_fragmentUV : TEXCOORD0,
-	in float3 i_fragmentNormal_world : NORMAL,
-	in const float4 i_fragmentTangent_world : TANGENT,
-	in const float4 i_fragmentShadowPosH : TEXCOORD1,
+	// in const float3 i_fragmentPosition_world : POSITION,
 
-	// TODO:
-	// Add float4 ShadowPosH : TEXCOORD1;
+	in const float3 i_fragmentPosition_view : POSITION,
+
+	// const float4 i_fragmentColor : COLOR,
+	in const float2 i_fragmentUV : TEXCOORD0,
+	// in float3 i_fragmentNormal_world : NORMAL,
+
+	in float3 i_fragmentNormal_view : NORMAL,
+
+	// in const float4 i_fragmentTangent_world : TANGENT,
+	// in const float4 i_fragmentShadowPosH : TEXCOORD1,
+	// in const float i_fragmentDepthV : TEXCOORD2,
 
 	// Output
 	//=======
 
-	// Whatever color value is output from the fragment shader
-	// will determine the color of the corresponding pixel on the screen
-	out float4 o_color : SV_TARGET
+	out GBuffer outputGBuffer
 
 )
 
 {
-	float4 texColor = g_texture0.Sample(g_sampler, i_fragmentUV);
-	clip(texColor.a - 0.1f);
+    VertexPosHVNormalVTex inputGeometry;
+    inputGeometry.posH = i_fragmentPosition;
+    inputGeometry.posV = i_fragmentPosition_view;
+    inputGeometry.normalV = i_fragmentNormal_view;
+    inputGeometry.texCoord = i_fragmentUV;
 
-	// Calculate light
-	// ---------------
-	i_fragmentNormal_world = normalize(i_fragmentNormal_world);
-
-	float3 hitToEyeW = normalize(g_EyePosW - i_fragmentPosition_world);
-
-	float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float4 A = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float4 D = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float4 S = float4(0.0f, 0.0f, 0.0f, 0.0f);
-
-	// Calculate Shadow
-	float shadow = CalcShadowFactor(g_SamShadow, g_ShadowMap, i_fragmentShadowPosH, 0.0f); //Bias
-
-	ComputeDirectionalLight(g_Material, g_DirLight, i_fragmentNormal_world, hitToEyeW, A, D, S);
-    ambient += A; // Should just A, no shadow
-    diffuse += shadow * D;
-    spec += shadow * S;
-
-	[unroll]
-    for (int i = 0; i < 10; ++i)
-    {
-		ComputePointLight(g_Material, g_PointLight[i], i_fragmentPosition_world, i_fragmentNormal_world, hitToEyeW, A, D, S);
-		ambient += A;
-		diffuse += D;
-		spec += S;
-	}
-
-	[unroll]
-    for (int j = 0; j < 10; ++j)
-    {
-		ComputeSpotLight(g_Material, g_SpotLight[j], i_fragmentPosition_world, i_fragmentNormal_world, hitToEyeW, A, D, S);
-		ambient += A;
-		diffuse += D;
-		spec += S;
-	}
-
-	float4 litColor = texColor * (ambient + diffuse) + spec;
-    litColor.a = texColor.a * g_Material.diffuse.a;
-
-	o_color = litColor;
+    SurfaceData surface = ComputeSurfaceDataFromGeometry(inputGeometry);
+    outputGBuffer.normal_specular = float4(EncodeSphereMap(surface.normalV),
+                                           surface.specularAmount,
+                                           surface.specularPower);
+    outputGBuffer.albedo = surface.albedo;
+    outputGBuffer.posZGrad = float2(ddx_coarse(surface.posV.z),
+                                    ddy_coarse(surface.posV.z));
 }

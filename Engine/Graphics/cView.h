@@ -36,6 +36,7 @@ struct ID3D11RenderTargetView;
 struct ID3D11DepthStencilView;
 struct D3D11_VIEWPORT;
 struct ID3D11Texture2D;
+struct ID3D11Buffer;
 #endif
 
 // Class Declaration
@@ -127,6 +128,23 @@ namespace eae6320
 			ID3D11ShaderResourceView* m_shaderResourceView = nullptr;
 			ID3D11Texture2D* m_textureArrayBuffer = nullptr;
 			uint32_t m_arraySize = 0;
+		};
+
+		class cView_StructuredBuffer
+		{
+		public:
+			eae6320::cResult Initialize(const void* i_initialData, size_t i_elementSize, size_t i_elementCount);
+
+			eae6320::cResult UpdateData(const void* i_newData, size_t i_elementCount);
+
+			eae6320::cResult CleanUp();
+
+			ID3D11ShaderResourceView* GetSRV() const { return m_shaderResourceView; }
+		public:
+			ID3D11Buffer* m_structuredBuffer = nullptr;
+			ID3D11ShaderResourceView* m_shaderResourceView = nullptr;
+			size_t m_elementSize = 0;
+			size_t m_elementCount = 0;
 		};
 	}
 }

@@ -77,7 +77,7 @@ namespace eae6320
             eae6320::Graphics::cTexture* m_texture1 = nullptr;                   // t1
 
             // Shader Resource View (Set)
-            cView_SRV_Array* m_shadowMap = nullptr;                                    // t2
+            cView_SRV_Array* m_shadowMap = nullptr;                              // t2
 
             // Sampler
             eae6320::Graphics::cSampler* m_sampler_texture = nullptr;            // s0

@@ -69,7 +69,7 @@ namespace eae6320
 
             // Shader Resource View (Set)
             cView_SRV* m_DepthTexture = nullptr;                                 // t0
-            cView_SRV* m_ScenceTexture = nullptr;                                   // t1
+            cView_SRV* m_ScenceTexture = nullptr;                                // t1
 
             // Sampler
             eae6320::Graphics::cSampler* m_sampler_texture = nullptr;            // s0

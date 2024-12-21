@@ -366,6 +366,77 @@ eae6320::cResult eae6320::Graphics::cView_SRV_Array::Initialize(const sInitializ
 	return result;
 }
 
+eae6320::cResult eae6320::Graphics::cView_StructuredBuffer::Initialize(const void* i_initialData, size_t i_elementSize, size_t i_elementCount)
+{
+	auto result = eae6320::Results::Success;
+
+	auto& g_context = eae6320::Graphics::sContext::g_context;
+	auto* const direct3dDevice = g_context.direct3dDevice;
+	EAE6320_ASSERT(direct3dDevice);
+
+	// Element size and Count
+	m_elementSize = i_elementSize;
+	m_elementCount = i_elementCount;
+
+	// Create Structured Buffer
+	D3D11_BUFFER_DESC bufferDesc{};
+	bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	bufferDesc.ByteWidth = static_cast<UINT>(i_elementSize * i_elementCount);
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.StructureByteStride = static_cast<UINT>(i_elementSize);
+	bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+
+	D3D11_SUBRESOURCE_DATA initialData{};
+	initialData.pSysMem = i_initialData;
+
+	const auto createBufferResult = direct3dDevice->CreateBuffer(&bufferDesc, i_initialData ? &initialData : nullptr, &m_structuredBuffer);
+	if (FAILED(createBufferResult))
+	{
+		return eae6320::Results::Failure;
+	}
+
+	// Create Shader Resource View
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.NumElements = static_cast<UINT>(i_elementCount);
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN; // Structured Buffer must be UNKNOWN
+
+	const auto createSRVResult = direct3dDevice->CreateShaderResourceView(m_structuredBuffer, &srvDesc, &m_shaderResourceView);
+	if (FAILED(createSRVResult))
+	{
+		return eae6320::Results::Failure;
+	}
+
+	return result;
+}
+
+eae6320::cResult eae6320::Graphics::cView_StructuredBuffer::UpdateData(const void* i_newData, size_t i_elementCount)
+{
+	auto result = eae6320::Results::Success;
+
+	auto& g_context = eae6320::Graphics::sContext::g_context;
+	auto* const direct3dImmediateContext = g_context.direct3dImmediateContext;
+	EAE6320_ASSERT(direct3dImmediateContext);
+
+	if (!m_structuredBuffer)
+	{
+		return eae6320::Results::Failure;
+	}
+
+	if (i_elementCount > m_elementCount)
+	{
+		return eae6320::Results::Failure;
+	}
+
+	// Use UpdateSubresource update
+	direct3dImmediateContext->UpdateSubresource(m_structuredBuffer, 0, nullptr, i_newData, 0, 0);
+
+	return result;
+}
+
+
 // CLEAR
 // -----------------------------------------------------
 
@@ -508,6 +579,23 @@ eae6320::cResult eae6320::Graphics::cView_SRV_Array::CleanUp()
 	{
 		delete m_viewPort;
 		m_viewPort = nullptr;
+	}
+
+	return eae6320::Results::Success;
+}
+
+eae6320::cResult eae6320::Graphics::cView_StructuredBuffer::CleanUp()
+{
+	if (m_shaderResourceView)
+	{
+		m_shaderResourceView->Release();
+		m_shaderResourceView = nullptr;
+	}
+
+	if (m_structuredBuffer)
+	{
+		m_structuredBuffer->Release();
+		m_structuredBuffer = nullptr;
 	}
 
 	return eae6320::Results::Success;

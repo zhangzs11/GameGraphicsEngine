@@ -55,7 +55,7 @@ struct VertexPosHVNormalVTex
 
 float3 ComputeFaceNormal(float3 pos)
 {
-    return cross(ddx_coarse(pos), ddy_coarse(pos));
+    return cross(ddy_coarse(pos), ddx_coarse(pos));
 }
 
 SurfaceData ComputeSurfaceDataFromGeometry(VertexPosHVNormalVTex input)
@@ -68,7 +68,7 @@ SurfaceData ComputeSurfaceDataFromGeometry(VertexPosHVNormalVTex input)
     surface.posV_DY = ddy_coarse(surface.posV);
     
     // facr normal replace normal in mesh provide
-    float3 faceNormal = ComputeFaceNormal(input.posV);
+    // float3 faceNormal = ComputeFaceNormal(input.posV);
     // surface.normalV = normalize(g_FaceNormals ? faceNormal : input.normalV);
     // surface.normalV = normalize(faceNormal);
     surface.normalV = normalize(input.normalV);

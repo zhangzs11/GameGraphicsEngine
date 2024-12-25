@@ -66,6 +66,8 @@ namespace eae6320
 			                 const std::vector<eae6320::Graphics::sPointLight>& i_pointLights,
 			                 const std::vector<eae6320::Graphics::sSpotLight>& i_spotLights);
 
+		void SubmitLightData_deferred(const eae6320::Graphics::sPointLight_deferred& i_pointLight);
+
 		void SubmitMaterial(const sMaterial& i_material);
 		
 		void SubmitShadowData(

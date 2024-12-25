@@ -80,8 +80,8 @@ float3 DecodeSphereMap(float2 encoded)
 
 float3 ComputePositionViewFromZ(float2 posNdc, float viewSpaceZ)
 {
-    float2 screenSpaceRay = float2(posNdc.x / g_transform_cameraToProjected._m00,
-                                   posNdc.y / g_transform_cameraToProjected._m11);
+    float2 screenSpaceRay = float2(posNdc.x / - g_transform_cameraToProjected._m00,
+                                   posNdc.y / - g_transform_cameraToProjected._m11);
     
     float3 posV;
     posV.z = viewSpaceZ;
@@ -142,9 +142,9 @@ SurfaceData ComputeSurfaceDataFromGBufferSample(uint2 posViewport)
 
     SurfaceData data;
 
-    float viewSpaceZ = g_transform_cameraToProjected._m32 / (zBuffer - g_transform_cameraToProjected._m22); // m32 maybe need to m23
+    float viewSpaceZ = g_transform_cameraToProjected._m23 / (-zBuffer - g_transform_cameraToProjected._m22); // m32 maybe need to m23
 
-    data.posV = ComputePositionViewFromZ(posNdc, viewSpaceZ);
+    data.posV = ComputePositionViewFromZ(posNdc, viewSpaceZ);  // Position need to think more
     data.posV_DX = ComputePositionViewFromZ(posNdcX, viewSpaceZ + rawData.posZGrad.x) - data.posV;
     data.posV_DY = ComputePositionViewFromZ(posNdcY, viewSpaceZ + rawData.posZGrad.y) - data.posV;
 
@@ -202,7 +202,6 @@ void main(
     //     lit = (float(totalLights) * rcp(255.0f)).xxx;
     // }
     // else
-    {
         SurfaceData surface = ComputeSurfaceDataFromGBufferSample(uint2(i_fragmentPosition.xy));
 
         if (surface.posV.z < g_CameraNearFar.y)
@@ -213,40 +212,44 @@ void main(
                 AccumulateColor(surface, light, lit);
             }
         }
-    }
 
-    // o_color = float4(lit, 1.0f);
+         // lit = surface.posV;
+
+     o_color = float4(lit, 1.0f);
+
+
     // o_color = g_GBufferTextures_02.Load(int3(i_fragmentPosition.xy, 0));
 
+    // TEST TEXTURE INPUT
+    //
+    // uint2 pixelCoords = uint2(i_fragmentPosition.xy);
 
-     uint2 pixelCoords = uint2(i_fragmentPosition.xy);
+    // uint2 gbufferDim;
+    // g_GBufferTextures_01.GetDimensions(gbufferDim.x, gbufferDim.y);
 
-    uint2 gbufferDim;
-    g_GBufferTextures_01.GetDimensions(gbufferDim.x, gbufferDim.y);
+    // o_color = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
-    o_color = float4(0.0f, 0.0f, 0.0f, 1.0f);
-
-    if (pixelCoords.x < gbufferDim.x / 2 && pixelCoords.y < gbufferDim.y / 2)
-    {
-        o_color = g_GBufferTextures_01.Load(int3(pixelCoords.xy * 2, 0));
-    }
-    else if (pixelCoords.x >= gbufferDim.x / 2 && pixelCoords.y < gbufferDim.y / 2)
-    {
-        o_color = g_GBufferTextures_02.Load(int3((pixelCoords.x - gbufferDim.x / 2) * 2, pixelCoords.y * 2, 0));
-    }
-    else if (pixelCoords.x < gbufferDim.x / 2 && pixelCoords.y >= gbufferDim.y / 2)
-    {
-        o_color = g_GBufferTextures_03.Load(int3(pixelCoords.x * 2, (pixelCoords.y - gbufferDim.y / 2) * 2, 0));
-    }
-    else if (pixelCoords.x >= gbufferDim.x / 2 && pixelCoords.y >= gbufferDim.y / 2)
-    {
-        float depth = g_GBufferTextures_04.Load(int3
-        (
-        (pixelCoords.x - gbufferDim.x / 2) * 2,
-        (pixelCoords.y - gbufferDim.y / 2) * 2,
-        0
-        )
-        ).r;
-        o_color = (depth == 1.0) ? float4(1.0, 1.0, 1.0, 1.0) : float4(0.0, 0.0, 0.0, 1.0);
-    }
+    // if (pixelCoords.x < gbufferDim.x / 2 && pixelCoords.y < gbufferDim.y / 2)
+    // {
+    //     o_color = g_GBufferTextures_01.Load(int3(pixelCoords.xy * 2, 0));
+    // }
+    // else if (pixelCoords.x >= gbufferDim.x / 2 && pixelCoords.y < gbufferDim.y / 2)
+    // {
+    //     o_color = g_GBufferTextures_02.Load(int3((pixelCoords.x - gbufferDim.x / 2) * 2, pixelCoords.y * 2, 0));
+    // }
+    // else if (pixelCoords.x < gbufferDim.x / 2 && pixelCoords.y >= gbufferDim.y / 2)
+    // {
+    //     o_color = g_GBufferTextures_03.Load(int3(pixelCoords.x * 2, (pixelCoords.y - gbufferDim.y / 2) * 2, 0));
+    // }
+    // else if (pixelCoords.x >= gbufferDim.x / 2 && pixelCoords.y >= gbufferDim.y / 2)
+    // {
+    //     float depth = g_GBufferTextures_04.Load(int3
+    //     (
+    //     (pixelCoords.x - gbufferDim.x / 2) * 2,
+    //     (pixelCoords.y - gbufferDim.y / 2) * 2,
+    //     0
+    //     )
+    //     ).r;
+    //     o_color = (depth == 1.0) ? float4(1.0, 1.0, 1.0, 1.0) : float4(0.0, 0.0, 0.0, 1.0);
+    // }
 }

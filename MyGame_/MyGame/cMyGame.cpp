@@ -251,6 +251,30 @@ void eae6320::cMyGame::SubmitLightDataToGraphics(std::vector<eae6320::Graphics::
 	eae6320::Graphics::SubmitLightData(i_directionalLights, i_pointLights, i_spotLights);
 }
 
+void eae6320::cMyGame::SubmitDeferredLightDataToGraphics(
+	Graphics::cCamera& i_camera,
+	std::vector < eae6320::Graphics::sPointLight_deferred>& i_pointLights,
+	const float i_elapsedSecondCount_systemTime,
+	const float i_elapsedSecondCount_sinceLastSimulationUpdate)
+{
+	auto worldToCameraTransform = i_camera.GetWorldToCameraTransform(i_elapsedSecondCount_sinceLastSimulationUpdate);
+	for (const auto& pointLight : i_pointLights)
+	{
+		eae6320::Math::sVector4 position = worldToCameraTransform * eae6320::Math::sVector4(pointLight.posV.x,
+			pointLight.posV.y, 
+			pointLight.posV.z, 
+			1.0f);
+
+		// eae6320::Logging::OutputMessage(std::to_string(position.z).c_str());
+
+		eae6320::Graphics::sPointLight_deferred transformedLight = pointLight;
+
+		transformedLight.posV = eae6320::Math::sVector(position.x, position.y, position.z);
+
+		eae6320::Graphics::SubmitLightData_deferred(transformedLight);
+	}
+}
+
 void eae6320::cMyGame::SubmitShadowDataToGraphics(
 	eae6320::Graphics::ShadowEffect* i_Shadoweffect,
 	const float i_elapsedSecondCount_sinceLastSimulationUpdate)
@@ -367,7 +391,7 @@ void eae6320::cMyGame::SubmitDataToBeRendered(const float i_elapsedSecondCount_s
 		                     m_FXAA_QualityEdgeThreshold, 
 		                     m_FXAA_QualityEdgeThresholdMin);
 
-
+	SubmitDeferredLightDataToGraphics(m_camera, m_defer_points, i_elapsedSecondCount_systemTime, i_elapsedSecondCount_sinceLastSimulationUpdate);
 }
 
 // Initialize / Clean Up
@@ -671,7 +695,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		"data/Shaders/Vertex/GBuffer_GeometryVS.binshader",
 		"data/Shaders/Fragment/GBuffer_PS.binshader",
 		renderStateBits,
-		"data/Textures/quiver_tree_diffuse.bintexture",
+		"data/Textures/rat_diff.bintexture",
 		eae6320::Graphics::eSamplerType::Linear
 	);
 
@@ -681,7 +705,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		"data/Shaders/Vertex/GBuffer_GeometryVS.binshader",
 		"data/Shaders/Fragment/GBuffer_PS.binshader",
 		renderStateBits,
-		"data/Textures/rat_diff.bintexture",
+		"data/Textures/cat_diff.bintexture",
 		eae6320::Graphics::eSamplerType::Linear
 	);
 
@@ -790,7 +814,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		eae6320::Graphics::sPointLight pointLight = eae6320::Graphics::sPointLight(eae6320::Math::sVector4(0.0f, 0.0f, 0.0f, 1.0f),             //ambient
 			eae6320::Math::sVector4(10.1f, 20.0f, 0.0f, 1.0f),                                            //diffuse
 			eae6320::Math::sVector4(20.0f, 20.0f, 0.0f, 1.0f),                                            //specular
-			eae6320::Math::sVector(-5.0f, 0.0f, 30.0f) + eae6320::Math::sVector(30.0f * (i % 2), 0.0f, 60.0f * (i / 2)),                                                 //position
+			eae6320::Math::sVector(10.0f, -12.0f, 0.0f),                                                 //position
 			50.0f,                                                                                   //range
 			eae6320::Math::sVector(0.1f, 5.0f, 0.1f));                                                  //att
 
@@ -812,6 +836,17 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	//}
 	
 	m_directionalLights.push_back(directionalLight);
+
+	for (int i = 0; i < 10; i++) {
+		eae6320::Graphics::sPointLight_deferred pointLight = eae6320::Graphics::sPointLight_deferred(
+			eae6320::Math::sVector(0.0f, 20.0f, 0.0f) +
+			eae6320::Math::sVector(12.0f, 0.0f, 35.0f * i),
+			1.0f,
+			eae6320::Math::sVector(((i+3) % 5) * 1.0f, (i % 5) * 1.0f, ((i + 6) % 5) * 1.0f),
+			40.0f);
+
+		m_defer_points.push_back(pointLight);
+	}
 
 	// Initialize Camera
 	// -----------------

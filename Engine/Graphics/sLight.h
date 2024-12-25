@@ -126,6 +126,25 @@ namespace eae6320
 			eae6320::Math::sVector4 reflect;
 		};
 
+		struct sPointLight_deferred
+		{
+			sPointLight_deferred() = default;
+
+			sPointLight_deferred(const eae6320::Math::sVector& i_posV,
+				float i_attenuationBegin,
+				const eae6320::Math::sVector& i_color,
+				float i_attenuationEnd) :
+				posV(i_posV), attenuationBegin(i_attenuationBegin), color(i_color), attenuationEnd(i_attenuationEnd) {}
+
+			// Data
+			//=====
+
+			eae6320::Math::sVector posV;
+			float attenuationBegin;
+			eae6320::Math::sVector color;
+			float attenuationEnd;
+		};
+
 	}
 }
 

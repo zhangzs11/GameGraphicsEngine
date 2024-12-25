@@ -70,7 +70,8 @@ SurfaceData ComputeSurfaceDataFromGeometry(VertexPosHVNormalVTex input)
     // facr normal replace normal in mesh provide
     float3 faceNormal = ComputeFaceNormal(input.posV);
     // surface.normalV = normalize(g_FaceNormals ? faceNormal : input.normalV);
-    surface.normalV = faceNormal;
+    // surface.normalV = normalize(faceNormal);
+    surface.normalV = normalize(input.normalV);
 
     surface.albedo = g_DiffuseMap.Sample(g_Sam, input.texCoord);
     // surface.albedo.rgb = g_LightingOnly ? float3(1.0f, 1.0f, 1.0f) : surface.albedo.rgb;

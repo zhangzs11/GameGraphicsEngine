@@ -56,6 +56,7 @@ namespace
 
 		static constexpr size_t MAX_SUBMITTED_PAIRS = 100;
 		static constexpr size_t MAX_CASCADE_COUNT = 4;
+		static constexpr size_t MAX_DEFERRED_LIGHTS = 100;
 
 		eae6320::Graphics::ConstantBufferFormats::sFrame constantData_frame;
 		eae6320::Graphics::ConstantBufferFormats::sFrame_Deferred constantData_frame_deferred;
@@ -76,6 +77,10 @@ namespace
 		MeshRenderData meshRenderData[MAX_SUBMITTED_PAIRS];
 
 		eae6320::Graphics::cMesh* skyboxCube;
+
+		// Structed Buffer Light
+		size_t submittedLightsCount = 0;  // Number of currently submitted lights
+		eae6320::Graphics::sPointLight_deferred deferredLights[MAX_DEFERRED_LIGHTS];
 	};
 	// In our class there will be two copies of the data required to render a frame:
 	//	* One of them will be in the process of being populated by the data currently being submitted by the application loop thread
@@ -223,6 +228,24 @@ void eae6320::Graphics::SubmitMeshEffectPair(eae6320::Graphics::cMesh* i_mesh,
 	{
 		// Handle the case where the maximum number of pairs is exceeded
 		eae6320::Logging::OutputError("The maximum number of submitted mesh-effect pairs has been exceeded!");
+	}
+}
+
+void eae6320::Graphics::SubmitLightData_deferred(const eae6320::Graphics::sPointLight_deferred& i_pointLight)
+{
+	EAE6320_ASSERT(s_dataBeingSubmittedByApplicationThread);
+	auto& currentFrameData = *s_dataBeingSubmittedByApplicationThread;
+
+	if (currentFrameData.submittedLightsCount < sDataRequiredToRenderAFrame::MAX_DEFERRED_LIGHTS)
+	{
+		auto& data = currentFrameData.deferredLights[currentFrameData.submittedLightsCount];
+		data = i_pointLight;
+
+		++currentFrameData.submittedLightsCount;
+	}
+	else
+	{
+		eae6320::Logging::OutputError("The maximum number of submitted lights has been exceeded!");
 	}
 }
 
@@ -633,6 +656,9 @@ void eae6320::Graphics::RenderFrame()
 			&s_GBuffer_SRV[2],
 			&s_GBuffer_SRV[3]);
 
+		s_light_buffer.UpdateData(dataRequiredToRenderFrame->deferredLights,
+			                      sDataRequiredToRenderAFrame::MAX_DEFERRED_LIGHTS);
+
 		deferredLightingEffect->SetStructedBuffer(&s_light_buffer);
 
 		deferredLightingEffect->Bind();
@@ -667,6 +693,7 @@ void eae6320::Graphics::RenderFrame()
 			pair.deferredEffect = nullptr;
 		}
 		dataRequiredToRenderFrame->submittedPairCount = 0;
+		dataRequiredToRenderFrame->submittedLightsCount = 0;
 	}
 	// TODO:
 	// CLEAN EFFECT and other MEsh...
@@ -1034,9 +1061,14 @@ namespace
 			return result;
 		}
 
-		// TODO:
 		// Initialize Structed Buffer
-		//
+		if (!(result = s_light_buffer.Initialize(nullptr, 
+			                                     sizeof(eae6320::Graphics::sPointLight_deferred), 
+			                                     sDataRequiredToRenderAFrame::MAX_DEFERRED_LIGHTS)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize structed buffer");
+			return result;
+		}
 
 		return result;
 	}

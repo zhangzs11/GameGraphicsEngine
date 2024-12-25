@@ -107,6 +107,12 @@ namespace eae6320
 
 		void SubmitPostProcessingDataToGraphics(eae6320::Graphics::PostProcessingEffect* i_postProcessingeffect);
 		void SubmitDeferredLightingEffectToGraphics(eae6320::Graphics::DeferredRenderingEffect_Lighting* i_deferredLightingEffect);
+		void SubmitDeferredLightDataToGraphics(
+			Graphics::cCamera& i_camera,
+			std::vector < eae6320::Graphics::sPointLight_deferred>& i_pointLights,
+			const float i_elapsedSecondCount_systemTime,
+			const float i_elapsedSecondCount_sinceLastSimulationUpdate);
+
 		void SubmitFXAADataToGraphics(eae6320::Graphics::PostProcessingEffect* i_FXAAffect,
 			float g_TexelSize_x, float g_TexelSize_y,
 			float g_QualitySubPix,
@@ -152,11 +158,12 @@ namespace eae6320
 		float m_FXAA_QualityEdgeThreshold;
 		float m_FXAA_QualityEdgeThresholdMin;
 
-
+		// Light
 		std::vector<eae6320::Graphics::sDirectionalLight> m_directionalLights;
 		std::vector<eae6320::Graphics::sPointLight> m_pointLights;
 		std::vector<eae6320::Graphics::sSpotLight> m_spotLights;
 
+		std::vector < Graphics::sPointLight_deferred> m_defer_points;
 
 		Graphics::DeferredRenderingEffect_Geometry* m_effect_tree_d = nullptr;
 		Graphics::DeferredRenderingEffect_Geometry* m_effect_plane_d = nullptr;

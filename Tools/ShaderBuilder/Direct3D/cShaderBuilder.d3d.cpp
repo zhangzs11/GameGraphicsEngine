@@ -106,6 +106,12 @@ eae6320::cResult eae6320::Assets::cShaderBuilder::Build( const Graphics::eShader
 			case Graphics::eShaderType::Fragment:
 				return "ps_5_0";
 				break;
+			case Graphics::eShaderType::Geometry:
+				return "gs_5_0";
+				break;
+			case Graphics::eShaderType::Compute:
+				return "cs_5_0";
+				break;
 			default:
 				EAE6320_ASSERTF( false, "Invalid shader type" );
 				eae6320::Assets::OutputErrorMessageWithFileInfo( m_path_source,
@@ -182,6 +188,12 @@ eae6320::cResult eae6320::Assets::cShaderBuilder::Build( const Graphics::eShader
 					break;
 				case Graphics::eShaderType::Fragment:
 					directory_disassembly += "fragment/";
+					break;
+				case Graphics::eShaderType::Compute:
+					directory_disassembly += "compute/";
+					break;
+				case Graphics::eShaderType::Geometry:
+					directory_disassembly += "geometry/";
 					break;
 				}
 				return directory_disassembly;

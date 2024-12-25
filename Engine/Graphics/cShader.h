@@ -43,7 +43,11 @@ namespace eae6320
 			// (which can be thought of as a pixel on screen or a texel in a texture).
 			// Its job is to take interpolated data output from a vertex shader
 			// and output what color the fragment should be.
-			Fragment = 1 << 1
+			Fragment = 1 << 1,
+
+			Compute = 1 << 2,
+
+			Geometry = 1 << 3
 		};
 	}
 }

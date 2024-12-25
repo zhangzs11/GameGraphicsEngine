@@ -35,6 +35,10 @@ return
 		{ path = "Shaders/Fragment/GBuffer_PS.shader", arguments = { "fragment" } },
 
 		{ path = "Shaders/Fragment/BasicDeferred_PS.shader", arguments = { "fragment" } },
+
+		{ path = "Shaders/Compute/testCompute.shader", arguments = { "compute" } },
+
+		{ path = "Shaders/Geometry/testGeometry.shader", arguments = { "geometry" } },
 	},
 
 	meshes = 

@@ -27,6 +27,14 @@ eae6320::cResult eae6320::Assets::cShaderBuilder::Build( const std::vector<std::
 			{
 				shaderType = Graphics::eShaderType::Fragment;
 			}
+			else if (argument == "geometry")
+			{
+				shaderType = Graphics::eShaderType::Geometry;
+			}
+			else if (argument == "compute")
+			{
+				shaderType = Graphics::eShaderType::Compute;
+			}
 			else
 			{
 				OutputErrorMessageWithFileInfo( m_path_source,

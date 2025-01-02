@@ -52,7 +52,7 @@ namespace
 	// it must cache whatever is necessary in order to render a frame
 	struct sDataRequiredToRenderAFrame
 	{
-		RenderMode renderMode = RenderMode::Deferred;
+		RenderMode renderMode = RenderMode::Forward;
 
 		static constexpr size_t MAX_SUBMITTED_PAIRS = 100;
 		static constexpr size_t MAX_CASCADE_COUNT = 4;
@@ -126,8 +126,14 @@ namespace
 	// ---------------
 	eae6320::Graphics::cView_RTV s_GBuffer_RTVs[3];
 	eae6320::Graphics::cView_DSV s_GBuffer_DSV;
+
 	eae6320::Graphics::cView_SRV s_GBuffer_SRV[4];
-	eae6320::Graphics::cView_RTV s_Deferred_RTV;
+
+	eae6320::Graphics::cView_RTV s_Deferred_Lit_RTV;
+	eae6320::Graphics::cView_SRV s_Deferred_Lit_SRV;
+
+	eae6320::Graphics::cView_RTV s_Deferred_Skybox_RTV;
+
 
 	// Structed Buffer
 	// ---------------
@@ -644,11 +650,11 @@ void eae6320::Graphics::RenderFrame()
 		auto& deferredLightingEffect = dataRequiredToRenderFrame->deferredLightingEffect;
 
 		direct3dImmediateContext->OMSetRenderTargets(1,
-			&(s_Deferred_RTV.m_renderTargetView),
+			&(s_Deferred_Lit_RTV.m_renderTargetView),
 			nullptr);
 
-		s_Deferred_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
-		direct3dImmediateContext->RSSetViewports(1, s_Deferred_RTV.m_viewPort);
+		s_Deferred_Lit_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+		direct3dImmediateContext->RSSetViewports(1, s_Deferred_Lit_RTV.m_viewPort);
 
 		deferredLightingEffect->SetGBufferSRV(
 			&s_GBuffer_SRV[0],
@@ -664,6 +670,30 @@ void eae6320::Graphics::RenderFrame()
 		deferredLightingEffect->Bind();
 		// Draw VertexID : 0, 1, 2
 		direct3dImmediateContext->Draw(3, 0);
+
+
+		// Render SKYBOX
+		// --------------------------------
+		// 
+		// constexpr unsigned int renderTargetCount = 1;
+
+		auto& skyboxEffect = dataRequiredToRenderFrame->skyboxEffect;
+
+		direct3dImmediateContext->OMSetRenderTargets(1,
+			&(s_Deferred_Skybox_RTV.m_renderTargetView),
+			nullptr);
+
+		s_Deferred_Skybox_RTV.Clear(dataRequiredToRenderFrame->backgroundColor);
+		direct3dImmediateContext->RSSetViewports(1, s_Deferred_Skybox_RTV.m_viewPort);
+
+		skyboxEffect->SetDepthSRV(&s_GBuffer_SRV[3]);
+
+		skyboxEffect->SetLitSRV(&s_Deferred_Lit_SRV);
+
+		skyboxEffect->Bind();
+
+		auto& skyboxCube = dataRequiredToRenderFrame->skyboxCube;
+		skyboxCube->Draw();
 	}
 
 	
@@ -847,7 +877,10 @@ eae6320::cResult eae6320::Graphics::CleanUp()
 	}
 	s_GBuffer_DSV.CleanUp();
 	s_GBuffer_SRV[3].CleanUp();
-	s_Deferred_RTV.CleanUp();
+	s_Deferred_Lit_RTV.CleanUp();
+	s_Deferred_Lit_SRV.CleanUp();
+	s_Deferred_Skybox_RTV.CleanUp();
+
 
 	// Clean up submitted mesh/effect pairs from both frames
 	for (auto& frameData : s_dataRequiredToRenderAFrame)
@@ -1054,12 +1087,30 @@ namespace
 			return result;
 		}
 
-		if (!(result = s_Deferred_RTV.Initialize(i_initializationParameters,
+		if (!(result = s_Deferred_Lit_RTV.Initialize(i_initializationParameters,
+			eae6320::Graphics::eRenderTargetType::Texture)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+
+		if (!(result = s_Deferred_Lit_SRV.Initialize(i_initializationParameters,
+			s_Deferred_Lit_RTV.m_TextureBuffer,
+			eae6320::Graphics::BufferType::RenderTarget)))
+		{
+			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
+			return result;
+		}
+		
+		if (!(result = s_Deferred_Skybox_RTV.Initialize(i_initializationParameters,
 			eae6320::Graphics::eRenderTargetType::Screen)))
 		{
 			EAE6320_ASSERTF(false, "Can't initialize Graphics without the View data");
 			return result;
 		}
+
+
+
 
 		// Initialize Structed Buffer
 		if (!(result = s_light_buffer.Initialize(nullptr, 

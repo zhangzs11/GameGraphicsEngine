@@ -32,14 +32,14 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 
 	auto& cameraRigidBody = m_camera.GetRigidBodyState();
 	const float movementSpeed = 20.0f;  // Units per second
-	constexpr float rotationSpeed = eae6320::Math::ConvertDegreesToRadians(6.0f);  // Radians per second
+	constexpr float rotationSpeed = eae6320::Math::ConvertDegreesToRadians(20.0f);  // Radians per second
 
 	// Movement: WASD for forward, backward, left, right
 	if (UserInput::IsKeyPressed('W'))
 	{
 		cameraRigidBody.velocity = m_camera.GetForwardDirection() * movementSpeed;
 	}
-	/*else if (UserInput::IsKeyPressed('S'))
+	else if (UserInput::IsKeyPressed('S'))
 	{
 		cameraRigidBody.velocity = m_camera.GetForwardDirection() * -movementSpeed;
 	}
@@ -50,7 +50,7 @@ void eae6320::cMyGame::UpdateBasedOnInput()
 	else if (UserInput::IsKeyPressed('D'))
 	{
 		cameraRigidBody.velocity = m_camera.GetRightDirection() * movementSpeed;
-	}*/
+	}
 	else
 	{
 		cameraRigidBody.velocity = Math::sVector(0.0f, 0.0f, 0.0f);
@@ -93,9 +93,9 @@ void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCo
 {
 	// Player
 	// ---------------------------
-	bgmAudio.SubmitAudioToBePlayed();
-	winAudio.SubmitAudioToBePlayed();
-	loseAudio.SubmitAudioToBePlayed();
+	// bgmAudio.SubmitAudioToBePlayed();
+	// winAudio.SubmitAudioToBePlayed();
+	// loseAudio.SubmitAudioToBePlayed();
 
 	// Monster
 	// ---------------------------
@@ -183,7 +183,7 @@ void eae6320::cMyGame::UpdateSimulationBasedOnTime(const float i_elapsedSecondCo
 	m_cascadedShadowManager.UpdateFrame(m_camera, m_lightCamera, testBox, i_elapsedSecondCount_sinceLastUpdate);
 
 
-	bgmAudio.Play();
+	// bgmAudio.Play();
 }
 
 void eae6320::cMyGame::SubmitGameObjectToGraphics(cGameObject& i_gameObject, const float i_elapsedSecondCount_systemTime, const float i_elapsedSecondCount_sinceLastSimulationUpdate)
@@ -837,13 +837,15 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	
 	m_directionalLights.push_back(directionalLight);
 
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 200; i++) {
 		eae6320::Graphics::sPointLight_deferred pointLight = eae6320::Graphics::sPointLight_deferred(
-			eae6320::Math::sVector(0.0f, 20.0f, 0.0f) +
-			eae6320::Math::sVector(12.0f, 0.0f, 35.0f * i),
+			eae6320::Math::sVector(0.0f, -5.0f, 0.0f) +
+			eae6320::Math::sVector((i%3) * 10.0f, (i % 2) * 15.0f, 15.0f * i/4),
 			1.0f,
-			eae6320::Math::sVector(((i+3) % 5) * 1.0f, (i % 5) * 1.0f, ((i + 6) % 5) * 1.0f),
-			40.0f);
+			eae6320::Math::sVector(((i % 7) + 1) * 0.65f, // Red: Repeats every 3 steps, scaled to [0, 1)
+				((i % 11) + 1) * 0.5f,  // Green: Repeats every 5 steps, scaled to [0, 1)
+				((i % 13) + 1) * 0.7f),  // Blue: Repeats every 7 steps, scaled to [0, 1)),
+			15.0f);
 
 		m_defer_points.push_back(pointLight);
 	}

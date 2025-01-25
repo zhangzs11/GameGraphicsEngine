@@ -132,7 +132,6 @@ SurfaceData ComputeSurfaceDataFromGBufferSample(uint2 posViewport)
 
 
     float2 gbufferDim;
-    // uint dummy;
     g_GBufferTextures_01.GetDimensions(gbufferDim.x, gbufferDim.y);
 
     float2 screenPixelOffset = float2(2.0f, -2.0f) / gbufferDim;

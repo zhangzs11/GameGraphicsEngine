@@ -52,11 +52,11 @@ namespace
 	// it must cache whatever is necessary in order to render a frame
 	struct sDataRequiredToRenderAFrame
 	{
-		RenderMode renderMode = RenderMode::Forward;
+		RenderMode renderMode = RenderMode::Deferred;
 
 		static constexpr size_t MAX_SUBMITTED_PAIRS = 100;
 		static constexpr size_t MAX_CASCADE_COUNT = 4;
-		static constexpr size_t MAX_DEFERRED_LIGHTS = 100;
+		static constexpr size_t MAX_DEFERRED_LIGHTS = 300;
 
 		eae6320::Graphics::ConstantBufferFormats::sFrame constantData_frame;
 		eae6320::Graphics::ConstantBufferFormats::sFrame_Deferred constantData_frame_deferred;

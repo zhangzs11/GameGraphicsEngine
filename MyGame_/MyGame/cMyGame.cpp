@@ -568,7 +568,7 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 		"data/Shaders/Vertex/skybox_VS.binshader",
 		"data/Shaders/Fragment/skybox_PS.binshader",
 		skybox_renderStateBits, 
-		"data/Textures/desertcube1024.bintexture", 
+		"data/Textures/grasscube1024.bintexture", 
 		eae6320::Graphics::eSamplerType::Linear);
 
 	if (!result)
@@ -838,17 +838,60 @@ eae6320::cResult eae6320::cMyGame::Initialize()
 	m_directionalLights.push_back(directionalLight);
 
 	for (int i = 0; i < 200; i++) {
+		float lightHeight = -5.0f;
+		float x = -4.0f + 5.0f * (i % 7);
+		float z = 0.0f + 11.0f * (i / 7);
+
+		eae6320::Math::sVector lightPosition(x, lightHeight, z);
+
+
 		eae6320::Graphics::sPointLight_deferred pointLight = eae6320::Graphics::sPointLight_deferred(
-			eae6320::Math::sVector(0.0f, -5.0f, 0.0f) +
-			eae6320::Math::sVector((i%3) * 10.0f, (i % 2) * 15.0f, 15.0f * i/4),
-			1.0f,
+			// eae6320::Math::sVector(-5.0f, -5.0f, 0.0f) +
+			// eae6320::Math::sVector((i % 5) * 10.0f, 1.0f * i/100 , 15.0f * i / 8),
+			lightPosition,
+			0.0f,
 			eae6320::Math::sVector(((i % 7) + 1) * 0.65f, // Red: Repeats every 3 steps, scaled to [0, 1)
 				((i % 11) + 1) * 0.5f,  // Green: Repeats every 5 steps, scaled to [0, 1)
 				((i % 13) + 1) * 0.7f),  // Blue: Repeats every 7 steps, scaled to [0, 1)),
-			15.0f);
+			10.5f);
 
 		m_defer_points.push_back(pointLight);
 	}
+
+	for (int i = 0; i < 10; i++) {
+		eae6320::Graphics::sPointLight_deferred pointLight = eae6320::Graphics::sPointLight_deferred(
+			eae6320::Math::sVector(5.0f + 6.0f * (i % 3), 0.0f + 15.0f * (i / 3) , 12.5f),
+			0.0f,
+			eae6320::Math::sVector(1.0f, // Red: Repeats every 3 steps, scaled to [0, 1)
+				1.0f,  // Green: Repeats every 5 steps, scaled to [0, 1)
+				0.0f),  // Blue: Repeats every 7 steps, scaled to [0, 1)),
+			12.5f);
+
+		m_defer_points.push_back(pointLight);
+	}
+
+	for (int i = 2; i < 10; i++) {		
+		eae6320::Graphics::sPointLight_deferred pointLight = eae6320::Graphics::sPointLight_deferred(
+			eae6320::Math::sVector(-5.0f, -12.0f, 30.0f) +
+			eae6320::Math::sVector(35.0f * (i % 2), 20.0f, 60.0f * (i / 2)),
+			0.0f,
+			eae6320::Math::sVector(0.0f, // Red
+				1.0f,                    // Green
+				0.0f),                   // Blue
+			25.5f);
+
+		m_defer_points.push_back(pointLight);
+	}
+
+	eae6320::Graphics::sPointLight_deferred pointLight = eae6320::Graphics::sPointLight_deferred(
+		eae6320::Math::sVector(-10.0f, 5.0f, 10.0f),
+		0.0f,
+		eae6320::Math::sVector(0.0f, // Red
+			1.0f,                    // Green
+			0.0f),                   // Blue
+		25.5f);
+
+	m_defer_points.push_back(pointLight);
 
 	// Initialize Camera
 	// -----------------

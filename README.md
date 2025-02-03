@@ -32,6 +32,7 @@ It features a modular **rendering framework**, multiple **rendering techniques**
   <img src="./images/0cb6c9ca5f84107edd3e04dcf15f1f9.jpg" width="45%" alt="Normal Mapping">
   <img src="./images/2fb0f2a2e9fad06f3ae4fa331d79d64.jpg" width="45%" alt="FXAA">
 </p>
+
 ---
 
 ### 3️⃣ Mesh Asset Data Pipeline  
